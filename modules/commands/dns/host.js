@@ -1,5 +1,5 @@
 import {ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
-import { CLOUDFLARE_IPS } from "../../data/constants.js";
+import { resolveProvider } from "../../utils.js";
 
 // ===================================================================
 //  host — A + AAAA + MX
@@ -67,8 +67,11 @@ export async function cmdHost(args) {
         if (mxd.some(d=>d.includes("google"))) ins.push({level:"INFO",text:"Mail: Google Workspace."});
         else if (mxd.some(d=>d.includes("microsoft")||d.includes("outlook"))) ins.push({level:"INFO",text:"Mail: Microsoft 365."});
     }
-    if ((aR.data?.Answer||[]).some(r=>r.type===1&&CLOUDFLARE_IPS.some(p=>(r.data||"").startsWith(p))))
-        ins.push({level:"INFO",text:"Behind Cloudflare."});
+    const firstA = (aR.data?.Answer||[]).find(r=>r.type===1);
+    if (firstA) {
+        const prov = await resolveProvider((firstA.data||"").trim());
+        if (prov) ins.push({level:"INFO",text:`Hosted by ${prov}.`});
+    }
 
     if (ins.length > 0) o += "\n";
     o += insights(ins);

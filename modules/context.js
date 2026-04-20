@@ -13,6 +13,7 @@ export const ContextManager = {
     _logoEl: null,
     _domainEl: null,
     _onTargetChanged: null,
+    _onTabChanged: null,
 
     async init() {
         this._barEl = document.getElementById("context-bar");
@@ -36,6 +37,14 @@ export const ContextManager = {
         this._onTargetChanged = fn;
     },
 
+    /**
+     * Register a callback for when the active browser tab changes.
+     * Used by terminal.js to show a discrete tab-switch notification.
+     */
+    onTabChanged(fn) {
+        this._onTabChanged = fn;
+    },
+
     async _requestDomain() {
         try {
             const response = await chrome.runtime.sendMessage({
@@ -52,6 +61,7 @@ export const ContextManager = {
     _updateDomain(domain) {
         if (this._isManual) return;
         if (domain === this.currentTarget) return;
+        const prev = this.currentTarget;
         this.currentTarget = domain;
 
         if (this._domainEl) {
@@ -62,6 +72,11 @@ export const ContextManager = {
             this._barEl.classList.remove("manual", "pulse");
             void this._barEl.offsetWidth;
             this._barEl.classList.add("pulse");
+        }
+
+        // Notify tab-change listener (discrete terminal notification)
+        if (prev && typeof this._onTabChanged === "function") {
+            this._onTabChanged(domain, prev);
         }
     },
 

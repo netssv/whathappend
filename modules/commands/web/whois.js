@@ -1,4 +1,4 @@
-import { ANSI, insights, resolveTargetDomain, toRegisteredDomain, cmdUsage, workerError, cmdError } from "../../formatter.js";
+import { ANSI, insights, resolveTargetDomain, toRegisteredDomain, isIPAddress, cmdUsage, workerError, cmdError } from "../../formatter.js";
 
 // ===================================================================
 //  whois
@@ -6,28 +6,56 @@ import { ANSI, insights, resolveTargetDomain, toRegisteredDomain, cmdUsage, work
 
 function extractRegistrar(entities) {
     if (!entities?.length) return "Unknown";
-    for (const e of entities) {
-        if (!e.roles?.includes("registrar")) continue;
-        if (e.vcardArray?.[1]) {
-            for (const p of e.vcardArray[1]) {
-                if (p[0] === "fn" && p[3]) return p[3];
+    // Search recursively through entities and sub-entities
+    const search = (list, role) => {
+        for (const e of list) {
+            if (e.roles?.includes(role)) {
+                if (e.vcardArray?.[1]) {
+                    for (const p of e.vcardArray[1]) {
+                        if (p[0] === "fn" && p[3]) return p[3];
+                    }
+                }
+                if (e.handle) return e.handle;
+            }
+            // Check nested entities
+            if (e.entities?.length) {
+                const found = search(e.entities, role);
+                if (found) return found;
             }
         }
-        if (e.handle) return e.handle;
-    }
-    return "Unknown";
+        return null;
+    };
+    return search(entities, "registrar") || search(entities, "registrant") || "Unknown";
 }
 
 export async function cmdWhois(args, flags = []) {
     const info = {};
     const raw = resolveTargetDomain(args[0], info);
-    if (!raw) return cmdUsage("whois", "<domain>");
+    if (!raw) return cmdUsage("whois", "<domain|ip>");
+
+    // ── IP WHOIS branch ──
+    if (isIPAddress(raw)) {
+        return await ipWhois(raw, flags);
+    }
+
     const domain = toRegisteredDomain(raw);
     const isShort = flags.includes("--short");
 
     const resp = await chrome.runtime.sendMessage({command:"whois",payload:{domain}});
     if (!resp) return workerError();
-    if (resp.error?.includes("404")) return cmdError(`No RDAP data for '${domain}'\n${ANSI.dim}Registry may not support RDAP.`);
+    if (resp.error?.includes("404") || resp.error?.includes("failed with HTTP")) {
+        // ccTLD or registry doesn't support RDAP — provide fallback
+        if (isShort) return ""; // silent fail for auto-target flow
+        const tld = domain.split(".").slice(1).join(".");
+        let o = `> whois ${domain}\n`;
+        o += `${ANSI.yellow}[WARN] .${tld} registry does not support RDAP.${ANSI.reset}\n`;
+        o += `${ANSI.dim}Many country-code TLDs (ccTLDs) don't have RDAP endpoints.${ANSI.reset}\n`;
+        o += insights([
+            {level:"INFO",text:`Lookup WHOIS: https://www.whois.com/whois/${domain}`},
+            {level:"INFO",text:`Alternative: https://who.is/whois/${domain}`},
+        ]);
+        return o;
+    }
     if (resp.error) return cmdError(resp.error);
 
     const d = resp.data;
@@ -35,9 +63,7 @@ export async function cmdWhois(args, flags = []) {
     // --short mode: compact Registrar + Expiry only (for auto-whois)
     if (isShort) {
         let o = "";
-        // Extract registrar name
         let registrar = extractRegistrar(d.entities);
-        // Extract expiry
         const expE = d.events?.find(e => e.eventAction === "expiration");
         if (expE) {
             const dd = Math.floor((new Date(expE.eventDate) - new Date()) / 864e5);
@@ -77,6 +103,32 @@ export async function cmdWhois(args, flags = []) {
     if (regE) { const dd=Math.floor((new Date()-new Date(regE.eventDate))/864e5); const y=Math.floor(dd/365); if(dd<90)ins.push({level:"WARN",text:`Only ${dd} days old. Low trust.`}); else ins.push({level:"INFO",text:`Age: ${y}y (${dd}d). ${y>=2?"Established.":"Building reputation."}`}); }
 
     ins.push({level:"INFO",text:`Test WHOIS: https://www.whois.com/whois/${domain}`});
+
+    o += insights(ins);
+    return o;
+}
+
+// ── IP WHOIS — RDAP /ip/ endpoint ──
+
+async function ipWhois(ip, flags) {
+    const isShort = flags.includes("--short");
+    const resp = await chrome.runtime.sendMessage({command:"ip-whois",payload:{ip}});
+    if (!resp) return workerError();
+    if (resp.error) return cmdError(`IP WHOIS failed for ${ip}\n${ANSI.dim}${resp.error}`);
+
+    const org = resp.org || "Unknown";
+
+    if (isShort) {
+        return `  ${ANSI.white}Owner:${ANSI.reset} ${org}`;
+    }
+
+    let o = `> whois ${ip}\n`;
+    o += `${ANSI.white}IP Address:${ANSI.reset} ${ip}\n`;
+    o += `${ANSI.white}Organization:${ANSI.reset} ${org}\n`;
+
+    const ins = [];
+    ins.push({level:"INFO",text:`Owner: ${org}`});
+    ins.push({level:"INFO",text:`Test WHOIS: https://www.whois.com/whois/${ip}`});
 
     o += insights(ins);
     return o;

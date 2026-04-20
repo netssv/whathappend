@@ -1,5 +1,6 @@
 import { ContextManager } from "./modules/context.js";
 import { executeCommand } from "./modules/engine.js";
+import { isIPAddress } from "./modules/formatter.js";
 import { pushHistory } from "./modules/state.js";
 import { initTerminalUI, showBanner, writePrompt, writeOutput, term } from "./modules/terminal/terminal-ui.js";
 import { initHeaderController } from "./modules/terminal/header-controller.js";
@@ -69,7 +70,7 @@ bootstrap();
 
 // Auto-Whois: When a manual target is set, run a short whois lookup
 ContextManager.onTargetChanged(async (domain) => {
-    if (!domain || isCommandProcessing()) return;
+    if (!domain || isCommandProcessing() || isIPAddress(domain)) return;
 
     term.write("\r\n");
     term.writeln(`\x1b[90m── Auto-WHOIS: ${domain} ──\x1b[0m`);
@@ -90,5 +91,13 @@ ContextManager.onTargetChanged(async (domain) => {
         term.writeln(`\x1b[31m[ERROR] Auto-WHOIS failed: ${err.message}\x1b[0m`);
     }
 
+    writePrompt();
+});
+
+// Tab-change notification: When the browser active tab changes, show a discrete notice
+ContextManager.onTabChanged((domain, prev) => {
+    if (isCommandProcessing()) return;
+    term.write("\r\n");
+    term.writeln(`\x1b[90m── Tab changed → \x1b[36m${domain}\x1b[90m ──\x1b[0m`);
     writePrompt();
 });

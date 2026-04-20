@@ -1,5 +1,5 @@
 import {ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
-import { CLOUDFLARE_IPS } from "../../data/constants.js";
+import { resolveProvider } from "../../utils.js";
 
 // ===================================================================
 //  web — Composite DNS + Headers + SSL
@@ -25,7 +25,8 @@ export async function cmdWeb(args) {
     const aAns = aR.data?.Answer || [];
     if (aAns.length) {
         for (const r of aAns) o += `${r.data||""}\n`;
-        if (aAns.some(r=>CLOUDFLARE_IPS.some(p=>(r.data||"").startsWith(p)))) ins.push({level:"INFO",text:"Cloudflare CDN."});
+        const prov = await resolveProvider((aAns[0].data||"").trim());
+        if (prov) ins.push({level:"INFO",text:`Hosted by ${prov}.`});
     } else o += `${ANSI.dim}(no records)${ANSI.reset}\n`;
 
     // ── HTTP Headers ──

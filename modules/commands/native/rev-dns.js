@@ -1,5 +1,5 @@
 import {ANSI, insights, resolveTargetDomain, isIPAddress, cmdUsage, cmdError, workerError } from "../../formatter.js";
-import { identifyHostingProvider } from "../../data/constants.js";
+import { resolveProvider } from "../../utils.js";
 
 // ===================================================================
 //  rev-dns — Reverse DNS via Google DoH (PTR record)
@@ -44,8 +44,8 @@ export async function cmdRevDNS(args) {
                 const hostname = (a.data || "").replace(/\.$/, "");
                 o += `${ANSI.white}${hostname}${ANSI.reset}\n`;
                 ins.push({ level: "PASS", text: `Hostname: ${hostname}` });
-                const provider = identifyHostingProvider(hostname);
-                if (provider) ins.push({ level: "INFO", text: `Hosting provider: ${provider}` });
+                const provider = await resolveProvider(ip);
+                if (provider) ins.push({ level: "INFO", text: `Owner: ${provider}` });
             }
         }
 

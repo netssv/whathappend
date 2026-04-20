@@ -1,6 +1,5 @@
 import { ANSI } from "../../formatter.js";
 import { toRegisteredDomain } from "../../formatter.js";
-import { CLOUDFLARE_IPS } from "../../data/constants.js";
 import { resolveProvider } from "../../utils.js";
 
 // ===================================================================
@@ -80,10 +79,7 @@ async function nsInsights(domain, ans, ins) {
     else ins.push({level:"PASS",text:`${ans.length} nameservers. Redundancy OK.`});
     
     const ns = ans.map(r=>(r.data||"").toLowerCase());
-    if (ns.some(d=>d.includes("cloudflare"))) ins.push({level:"INFO",text:"DNS: Cloudflare."});
-    else if (ns.some(d=>d.includes("awsdns"))) ins.push({level:"INFO",text:"DNS: AWS Route 53."});
-    else if (ns.some(d=>d.includes("google"))) ins.push({level:"INFO",text:"DNS: Google Cloud."});
-    else if (ns.length > 0) {
+    if (ns.length > 0) {
         const nsProv = await resolveProvider(ns[0].replace(/\.$/, ""));
         if (nsProv) ins.push({level:"INFO",text:`DNS: ${nsProv}.`});
     }
@@ -95,8 +91,6 @@ async function nsInsights(domain, ans, ins) {
 async function aInsights(domain, type, ans, ins) {
     if (ans.length===0) ins.push({level:"WARN",text:`No ${type} records.`});
     else if (ans.length>1) ins.push({level:"INFO",text:`${ans.length} IPs — load balancing or CDN.`});
-    if (type==="A"&&ans.some(r=>CLOUDFLARE_IPS.some(p=>(r.data||"").startsWith(p))))
-        ins.push({level:"INFO",text:"Cloudflare CDN/proxy detected."});
     // Resolve hosting provider for first IP
     if (ans.length > 0) {
         const firstIP = (ans[0].data || "").trim();

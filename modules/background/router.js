@@ -3,7 +3,7 @@ import { getActiveDomain } from "./tab-tracker.js";
 import { handleDNS } from "./handlers/dns.js";
 import { handleHTTPHeaders, handleFetchText } from "./handlers/http.js";
 import { handleSSL } from "./handlers/ssl.js";
-import { handleWHOIS } from "./handlers/whois.js";
+import { handleWHOIS, handleIPWhois } from "./handlers/whois.js";
 import { handlePing } from "./handlers/ping.js";
 import { handleRedirectTrace } from "./handlers/trace.js";
 import { handleGetPageHTML } from "./handlers/dom.js";
@@ -38,6 +38,9 @@ export function setupRouter() {
                 break;
             case "whois":
                 handleWHOIS(payload).then(sendResponse);
+                break;
+            case "ip-whois":
+                handleIPWhois(payload).then(sendResponse);
                 break;
             case "ping":
                 handlePing(payload).then(sendResponse);
