@@ -1,0 +1,11 @@
+/* =========================================================================
+ * WhatHappened — Terminal Theme
+ * Dark/hacker aesthetic with ANSI color support for xterm.js
+ * Optimized for Chrome Side Panel narrow viewport
+ * ========================================================================= */
+
+@import url('styles/variables.css');
+@import url('styles/base.css');
+@import url('styles/components/context-bar.css');
+@import url('styles/components/terminal.css');
+@import url('styles/components/scrollbar.css');

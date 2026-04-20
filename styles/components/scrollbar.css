@@ -1,0 +1,29 @@
+/* -------------------------------------------------------------------------
+ * Custom Scrollbar — Minimal, rounded, with hover glow
+ * Replaces the broken-looking default browser scrollbar
+ * ------------------------------------------------------------------------- */
+
+.xterm-viewport::-webkit-scrollbar {
+    width: 5px;
+}
+
+.xterm-viewport::-webkit-scrollbar-track {
+    background: var(--bg-main);
+    border-radius: 6px;
+}
+
+.xterm-viewport::-webkit-scrollbar-thumb {
+    background: var(--bg-scrollbar-thumb);
+    border-radius: 6px;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.xterm-viewport::-webkit-scrollbar-thumb:hover {
+    background: var(--bg-scrollbar-thumb-hover);
+    box-shadow: 0 0 4px var(--accent-green-shadow-med);
+}
+
+.xterm-viewport::-webkit-scrollbar-thumb:active {
+    background: var(--bg-scrollbar-thumb-active);
+    box-shadow: 0 0 6px var(--accent-green-shadow-heavy);
+}

@@ -1,0 +1,42 @@
+:root {
+    /* Backgrounds */
+    --bg-main: #0a0a0a;
+    --bg-panel: #111111;
+    --bg-panel-border: #1a1a1a;
+    --bg-active: #0d1210;
+    --bg-active-border: #1e3a2a;
+    --bg-active-pulse: #112218;
+    
+    --bg-input-focus: #0d1a12;
+    --bg-btn: #161616;
+    --bg-btn-hover: #222;
+    --bg-btn-active: #1a1a1a;
+    --bg-scrollbar-thumb: #2a2a2a;
+    --bg-scrollbar-thumb-hover: #404040;
+    --bg-scrollbar-thumb-active: #4a4a4a;
+
+    /* Text Colors */
+    --text-dim: #737373;
+    --text-light: #a0a0a0;
+    --text-bright: #d4d4d4;
+    --text-dark: #3a3a3a;
+    --text-btn: #888;
+
+    /* Accents (Green) */
+    --accent-green: #00ff88;
+    --accent-green-alpha: #00ff8866;
+    --accent-green-alpha-light: #00ff8844;
+    --accent-green-glow: rgba(0, 255, 136, 0.5);
+    --accent-green-selection: rgba(0, 255, 136, 0.18);
+    --accent-green-shadow-light: rgba(0, 255, 136, 0.04);
+    --accent-green-shadow-med: rgba(0, 255, 136, 0.15);
+    --accent-green-shadow-heavy: rgba(0, 255, 136, 0.25);
+
+    /* Accents (Yellow) */
+    --accent-yellow: #ffd866;
+    --accent-yellow-alpha: #ffd86633;
+    --accent-yellow-glow: rgba(255, 216, 102, 0.6);
+
+    /* Typography */
+    --font-mono: "Source Code Pro", "Fira Code", "Cascadia Code", "Consolas", monospace;
+}

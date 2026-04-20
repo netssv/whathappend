@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WhatHappened Terminal</title>
+
+    <!-- xterm.js v5 local bundle (UMD — must be classic scripts) -->
+    <link rel="stylesheet" href="lib/xterm.min.css" />
+    <script src="lib/xterm.min.js"></script>
+    <script src="lib/addon-fit.min.js"></script>
+    <script src="lib/addon-web-links.min.js"></script>
+
+    <!-- Custom theme -->
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body style="display:flex;flex-direction:column;height:100%;">
+    <!-- Active tab context display with logo -->
+    <div id="context-bar">
+        <img id="context-logo" src="icons/icon.svg" alt="WH" width="16" height="16" />
+        <input id="context-domain" type="text" value="No active target" readonly spellcheck="false" autocomplete="off" />
+        <div id="font-controls">
+            <button id="font-decrease" title="Decrease font size (min 10px)">−</button>
+            <button id="font-increase" title="Increase font size (max 20px)">+</button>
+        </div>
+        <span id="context-version">v2.0.0</span>
+    </div>
+
+    <div id="terminal-container"></div>
+
+    <!-- Application entry point (ES Module) -->
+    <script type="module" src="terminal-main.js"></script>
+</body>
+
+</html>

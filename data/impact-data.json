@@ -1,0 +1,166 @@
+{
+    "dns": [
+        {
+            "pattern": "NXDOMAIN",
+            "severity": "high",
+            "business_impact": "Domain does not resolve. All web traffic, email delivery, and API integrations are completely offline. Customers cannot reach your website or services.",
+            "recommendation": "Verify DNS zone configuration with your registrar. Ensure the domain has not expired and nameservers are correctly delegated."
+        },
+        {
+            "pattern": "SERVFAIL",
+            "severity": "high",
+            "business_impact": "DNS server failure indicates authoritative nameservers are unreachable or misconfigured. Intermittent outages will degrade user trust and harm SEO rankings.",
+            "recommendation": "Check nameserver health. Consider migrating to a managed DNS provider with built-in redundancy (e.g., Cloudflare, AWS Route53)."
+        },
+        {
+            "pattern": "NO ANSWER RECORDS",
+            "severity": "high",
+            "business_impact": "Email delivery is broken if this happens for MX, or no web traffic if A record. Inbound messages will bounce, impacting customer communication.",
+            "recommendation": "Configure the necessary DNS records (MX, A, etc.) pointing to your provider."
+        },
+        {
+            "pattern": "no SPF",
+            "severity": "medium",
+            "business_impact": "Without an SPF record, email from your domain is vulnerable to spoofing. This increases phishing risk and may cause legitimate emails to land in spam folders, reducing marketing campaign effectiveness.",
+            "recommendation": "Add a TXT record with a valid SPF policy (e.g., v=spf1 include:_spf.google.com ~all)."
+        },
+        {
+            "pattern": "no DMARC",
+            "severity": "medium",
+            "business_impact": "Missing DMARC policy means you have no visibility into email authentication failures and no enforcement against spoofing. This is a compliance gap for industries requiring email security standards.",
+            "recommendation": "Publish a DMARC TXT record at _dmarc.yourdomain.com starting with p=none for monitoring, then escalate to p=quarantine or p=reject."
+        },
+        {
+            "pattern": "multiple A records",
+            "severity": "low",
+            "business_impact": "Multiple A records may indicate round-robin DNS load balancing, which is acceptable. However, verify all IPs are active to avoid sending users to dead endpoints.",
+            "recommendation": "Confirm all listed IP addresses are serving content. Remove stale records."
+        }
+    ],
+    "ssl": [
+        {
+            "pattern": "EXPIRED",
+            "severity": "high",
+            "business_impact": "Expired SSL certificate triggers browser security warnings that block visitors. Conversion rates drop drastically as users perceive the site as unsafe. Google will also demote the site in search rankings.",
+            "recommendation": "Renew the certificate immediately. Enable auto-renewal via your CA or use Let's Encrypt with certbot for automated management."
+        },
+        {
+            "pattern": "self-signed",
+            "severity": "high",
+            "business_impact": "Self-signed certificates are not trusted by browsers. Visitors will see a full-page security warning, destroying trust and causing near-total traffic loss.",
+            "recommendation": "Replace with a certificate from a trusted Certificate Authority. Free options include Let's Encrypt."
+        },
+        {
+            "pattern": "EXPIRES in",
+            "severity": "medium",
+            "business_impact": "Certificate expiring within 30 days poses an imminent risk of outage. If renewal fails, the site will display security errors, halting all secure transactions.",
+            "recommendation": "Renew the certificate now. Set up monitoring alerts for certificate expiration dates."
+        },
+        {
+            "pattern": "TLS 1.0",
+            "severity": "medium",
+            "business_impact": "TLS 1.0 is deprecated and vulnerable to known attacks (BEAST, POODLE). PCI DSS compliance requires TLS 1.2 minimum. Using outdated protocols may result in audit failures and data breach liability.",
+            "recommendation": "Disable TLS 1.0 and 1.1 on the server. Configure TLS 1.2 as the minimum supported version, with TLS 1.3 preferred."
+        },
+        {
+            "pattern": "TLS 1.1",
+            "severity": "medium",
+            "business_impact": "TLS 1.1 is deprecated. Major browsers no longer support it, meaning some users may be unable to connect. This also fails PCI DSS compliance requirements.",
+            "recommendation": "Upgrade server configuration to require TLS 1.2 or higher."
+        },
+        {
+            "pattern": "mismatch",
+            "severity": "high",
+            "business_impact": "Certificate hostname mismatch causes browsers to reject the connection entirely. Users cannot access the site, and automated systems (APIs, webhooks) will fail SSL verification.",
+            "recommendation": "Reissue the certificate with the correct Subject Alternative Names (SANs) covering all domains and subdomains in use."
+        }
+    ],
+    "http": [
+        {
+            "pattern": "strict-transport-security (hsts)",
+            "severity": "medium",
+            "business_impact": "Without HTTP Strict Transport Security, users may connect over insecure HTTP on first visit, exposing session cookies and credentials to man-in-the-middle attacks.",
+            "recommendation": "Add the Strict-Transport-Security header with a max-age of at least 31536000 (1 year). Consider HSTS preloading."
+        },
+        {
+            "pattern": "x-frame-options",
+            "severity": "medium",
+            "business_impact": "Missing X-Frame-Options header allows the site to be embedded in iframes on malicious domains, enabling clickjacking attacks that can steal user credentials or trigger unwanted actions.",
+            "recommendation": "Set X-Frame-Options to DENY or SAMEORIGIN. Alternatively, use Content-Security-Policy frame-ancestors directive."
+        },
+        {
+            "pattern": "content-security-policy (csp)",
+            "severity": "medium",
+            "business_impact": "Without CSP, the site is vulnerable to cross-site scripting (XSS) and data injection attacks. A successful attack can compromise user data, deface the site, and damage brand reputation.",
+            "recommendation": "Implement a Content-Security-Policy header. Start with report-only mode to identify violations before enforcing."
+        },
+        {
+            "pattern": "missing security headers:",
+            "severity": "medium",
+            "business_impact": "Missing fundamental security headers leaves the site highly exposed to various attacks including XSS, Clickjacking, and MIME-sniffing exploits.",
+            "recommendation": "Implement a comprehensive security header posture (HSTS, CSP, X-Frame-Options, X-Content-Type-Options)."
+        },
+        {
+            "pattern": "server header exposed:",
+            "severity": "low",
+            "business_impact": "Exposing the server software and version provides attackers with reconnaissance data to target known vulnerabilities specific to that software version.",
+            "recommendation": "Remove or obfuscate the Server header in your web server configuration."
+        },
+        {
+            "pattern": "x-powered-by header exposed:",
+            "severity": "low",
+            "business_impact": "The X-Powered-By header reveals the backend technology stack, making it easier for attackers to craft targeted exploits.",
+            "recommendation": "Remove the X-Powered-By header. In Express.js, use app.disable('x-powered-by'). In PHP, set expose_php = Off."
+        },
+        {
+            "pattern": " 301 ",
+            "severity": "low",
+            "business_impact": "Permanent redirect detected. Ensure redirect chains are minimal (ideally one hop) to preserve SEO link equity and reduce page load time.",
+            "recommendation": "Audit redirect chains. Update internal links and canonical URLs to point directly to final destinations."
+        },
+        {
+            "pattern": " 302 ",
+            "severity": "low",
+            "business_impact": "Temporary redirect detected. If this should be permanent, using 302 instead of 301 prevents search engines from transferring link equity to the destination URL, weakening SEO.",
+            "recommendation": "If the redirect is permanent, change to a 301. Reserve 302 for genuinely temporary redirects."
+        },
+        {
+            "pattern": " 404 ",
+            "severity": "medium",
+            "business_impact": "Page not found. Broken links degrade user experience, increase bounce rate, and waste crawl budget. Accumulated 404 errors signal poor site maintenance to search engines.",
+            "recommendation": "Fix or redirect broken URLs. Implement a custom 404 page with navigation to help users find relevant content."
+        },
+        {
+            "pattern": " 500 ",
+            "severity": "high",
+            "business_impact": "Internal server error indicates a backend crash or misconfiguration. Users cannot complete transactions, and repeated 500 errors will cause Google to deindex affected pages.",
+            "recommendation": "Check server logs immediately. Common causes: application exceptions, database connection failures, or resource exhaustion."
+        },
+        {
+            "pattern": " 503 ",
+            "severity": "high",
+            "business_impact": "Service unavailable. The server is overloaded or under maintenance. Prolonged 503 status will trigger search engine deindexing and customer churn.",
+            "recommendation": "If planned maintenance, ensure Retry-After header is set. If unexpected, investigate server load, scaling, and upstream dependencies."
+        }
+    ],
+    "whois": [
+        {
+            "pattern": "expires",
+            "severity": "high",
+            "business_impact": "Domain expiring within 30 days risks complete loss of the domain name. If it lapses, competitors or squatters can register it, causing catastrophic brand damage and SEO loss.",
+            "recommendation": "Renew the domain immediately. Enable auto-renewal and ensure registrar payment methods are up to date."
+        },
+        {
+            "pattern": "recently registered",
+            "severity": "low",
+            "business_impact": "Newly registered domains (under 6 months) often have lower trust scores with search engines. This can result in slower SEO indexing and reduced email deliverability during the initial period.",
+            "recommendation": "Focus on building domain authority through quality backlinks and consistent content publishing. Ensure all DNS and email authentication records are properly configured from day one."
+        },
+        {
+            "pattern": "privacy protected",
+            "severity": "low",
+            "business_impact": "WHOIS privacy protection hides registrant details, which is standard practice. However, for business domains, having verifiable contact information can increase trust with partners and customers.",
+            "recommendation": "No action required for most cases. For B2B organizations, consider whether transparent WHOIS data adds credibility."
+        }
+    ]
+}

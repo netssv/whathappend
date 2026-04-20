@@ -1,0 +1,57 @@
+/* -------------------------------------------------------------------------
+ * Terminal Container
+ * Asymmetric padding: tight right side for scrollbar clearance
+ * ------------------------------------------------------------------------- */
+
+#terminal-container {
+    width: 100%;
+    flex: 1 1 auto;
+    padding: 4px 2px 4px 4px;
+    background: var(--bg-main);
+    box-shadow: inset 0 0 20px var(--accent-green-shadow-light);
+    position: relative;
+    overflow: hidden;
+    cursor: text;
+}
+
+/* CRT scanline overlay — constrained to avoid scrollbar gutter */
+#terminal-container::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 8px;  /* avoid overlapping scrollbar gutter */
+    background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.15) 50%
+    );
+    background-size: 100% 4px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------
+ * xterm.js Overrides — Overflow & Word-Wrap
+ * ------------------------------------------------------------------------- */
+
+/* Prevent horizontal scroll; force soft-wrap for long DNS strings / TXT records */
+.xterm-viewport {
+    overflow-x: hidden !important;
+}
+
+.xterm-screen {
+    width: 100% !important;
+    white-space: pre-wrap;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+/* -------------------------------------------------------------------------
+ * Selection Styling
+ * ------------------------------------------------------------------------- */
+
+.xterm .xterm-selection div {
+    background-color: var(--accent-green-selection) !important;
+}
