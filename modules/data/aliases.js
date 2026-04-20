@@ -53,6 +53,8 @@ export const CMD_ALIASES = {
     "tracking": "pixels", "trackers": "pixels", "pixel": "pixels", "ads": "pixels",
     // stack / tech
     "tech": "stack", "techstack": "stack", "wappalyzer": "stack", "cms": "stack",
+    // load / performance
+    "perf": "load", "performance": "load", "speed": "load", "pagespeed": "load", "timing": "load",
 };
 
 export const ALL_KNOWN_CMDS = [
@@ -63,5 +65,5 @@ export const ALL_KNOWN_CMDS = [
     "dkim", "robots", "sec", "target", "help", "clear",
     "rev-dns", "port-scan", "ftp-check", "export",
     "blacklist", "ssllabs", "securityheaders", "whois-ext",
-    "errors", "pixels", "stack",
+    "errors", "pixels", "stack", "load",
 ].filter(c => /^[a-z]/i.test(c));

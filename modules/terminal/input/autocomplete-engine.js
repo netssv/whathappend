@@ -19,6 +19,7 @@ const AVAILABLE_COMMANDS = [
     "dump", "report", "save",
     "pixels", "tracking", "trackers", "pixel", "ads",
     "stack", "tech", "techstack", "wappalyzer", "cms",
+    "load", "perf", "performance", "speed", "pagespeed", "timing",
 ];
 
 // Commands that accept a domain parameter (for auto-filling)
@@ -37,6 +38,7 @@ const DOMAIN_COMMANDS = [
     "bl", "rbl", "ssltest", "sheaders", "icann",
     "pixels", "tracking", "trackers", "pixel", "ads",
     "stack", "tech", "techstack", "wappalyzer", "cms",
+    "load", "perf", "performance", "speed", "pagespeed", "timing",
 ];
 
 let tabCycleMatches = [];

@@ -44,6 +44,7 @@ We only link to highly credible, industry-standard tools. We **never** send your
 | **DNS** | `dig` `host` `nslookup` `a` `aaaa` `mx` `txt` `ns` `cname` `soa` `ttl` | Native DNS queries (via Google DoH). |
 | **Email** | `spf` `dmarc` `dkim` | Email security checks. |
 | **Web** | `curl` `openssl` `whois` `ping` `trace` `robots` | HTTP requests, certs, and basic routing. |
+| **Analysis** | `pixels` `load` `stack` | Tracking pixel detection, page load performance (Core Web Vitals), and tech stack fingerprinting. |
 | **External** | `blacklist` `ssllabs` `securityheaders` `whois-ext` | Generates safe, clickable links to the credible tools mentioned above. |
 
 *(Type `help` in the terminal for the full list, or append `?` to a command like `email?` for details).*
@@ -60,15 +61,18 @@ Chrome Extension
  │    └── modules/engine.js (routes your commands)
  └── background.js (Service Worker)
       ├── dns.google (DNS lookups)
-      ├── crt.sh (Certificate Transparency)
-      └── rdap.org (WHOIS data)
+      ├── rdap.org (WHOIS + IP owner detection)
+      └── chrome.scripting (Live DOM scan, Performance API)
 ```
+
+All provider detection (IP owners, NS operators, registrars) is **100% dynamic** via RDAP. There are no static IP databases to maintain — the extension queries the global RDAP registry in real-time.
 
 ### Permissions we ask for (and why)
 
 - `activeTab` & `tabs`: So we know what website you're currently looking at to set the default target.
 - `sidePanel`: Because the terminal lives there.
 - `storage`: To save your terminal history and preferences locally.
+- `scripting`: To read live DOM content and Performance API timing data from the active tab (for `pixels` and `load` commands).
 - `host_permissions`: We need access to `https://dns.google/*`, `https://rdap.org/*`, and `https://crt.sh/*` to run the diagnostic queries. We also ask for general `http://*/*` and `https://*/*` to fetch headers from the sites you are auditing.
 
 ## Keyboard Shortcuts

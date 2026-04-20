@@ -7,6 +7,7 @@ import { handleWHOIS, handleIPWhois } from "./handlers/whois.js";
 import { handlePing } from "./handlers/ping.js";
 import { handleRedirectTrace } from "./handlers/trace.js";
 import { handleGetPageHTML } from "./handlers/dom.js";
+import { handleGetPerfTiming } from "./handlers/perf.js";
 import { handlePortProbe } from "./handlers/port.js";
 import { handleExportHistory } from "./handlers/export.js";
 
@@ -53,6 +54,9 @@ export function setupRouter() {
                 break;
             case "get-page-html":
                 handleGetPageHTML(payload).then(sendResponse);
+                break;
+            case "get-perf-timing":
+                handleGetPerfTiming().then(sendResponse);
                 break;
             case "get-active-domain":
                 getActiveDomain().then(sendResponse);

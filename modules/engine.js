@@ -18,7 +18,7 @@ import { handleAutoTarget } from "./core/fallback.js";
 // Command modules
 import { cmdDig, cmdHost, cmdNslookup, cmdTTL } from "./commands/dns/index.js";
 import { cmdEmail, cmdSPF, cmdDMARC, cmdDKIM } from "./commands/email/index.js";
-import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels } from "./commands/web/index.js";
+import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad } from "./commands/web/index.js";
 import { cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "./commands/native/index.js";
 import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors } from "./commands/util/index.js";
 import { cmdStack } from "./commands/stack/index.js";
@@ -72,6 +72,7 @@ export async function executeCommand(input) {
                 case "robots": output = await cmdRobots(args); break;
                 case "sec": output = await cmdSec(args); break;
                 case "pixels": output = await cmdPixels(args); break;
+                case "load": output = await cmdLoad(args); break;
                 case "stack": output = await cmdStack(args); break;
                 case "rev-dns": output = await cmdRevDNS(args); break;
                 case "port-scan": output = await cmdPortScan(args); break;

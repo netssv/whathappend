@@ -57,18 +57,19 @@ export async function cmdPixels(args) {
     let fetchMethod = "";
 
     try {
-        if (info.autoTargeted) {
-            // Wait 2s for dynamic scripts to load before scanning live DOM
-            o += `${ANSI.dim}Waiting 2s for scripts to load...${ANSI.reset}\n`;
-            await new Promise(r => setTimeout(r, 2000));
+        // Always try Live DOM scan first (needs 'scripting' permission)
+        o += `${ANSI.dim}Waiting 2s for scripts to load...${ANSI.reset}\n`;
+        await new Promise(r => setTimeout(r, 2000));
+        try {
             const domResp = await chrome.runtime.sendMessage({ command: "get-page-html" });
             if (domResp?.success && domResp.data?.html && domResp.data.url.includes(domain)) {
                 html = domResp.data.html.toLowerCase();
                 fetchMethod = "Live DOM scan (active tab)";
                 o += `${ANSI.dim}Scanning Live Rendered DOM for tracking pixels & scripts...${ANSI.reset}\n\n`;
             }
-        }
+        } catch (_) {}
 
+        // Fallback: static HTML fetch if Live DOM unavailable
         if (!html) {
             const resp = await chrome.runtime.sendMessage({
                 command: "fetch-text",
@@ -114,12 +115,25 @@ export async function cmdPixels(args) {
             o += `${ANSI.dim}  No tracking pixels detected in ${fetchMethod.toLowerCase()}.${ANSI.reset}\n`;
         }
 
+        // SPA / React / Block detection
+        const isStatic = fetchMethod === "Static HTML source scan";
+        const isSPA = isStatic && (html.includes('id="__next"') || html.includes('id="root"') || html.includes('__react') || html.includes('nuxt-'));
+        const isBlocked = isStatic && (html.includes('cloudflare-nginx') || html.includes('enable cookies') || html.includes('security check'));
+
         o += `\n${ANSI.dim}Executed: ${fetchMethod} (${PIXEL_SIGNATURES.length} signatures)${ANSI.reset}`;
 
         // Insights
         const ins = [];
         if (found.length === 0) {
-            ins.push({level:"INFO",text:"No client-side trackers found. Could use server-side tracking."});
+            if (isSPA) {
+                ins.push({level:"WARN",text:"Site is a Single Page App (React/Vue). Trackers load via JS."});
+                ins.push({level:"INFO",text:"Open the site in your browser and run 'pixels' again for a live DOM scan."});
+            } else if (isBlocked) {
+                ins.push({level:"WARN",text:"Fetch blocked by WAF (Cloudflare, etc). Static scan failed."});
+                ins.push({level:"INFO",text:"Open the site in your browser and run 'pixels' again for a live DOM scan."});
+            } else {
+                ins.push({level:"INFO",text:"No client-side trackers found. Could use server-side tracking."});
+            }
         } else {
             ins.push({level:"INFO",text:`${found.length} tracker(s) detected.`});
         }

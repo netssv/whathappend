@@ -7,3 +7,4 @@ export { cmdRobots } from "./robots.js";
 export { cmdSec } from "./sec.js";
 export { cmdPixels } from "./pixels.js";
 export { cmdWeb } from "./web.js";
+export { cmdLoad } from "./load.js";

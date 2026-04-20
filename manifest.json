@@ -8,6 +8,7 @@
         "tabs",
         "sidePanel",
         "storage",
+        "scripting",
         "clipboardRead"
     ],
     "host_permissions": [

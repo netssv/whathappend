@@ -31,9 +31,9 @@ The extension makes network requests **only** to the following public infrastruc
 | Endpoint | Purpose | Data Sent |
 |----------|---------|-----------|
 | `dns.google` | DNS-over-HTTPS lookups | Domain name you are querying |
-| `rdap.org` | WHOIS/RDAP registry data | Domain name you are querying |
-| `api.certspotter.com` | Certificate Transparency logs | Domain name you are querying |
+| `rdap.org` | WHOIS/RDAP registry data, IP owner detection | Domain or IP you are querying |
 | User-specified URLs | HTTP header inspection, ping, trace | The URL you typed into the terminal |
+| `chrome.scripting` (local) | Live DOM scan, Performance API | No data sent — reads from the active tab locally |
 
 No background requests are made without user action. No data is cached on remote servers.
 
@@ -48,6 +48,7 @@ Some commands generate clickable links to third-party diagnostic tools (Qualys S
 | `activeTab` + `tabs` | To detect the domain of the website you are currently viewing, so the terminal can auto-target it. |
 | `sidePanel` | The terminal UI lives in Chrome's Side Panel. |
 | `storage` | To persist your terminal command history and font preferences locally. |
+| `scripting` | To execute read-only scripts on the active tab for Live DOM scanning (`pixels`) and Performance API timing (`load`). No data is modified or transmitted. |
 | `clipboardRead` | To support pasting text into the terminal. |
 | `host_permissions` | To fetch HTTP headers, DNS data, and WHOIS information from the domains you are auditing. |
 
