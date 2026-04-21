@@ -1,9 +1,8 @@
 import { ContextManager } from "./modules/context.js";
-import { executeCommand } from "./modules/engine.js";
 import { isIPAddress } from "./modules/formatter.js";
 import { pushHistory } from "./modules/state.js";
-import { initTerminalUI, showBanner, writePrompt, writeOutput, term } from "./modules/terminal/terminal-ui.js";
-import { initHeaderController } from "./modules/terminal/header-controller.js";
+import { initTerminalUI, showBanner, writePrompt, term } from "./modules/terminal/terminal-ui.js";
+import { initHeaderController, updateWhoisFields, clearWhoisFields } from "./modules/terminal/header-controller.js";
 import { initInputManager, isCommandProcessing } from "./modules/terminal/input/index.js";
 import { InputEvents } from "./modules/terminal/input/events.js";
 import { setKeyboardLock } from "./modules/terminal/input/keyboard-events.js";
@@ -68,35 +67,46 @@ bootstrap();
 
 
 
-// Auto-Whois: When a manual target is set, run a short whois lookup
-ContextManager.onTargetChanged(async (domain) => {
-    if (!domain || isCommandProcessing() || isIPAddress(domain)) return;
+// Async WHOIS: When a manual target is set, fire-and-forget a WHOIS lookup
+// directly to the background handler and update the header bar with pre-parsed fields.
+// The terminal prompt is NOT blocked.
+ContextManager.onTargetChanged((domain) => {
+    if (!domain || isIPAddress(domain)) return;
 
-    term.write("\r\n");
-    term.writeln(`\x1b[90m── Auto-WHOIS: ${domain} ──\x1b[0m`);
+    // Clear stale badges immediately
+    clearWhoisFields();
 
-    try {
-        // executeCommand does not manage isProcessing here, 
-        // but inputManager protects against concurrent typing
-        const output = await executeCommand(`whois ${domain} --short`);
-        if (output && output !== "__CLEAR__") {
-            writeOutput(output);
-            pushHistory({
-                timestamp: new Date().toISOString(),
-                command: `[auto] whois ${domain} --short`,
-                output: output,
-            });
-        }
-    } catch (err) {
-        term.writeln(`\x1b[31m[ERROR] Auto-WHOIS failed: ${err.message}\x1b[0m`);
-    }
+    // Fire-and-forget — call background handler directly (no command engine overhead)
+    chrome.runtime.sendMessage({ command: "whois", payload: { domain } })
+        .then(resp => {
+            if (!resp?.success) return;
 
-    writePrompt();
+            // Use pre-parsed fields from the background handler
+            updateWhoisFields(resp.registrar || null, resp.expiry || null);
+
+            // Log to history for export
+            const summary = [
+                resp.registrar ? `Registrar: ${resp.registrar}` : null,
+                resp.expiry ? `Expiry: ${resp.expiry}` : null,
+            ].filter(Boolean).join(" | ");
+
+            if (summary) {
+                pushHistory({
+                    timestamp: new Date().toISOString(),
+                    command: `[auto] whois ${domain}`,
+                    output: summary,
+                });
+            }
+        })
+        .catch(() => {
+            // Silent fail — header stays empty
+        });
 });
 
 // Tab-change notification: When the browser active tab changes, show a discrete notice
 ContextManager.onTabChanged((domain, prev) => {
     if (isCommandProcessing()) return;
+    clearWhoisFields(); // Clear old badges on tab switch
     term.write("\r\n");
     term.writeln(`\x1b[90m── Tab changed → \x1b[36m${domain}\x1b[90m ──\x1b[0m`);
     writePrompt();

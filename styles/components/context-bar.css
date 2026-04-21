@@ -90,6 +90,40 @@
 }
 
 /* -------------------------------------------------------------------------
+ * Context Meta — Async WHOIS Registrar / Expiry badges
+ * ------------------------------------------------------------------------- */
+
+.context-meta {
+    font-size: 10px;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.context-meta:not(:empty) {
+    opacity: 1;
+}
+
+.context-meta:not(:empty)::before {
+    content: "│";
+    margin: 0 4px;
+    color: var(--text-dark);
+}
+
+.context-meta.expiry-warn {
+    color: var(--accent-yellow);
+}
+
+.context-meta.expiry-crit {
+    color: var(--accent-red, #ff5555);
+}
+
+/* -------------------------------------------------------------------------
  * Font Size Controls — [−] [+]
  * ------------------------------------------------------------------------- */
 

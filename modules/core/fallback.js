@@ -61,12 +61,13 @@ export async function handleAutoTarget(cmd, args, opts) {
             // Extract registrar from WHOIS --short output
             let registrarProvider = null;
             if (wOut) {
+                const REG_KEY = /(?:Sponsoring\s+)?Registrar(?:\s+Name)?:|Owner:/i;
                 const lines = wOut.split('\n');
                 for (const l of lines) {
-                    if (l.includes('Registrar:') || l.includes('Owner:')) {
-                        const noAnsi = l.replace(REGEX.ANSI_STRIP, "");
-                        const key = noAnsi.includes('Registrar:') ? 'Registrar:' : 'Owner:';
-                        const regName = noAnsi.split(key)[1]?.trim() || "";
+                    const noAnsi = l.replace(REGEX.ANSI_STRIP, "");
+                    const m = noAnsi.match(REG_KEY);
+                    if (m) {
+                        const regName = noAnsi.slice(m.index + m[0].length).trim();
                         if (regName && regName !== "Unknown" && regName !== "Not available") {
                             registrarProvider = regName;
                         }
@@ -118,12 +119,12 @@ export async function handleAutoTarget(cmd, args, opts) {
             if (stackParts.length >= 1) {
                 const provs = [registrarProvider, dnsProvider, webProvider].filter(Boolean);
                 const allSame = provs.length >= 2 && provs.every(p => p === provs[0]);
-                const manual = `${ANSI.dim}Manual check${ANSI.reset}`;
+                const unknown = `${ANSI.dim}[?]${ANSI.reset}`;
 
                 let delO = `\n${ANSI.cyan}${ANSI.bold}[INFO] Domain Delegation:${ANSI.reset}`;
-                delO += `\n       ${ANSI.white}Registrar${ANSI.reset} ━ ${registrarProvider || manual}`;
-                delO += `\n       ${ANSI.white}NameSrvs${ANSI.reset}  ━ ${dnsProvider || manual}`;
-                delO += `\n       ${ANSI.white}Web Host${ANSI.reset}  ━ ${webProvider || manual}`;
+                delO += `\n       ${ANSI.white}Registrar${ANSI.reset} ━ ${registrarProvider || unknown}`;
+                delO += `\n       ${ANSI.white}NameSrvs${ANSI.reset}  ━ ${dnsProvider || unknown}`;
+                delO += `\n       ${ANSI.white}Web Host${ANSI.reset}  ━ ${webProvider || unknown}`;
                 
                 if (allSame) {
                     delO += `\n       ${ANSI.green}↳ Consolidated Stack (${provs[0]})${ANSI.reset}`;

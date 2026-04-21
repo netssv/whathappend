@@ -38,7 +38,10 @@ export async function cmdDig(args, options = {}) {
 
     const resp = await chrome.runtime.sendMessage({command:"dns",payload:{domain,type:recordType}});
     if (!resp) return workerError();
-    if (resp.error) return cmdError(resp.error);
+    if (resp.error && !resp.data) return cmdError(resp.error);
+
+    // SERVFAIL after retry — show partial data + critical insight
+    const isServfail = resp.retried && resp.error;
     const data = resp.data;
     let o = "";
 

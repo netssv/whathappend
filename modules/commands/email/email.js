@@ -64,8 +64,6 @@ export async function cmdEmail(args) {
             if (prov) o += `  ${ANSI.dim}(${prov})${ANSI.reset}`;
             o += `\n`;
         }
-    } else {
-        o += `${ANSI.dim}(none found)${ANSI.reset}\n`;
     }
 
     // ── Insights ──

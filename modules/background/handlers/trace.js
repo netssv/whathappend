@@ -1,5 +1,6 @@
 import { createAbort, completeAbort, getNextAbortSeq } from "../abort.js";
 import { ensureProtocol } from "../../utils.js";
+import { classifyFetchError } from "./http.js";
 
 // ===================================================================
 // Redirect Trace Handler — Follow HTTP Redirect Chain
@@ -31,7 +32,8 @@ export async function handleRedirectTrace({ url, abortId }) {
                 }
             } catch (err) {
                 if (err.name === "AbortError") return { error: "Command cancelled." };
-                hops.push({ url: currentUrl, error: err.message });
+                const classified = await classifyFetchError(err, currentUrl);
+                hops.push({ url: currentUrl, error: classified.error });
                 break;
             }
         }

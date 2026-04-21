@@ -29,8 +29,11 @@ export function getSeparator(char = "━", len = 50) {
 
 export function insights(list) {
     if (!list?.length) return "";
+    const seen = new Set();
     let o = `${ANSI.dim}── INSIGHTS ──${ANSI.reset}`;
     for (const i of list) {
+        if (seen.has(i.text)) continue;
+        seen.add(i.text);
         const c = i.level==="CRIT"?ANSI.red:i.level==="WARN"?ANSI.yellow:i.level==="PASS"?ANSI.green:ANSI.cyan;
         o += `\n${c}[${i.level}]${ANSI.reset} ${i.text}`;
     }
