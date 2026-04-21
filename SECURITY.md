@@ -22,7 +22,7 @@ WhatHappened follows a strict **Zero-Cloud** policy:
 - **No data leaves your browser.** All diagnostic results are processed locally in the extension's Service Worker and Side Panel.
 - **No telemetry, analytics, or tracking** of any kind.
 - **No user accounts or authentication.** There is nothing to sign up for.
-- **Terminal history** is stored exclusively in `chrome.storage.local` on your machine. It is never transmitted anywhere.
+- **Terminal history** is stored exclusively in `chrome.storage.local` on your machine. It is never transmitted anywhere, deleted after you close the terminal, not even in history.
 
 ## Network Access
 
