@@ -59,7 +59,8 @@ export function initInputManager() {
 // Execution Engine (Process Command)
 // ---------------------------------------------------------------------------
 
-async function processCommand(input) {
+async function processCommand(rawInput) {
+    const input = rawInput.replace(/\\$/, "").trim();
     isProcessing = true;
     setKeyboardLock(true);
     

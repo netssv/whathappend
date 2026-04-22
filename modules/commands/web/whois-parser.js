@@ -20,12 +20,6 @@ const CORP_SUFFIXES = /[,.]?\s*(?:LLC|L\.L\.C|Inc\.?|INC|Corp\.?|CORP|Ltd\.?|LTD
 // Normalization
 // ---------------------------------------------------------------------------
 
-/**
- * Normalize a registrar name for clean display.
- * Strips corporate suffixes, extracts domain from URLs, truncates to 30 chars.
- * @param {string} raw - Raw registrar name
- * @returns {string} Cleaned registrar name, or "Unknown"
- */
 export function normalize(raw) {
     if (!raw) return "Unknown";
     let n = raw.trim();
@@ -35,15 +29,8 @@ export function normalize(raw) {
         try { n = new URL(n).hostname.replace(/^www\./, ""); } catch (_) {}
     }
 
-    // Multi-pass suffix stripping ("Foo Solutions, LLC" → "Foo")
-    for (let i = 0; i < 3; i++) {
-        const prev = n;
-        n = n.replace(CORP_SUFFIXES, "").trim();
-        if (n === prev) break;
-    }
-
     n = n.replace(/[,.\s]+$/, "").trim();
-    if (n.length > 30) n = n.slice(0, 28) + "…";
+    if (n.length > 35) n = n.slice(0, 32) + "...";
     return n || "Unknown";
 }
 
@@ -121,31 +108,18 @@ function collectTextSources(rdap) {
  */
 export function extractRegistrar(rdap) {
     if (!rdap) return "Unknown";
-
-    // Strategy 1: Structured entity data
-    const fromVCard = findVCardName(rdap.entities, "registrar")
-                   || findVCardName(rdap.entities, "registrant");
-    if (fromVCard) return normalize(fromVCard);
-
-    // Strategy 2: Heuristic regex scan of embedded text
-    const lines = collectTextSources(rdap);
-    for (const pattern of REGISTRAR_PATTERNS) {
-        for (const line of lines) {
-            const m = line.match(pattern);
-            if (!m?.[1]) continue;
-            const val = m[1].trim();
-            if (val && val !== "N/A" && val.length > 1) return normalize(val);
+    const ent = findVCardName(rdap.entities, "registrar") || findVCardName(rdap.entities, "registrant");
+    if (ent) return normalize(ent);
+    for (const p of REGISTRAR_PATTERNS) {
+        for (const l of collectTextSources(rdap)) {
+            const m = l.match(p);
+            if (m?.[1] && m[1].trim().length > 1 && m[1].trim() !== "N/A") return normalize(m[1].trim());
         }
     }
-
-    // Strategy 3: Derive from port43 hostname
     if (rdap.port43) {
-        const cleaned = rdap.port43.toLowerCase()
-            .replace(/^whois\./, "")
-            .replace(/\.(com|net|org|io)$/, "");
-        if (cleaned && cleaned !== rdap.port43.toLowerCase()) return normalize(cleaned);
+        const c = rdap.port43.toLowerCase().replace(/^whois\./, "").replace(/\.(com|net|org|io)$/, "");
+        if (c && c !== rdap.port43.toLowerCase()) return normalize(c);
     }
-
     return "Unknown";
 }
 

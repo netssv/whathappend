@@ -57,85 +57,69 @@ export async function cmdPixels(args) {
     let fetchMethod = "";
 
     try {
-        // Always try Live DOM scan first (needs 'scripting' permission)
         o += `${ANSI.dim}Waiting 2s for scripts to load...${ANSI.reset}\n`;
         await new Promise(r => setTimeout(r, 2000));
+        
+        let livePixels = [];
         try {
-            const domResp = await chrome.runtime.sendMessage({ command: "get-page-html" });
+            const [domResp, liveResp] = await Promise.all([
+                chrome.runtime.sendMessage({ command: "get-page-html" }),
+                chrome.runtime.sendMessage({ command: "detect-live-pixels" })
+            ]);
+            
             if (domResp?.success && domResp.data?.html && domResp.data.url.includes(domain)) {
                 html = domResp.data.html.toLowerCase();
                 fetchMethod = "Live DOM scan (active tab)";
                 o += `${ANSI.dim}Scanning Live Rendered DOM for tracking pixels & scripts...${ANSI.reset}\n\n`;
             }
+            if (liveResp?.success && liveResp.data) {
+                livePixels = liveResp.data;
+            }
         } catch (_) {}
 
-        // Fallback: static HTML fetch if Live DOM unavailable
         if (!html) {
-            const resp = await chrome.runtime.sendMessage({
-                command: "fetch-text",
-                payload: { url: `https://${domain}` },
-            });
-
+            const resp = await chrome.runtime.sendMessage({ command: "fetch-text", payload: { url: `https://${domain}` } });
             if (!resp || resp.error) {
-                return o + formatError(
-                    "HTTP_FAILURE",
-                    resp?.error || "Could not fetch the page.",
-                    "Verify the domain is accessible.",
-                    `https://builtwith.com/${encodeURIComponent(domain)}`
-                );
+                return o + formatError("HTTP_FAILURE", resp?.error || "Could not fetch the page.", "Verify the domain is accessible.", `https://builtwith.com/${encodeURIComponent(domain)}`);
             }
             html = typeof resp.data?.text === "string" ? resp.data.text : (typeof resp.data === "string" ? resp.data : "");
             html = html.toLowerCase();
             fetchMethod = "Static HTML source scan";
             o += `${ANSI.dim}Scanning Static HTML source for tracking pixels & scripts...${ANSI.reset}\n\n`;
         }
-        if (!html || html.length < 50) {
-            return o + `${ANSI.yellow}[WARN]${ANSI.reset} Page returned empty or minimal HTML.\n`;
-        }
+        if (!html || html.length < 50) return o + `${ANSI.yellow}[WARN]${ANSI.reset} Page returned empty or minimal HTML.\n`;
 
         const found = [];
-        const notFound = [];
-
         for (const sig of PIXEL_SIGNATURES) {
             const match = sig.patterns.some(p => html.includes(p.toLowerCase()));
-            if (match) {
-                found.push(sig);
-            } else {
-                notFound.push(sig);
-            }
+            const isLive = livePixels.includes(sig.id);
+            if (match || isLive) found.push({ ...sig, isLiveOnly: isLive && !match });
         }
 
-        // Show found pixels
         if (found.length > 0) {
             o += `${ANSI.white}${ANSI.bold}  DETECTED (${found.length})${ANSI.reset}\n`;
             for (const sig of found) {
-                o += `  ${ANSI.green}✓${ANSI.reset} ${ANSI.cyan}${sig.name}${ANSI.reset}\n`;
+                const badge = sig.isLiveOnly ? ` ${ANSI.yellow}[LIVE]${ANSI.reset}` : "";
+                o += `  ${ANSI.green}✓${ANSI.reset} ${ANSI.cyan}${sig.name}${ANSI.reset}${badge}\n`;
             }
         } else {
             o += `${ANSI.dim}  No tracking pixels detected in ${fetchMethod.toLowerCase()}.${ANSI.reset}\n`;
         }
 
-        // SPA / React / Block detection
         const isStatic = fetchMethod === "Static HTML source scan";
         const isSPA = isStatic && (html.includes('id="__next"') || html.includes('id="root"') || html.includes('__react') || html.includes('nuxt-'));
         const isBlocked = isStatic && (html.includes('cloudflare-nginx') || html.includes('enable cookies') || html.includes('security check'));
 
         o += `\n${ANSI.dim}Executed: ${fetchMethod} (${PIXEL_SIGNATURES.length} signatures)${ANSI.reset}`;
 
-        // Insights
         const ins = [];
         if (found.length === 0) {
-            if (isSPA) {
-                ins.push({level:"WARN",text:"Site is a Single Page App (React/Vue). Trackers load via JS."});
-                ins.push({level:"INFO",text:"Open the site in your browser and run 'pixels' again for a live DOM scan."});
-            } else if (isBlocked) {
-                ins.push({level:"WARN",text:"Fetch blocked by WAF (Cloudflare, etc). Static scan failed."});
-                ins.push({level:"INFO",text:"Open the site in your browser and run 'pixels' again for a live DOM scan."});
-            } else {
-                ins.push({level:"INFO",text:"No client-side trackers found. Could use server-side tracking."});
-            }
+            if (isSPA) ins.push({level:"WARN",text:"Site is a Single Page App (React/Vue). Trackers load via JS."});
+            else if (isBlocked) ins.push({level:"WARN",text:"Fetch blocked by WAF (Cloudflare, etc). Static scan failed."});
+            else ins.push({level:"INFO",text:"No client-side trackers found. Could use server-side tracking."});
         } else {
             ins.push({level:"INFO",text:`${found.length} tracker(s) detected.`});
+            if (found.some(s => s.isLiveOnly)) ins.push({level:"INFO", text:"Dynamic Pixel injection detected (GTM/Async)."});
         }
 
         // Category insights

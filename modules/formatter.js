@@ -45,10 +45,32 @@ export function insights(list) {
 // ---------------------------------------------------------------------------
 
 export function formatError(type, what, suggestion, link) {
-    let o = `\n${ANSI.red}[${type}]${ANSI.reset}`;
-    o += `\n${ANSI.white}What happened:${ANSI.reset} ${what}`;
-    if (suggestion) o += `\n${ANSI.yellow}Suggestion:${ANSI.reset} ${suggestion}`;
-    if (link) o += `\n${ANSI.dim}External:${ANSI.reset} ${ANSI.blue}${link}${ANSI.reset}`;
+    let t = type;
+    let w = what;
+    let s = suggestion;
+    let l = link;
+
+    if (w.includes("Failed to fetch") || w.includes("ERR_CONNECTION_REFUSED")) {
+        t = "OFFLINE";
+        w = "El servidor no responde al handshake de HTTPS.";
+        s = "Verifica si el servidor está caído o bloqueando conexiones.";
+        l = "https://www.isitdownrightnow.com/";
+    } else if (w.includes("ERR_NAME_NOT_RESOLVED") || w.includes("NXDOMAIN")) {
+        t = "DNS_ERROR";
+        w = "El dominio no resuelve (NXDOMAIN).";
+        s = "Verifica la sintaxis del dominio o la propagación DNS.";
+        l = "https://mxtoolbox.com/dnscheck.aspx";
+    } else if (w.includes("Timeout") || w.includes("AbortError") || w.includes("cancelled")) {
+        t = "TIMEOUT";
+        w = "La respuesta tardó más de 5 segundos.";
+        s = "Intenta nuevamente; la red puede estar saturada.";
+        l = "https://mxtoolbox.com/NetworkTools.aspx";
+    }
+
+    let o = `\n${ANSI.red}[${t}]${ANSI.reset}`;
+    o += `\n${ANSI.white}What happened:${ANSI.reset} ${w}`;
+    if (s) o += `\n${ANSI.yellow}Suggestion:${ANSI.reset} ${s}`;
+    if (l) o += `\n${ANSI.dim}External:${ANSI.reset} ${ANSI.blue}${l}${ANSI.reset}`;
     return o;
 }
 

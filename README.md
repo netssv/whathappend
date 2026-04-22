@@ -42,9 +42,9 @@ We only link to highly credible, industry-standard tools. We **never** send your
 |----------|----------|-------------|
 | **Audits** | `email` `web` `sec` | Runs a bunch of checks at once and gives you the highlights. |
 | **DNS** | `dig` `host` `nslookup` `a` `aaaa` `mx` `txt` `ns` `cname` `soa` `ttl` | Native DNS queries (via Google DoH). |
-| **Email** | `spf` `dmarc` `dkim` | Email security checks. |
+| **Email** | `spf` `dmarc` `dkim` | Email security checks (Includes dynamic DKIM selector inference). |
 | **Web** | `curl` `openssl` `whois` `ping` `trace` `robots` | HTTP requests, certs, and basic routing. |
-| **Analysis** | `pixels` `load` `stack` | Tracking pixel detection, page load performance (Core Web Vitals), and tech stack fingerprinting. |
+| **Analysis** | `pixels` `load` `stack` | Tracking pixel detection (Live DOM memory scanning), page load performance, and tech stack fingerprinting. |
 | **External** | `blacklist` `ssllabs` `securityheaders` `whois-ext` | Generates safe, clickable links to the credible tools mentioned above. |
 
 *(Type `help` in the terminal for the full list, or append `?` to a command like `email?` for details).*
@@ -65,7 +65,7 @@ Chrome Extension
       └── chrome.scripting (Live DOM scan, Performance API)
 ```
 
-All provider detection (IP owners, NS operators, registrars) is **100% dynamic** via RDAP. There are no static IP databases to maintain — the extension queries the global RDAP registry in real-time.
+All provider detection (IP owners, NS operators, registrars) is **100% dynamic** via RDAP. There are no static IP databases to maintain — the extension queries the global RDAP registry in real-time. DKIM selector discovery is also purely dynamic (via MX/SPF tokenization) to eliminate static dependencies.
 
 ### Permissions we ask for (and why)
 

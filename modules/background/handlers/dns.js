@@ -18,10 +18,13 @@ const DNS_STATUS = { 0: "NOERROR", 1: "FORMERR", 2: "SERVFAIL", 3: "NXDOMAIN", 5
 export async function handleDNS({ domain, type, abortId }) {
     const result = await dnsQuery(domain, type, abortId);
 
-    // SERVFAIL auto-retry: authority servers may be temporarily unresponsive
-    if (result.data?.Status === 2) {
-        await delay(500);
+    const isServFail = result.data?.Status === 2;
+    const isEmpty = result.success && (!result.data?.Answer || result.data.Answer.length === 0);
+
+    if (isServFail || isEmpty) {
+        await delay(400);
         const retry = await dnsQuery(domain, type, abortId);
+        
         if (retry.data?.Status === 2) {
             return {
                 error: "DNS Resolver failure. Authority servers are not responding.",

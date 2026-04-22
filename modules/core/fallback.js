@@ -21,60 +21,30 @@ export async function handleAutoTarget(cmd, args, opts) {
         } else {
             output = `\n${getSeparator()}\n${ANSI.green}Target set: ${ANSI.yellow}${cleanCmd}${ANSI.reset}\n`;
 
-            // Phase 1: WHOIS domain (registrar + expiry)
-            let wOut = "";
-            try {
-                wOut = await cmdWhois([cleanCmd], ["--short"]);
-                if (wOut && wOut.trim() && !wOut.includes("[ERROR]")) output += wOut + "\n";
-            } catch (_) {}
+            // Phase 1 & 2: DNS + WHOIS in parallel
+            let whoisData = null;
+            const pWhois = chrome.runtime.sendMessage({ command: "whois", payload: { domain: cleanCmd } }).catch(() => null);
+            const pNs = cmdDig([cleanCmd], { forcedType: "NS", opts, isShortcut: true }).catch(() => "");
+            const pA = cmdDig([cleanCmd], { forcedType: "A", opts: [...(opts || []), "+noinsights"], isShortcut: true }).catch(() => "");
 
-            // Phase 2: NS, A, Trace in parallel (DNS only, no RDAP)
-            const [nsOut, aOut, traceOut] = await Promise.all([
-                cmdDig([cleanCmd], { forcedType: "NS", opts, isShortcut: true }),
-                cmdDig([cleanCmd], { forcedType: "A", opts: [...(opts || []), "+noinsights"], isShortcut: true }),
-                cmdTrace([cleanCmd])
-            ]);
+            const [respWhois, nsOut, aOut] = await Promise.all([pWhois, pNs, pA]);
+            if (respWhois?.success) whoisData = respWhois.data;
 
             const splitToken = `\x1b[2m── INSIGHTS ──\x1b[0m`;
             let insightsArr = [];
-            
-            const extractInsights = (str) => {
-                if (str && str.includes(splitToken)) {
-                    const parts = str.split(splitToken);
-                    if (parts[1].trim()) insightsArr.push(parts[1].trim());
-                    return parts[0].trimEnd() + "\n";
-                }
-                return str;
-            };
-
-            const traceStr = extractInsights(traceOut);
-            const nsStr = extractInsights(nsOut);
-            const aStr = extractInsights(aOut);
-            
-            output += "\n" + traceStr + "\n" + nsStr + "\n" + aStr;
 
             // --- Domain Delegation ---
             const ips = aOut.split('\n').filter(l => /^\d{1,3}(\.\d{1,3}){3}$/.test(l.trim())).map(l => l.trim());
-            const nsDomains = nsOut.split('\n').filter(l => l.trim().endsWith('.')).map(l => l.replace(/\.$/, "").trim());
+            let nsDomains = nsOut.split('\n').filter(l => l.trim().endsWith('.')).map(l => l.replace(/\.$/, "").trim());
             const targetRoot = cleanCmd.split(".").slice(-2).join(".");
 
-            // Extract registrar from WHOIS --short output
-            let registrarProvider = null;
-            if (wOut) {
-                const REG_KEY = /(?:Sponsoring\s+)?Registrar(?:\s+Name)?:|Owner:/i;
-                const lines = wOut.split('\n');
-                for (const l of lines) {
-                    const noAnsi = l.replace(REGEX.ANSI_STRIP, "");
-                    const m = noAnsi.match(REG_KEY);
-                    if (m) {
-                        const regName = noAnsi.slice(m.index + m[0].length).trim();
-                        if (regName && regName !== "Unknown" && regName !== "Not available") {
-                            registrarProvider = regName;
-                        }
-                        break;
-                    }
-                }
+            // Fallback: If dig NS failed, try to extract from WHOIS
+            if (nsDomains.length === 0 && whoisData?.nameservers?.length) {
+                nsDomains = whoisData.nameservers.map(ns => (ns.ldhName || ns).toLowerCase());
             }
+
+            // Extract registrar from parsed WHOIS
+            let registrarProvider = (respWhois?.registrar && respWhois.registrar !== "Unknown") ? respWhois.registrar : null;
 
             // Phase 3: RDAP lookups (sequential — no competition)
             // NS provider: self-hosted → RDAP on NS root domain
@@ -85,16 +55,13 @@ export async function handleAutoTarget(cmd, args, opts) {
                     dnsProvider = `Self-hosted (${targetRoot})`;
                 } else {
                     try {
-                        const resp = await chrome.runtime.sendMessage({
-                            command: "whois", payload: { domain: nsRoot }
-                        });
+                        const resp = await chrome.runtime.sendMessage({ command: "whois", payload: { domain: nsRoot } });
                         if (resp?.success && resp.data?.entities?.length) {
                             for (const e of resp.data.entities) {
                                 if (e.vcardArray?.[1]) {
                                     for (const p of e.vcardArray[1]) {
                                         if ((p[0] === "org" || p[0] === "fn") && p[3]) {
-                                            dnsProvider = p[3];
-                                            break;
+                                            dnsProvider = p[3]; break;
                                         }
                                     }
                                 }
@@ -107,9 +74,7 @@ export async function handleAutoTarget(cmd, args, opts) {
 
             // Web host: RDAP on first IP
             let webProvider = null;
-            if (ips.length > 0) {
-                webProvider = await resolveProvider(ips[0]);
-            }
+            if (ips.length > 0) webProvider = await resolveProvider(ips[0]);
 
             const stackParts = [];
             if (registrarProvider) stackParts.push(`Reg: ${registrarProvider}`);
@@ -119,7 +84,7 @@ export async function handleAutoTarget(cmd, args, opts) {
             if (stackParts.length >= 1) {
                 const provs = [registrarProvider, dnsProvider, webProvider].filter(Boolean);
                 const allSame = provs.length >= 2 && provs.every(p => p === provs[0]);
-                const unknown = `${ANSI.dim}[?]${ANSI.reset}`;
+                const unknown = `${ANSI.dim}[...]${ANSI.reset}`;
 
                 let delO = `\n${ANSI.cyan}${ANSI.bold}[INFO] Domain Delegation:${ANSI.reset}`;
                 delO += `\n       ${ANSI.white}Registrar${ANSI.reset} ━ ${registrarProvider || unknown}`;

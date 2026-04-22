@@ -1,5 +1,6 @@
 import { ANSI, insights, resolveBaseDomain } from "../../formatter.js";
-import { loadDKIMDB, getAllDKIMSelectors, identifyDKIMProvider, normTxt } from "./utils.js";
+import { normTxt } from "./utils.js";
+import { getPossibleSelectors } from "./dkim-discovery.js";
 
 // ===================================================================
 //  email — Composite MX + SPF + DMARC + DKIM
@@ -47,21 +48,40 @@ export async function cmdEmail(args) {
     }
 
     // ── DKIM ──
-    const dkimDB = await loadDKIMDB();
-    const allSel = getAllDKIMSelectors(dkimDB);
-    o += `> dkim-scan ${baseDomain} (${allSel.length} selectors)\n`;
+    const dkimMxData = mxAns.map(r => r.data || "");
+    const dkimSpfData = spfRec ? normTxt(spfRec).split(" ").filter(p => p.startsWith("include:")).map(p => p.slice(8)) : [];
+    const sels = getPossibleSelectors(dkimMxData, dkimSpfData);
+
+    o += `> dkim-scan ${baseDomain} (dynamic: ${sels.length} selectors)\n`;
     const dkimResults = await Promise.all(
-        allSel.map(sel =>
-            chrome.runtime.sendMessage({command:"dns",payload:{domain:`${sel}._domainkey.${baseDomain}`,type:"TXT"}})
-                .then(r => ({sel, found: !!(r.data?.Answer?.length)}))
-        )
+        sels.map(async sel => {
+            let curr = `${sel}._domainkey.${baseDomain}`;
+            let prov = null;
+            for (let depth = 0; depth < 3; depth++) {
+                let r = await chrome.runtime.sendMessage({command:"dns", payload:{domain:curr, type:"TXT"}});
+                let ans = r?.data?.Answer?.[0];
+                if (!ans) {
+                    const rc = await chrome.runtime.sendMessage({command:"dns", payload:{domain:curr, type:"CNAME"}});
+                    ans = rc?.data?.Answer?.[0];
+                    if (!ans) return depth > 0 ? { sel, found: true, prov } : { sel, found: false };
+                }
+                const dataStr = ans.data || "";
+                if (ans.type === 5 || (dataStr && !dataStr.includes("v=DKIM1"))) {
+                    curr = dataStr.replace(/["']/g, '').trim();
+                    prov = `CNAME ➝ ${curr}`;
+                } else {
+                    return { sel, found: true, prov };
+                }
+            }
+            return prov ? { sel, found: true, prov } : { sel, found: false };
+        })
     );
-    const dkimFound = dkimResults.filter(r=>r.found);
+
+    const dkimFound = dkimResults.filter(r => r.found);
     if (dkimFound.length) {
         for (const d of dkimFound) {
-            const prov = identifyDKIMProvider(d.sel, dkimDB);
             o += `${d.sel}._domainkey.${baseDomain}`;
-            if (prov) o += `  ${ANSI.dim}(${prov})${ANSI.reset}`;
+            if (d.prov) o += `  ${ANSI.dim}(${d.prov})${ANSI.reset}`;
             o += `\n`;
         }
     }
@@ -83,7 +103,10 @@ export async function cmdEmail(args) {
         else ins.push({level:"PASS",text:"DMARC configured."});
     } else { ins.push({level:"WARN",text:"No DMARC."}); }
     if (dkimFound.length) ins.push({level:"PASS",text:`DKIM: ${dkimFound.length} selector(s).`});
-    else ins.push({level:"WARN",text:"No DKIM found."});
+    else {
+        ins.push({level:"WARN",text:"No DKIM found automatically."});
+        ins.push({level:"INFO",text:`Know your selector? Run 'dkim ${baseDomain} <selector>'`});
+    }
 
     ins.push({level:"INFO",text:`Test Email Health: https://mxtoolbox.com/emailhealth/${baseDomain}/`});
 
