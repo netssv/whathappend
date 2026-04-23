@@ -1,5 +1,5 @@
 import { InputEvents } from "./events.js";
-import { term, PROMPT, writePrompt } from "../terminal-ui.js";
+import { term, PROMPT, writePrompt, isSystemWriting } from "../terminal-ui.js";
 import { deleteCharBefore, deleteWordBefore, deleteCharAfter, deleteWordAfter, moveCursorWordLeft, moveCursorWordRight } from "./buffer-ops.js";
 
 let currentLine = "";
@@ -31,6 +31,9 @@ export function getCurrentBuffer() {
 
 function setupTerminalListener() {
     term.onKey(({ key, domEvent }) => {
+        // ── Command Firewall: drop events while system is writing ──
+        if (isSystemWriting()) return;
+
         const { keyCode, ctrlKey, altKey } = domEvent;
 
         // ── Global shortcuts (work even when locked) ──

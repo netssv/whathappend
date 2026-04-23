@@ -18,7 +18,7 @@ import { handleAutoTarget } from "./core/fallback.js";
 // Command modules
 import { cmdDig, cmdHost, cmdNslookup, cmdTTL } from "./commands/dns/index.js";
 import { cmdEmail, cmdSPF, cmdDMARC, cmdDKIM } from "./commands/email/index.js";
-import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad } from "./commands/web/index.js";
+import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdRegistrar, cmdHosting } from "./commands/web/index.js";
 import { cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "./commands/native/index.js";
 import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors } from "./commands/util/index.js";
 import { cmdStack } from "./commands/stack/index.js";
@@ -28,7 +28,7 @@ import { cmdStack } from "./commands/stack/index.js";
 // ---------------------------------------------------------------------------
 
 export async function executeCommand(input) {
-    const trimmed = input.trim();
+    const trimmed = input.trim().replace(/\\+$/, "").trim();
     if (!trimmed) return "";
     if (trimmed === "?") return cmdHelp();
     if (trimmed.endsWith("?")) {
@@ -73,6 +73,8 @@ export async function executeCommand(input) {
                 case "sec": output = await cmdSec(args); break;
                 case "pixels": output = await cmdPixels(args); break;
                 case "load": output = await cmdLoad(args); break;
+                case "registrar": output = await cmdRegistrar(args); break;
+                case "hosting": output = await cmdHosting(args); break;
                 case "stack": output = await cmdStack(args); break;
                 case "rev-dns": output = await cmdRevDNS(args); break;
                 case "port-scan": output = await cmdPortScan(args); break;

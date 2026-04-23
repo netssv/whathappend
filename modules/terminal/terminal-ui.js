@@ -35,6 +35,12 @@ export const PROMPT = "\x1b[35m❯\x1b[0m ";
 
 export let term;
 export let fitAddon;
+let _isSystemWriting = false;
+
+/** Check if the system is currently writing automated output to the terminal. */
+export function isSystemWriting() {
+    return _isSystemWriting;
+}
 
 export function initTerminalUI(containerId) {
     term = new window.Terminal({
@@ -125,7 +131,7 @@ export function showBanner() {
     
     if (cols >= 60) {
         // WIDE SCREEN
-        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[90m│\x1b[0m Web Infrastructure Triage \x1b[90m│\x1b[0m \x1b[33mv2.0.0\x1b[0m");
+        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[90m│\x1b[0m Web Infrastructure Triage \x1b[90m│\x1b[0m \x1b[33mv2.1.1\x1b[0m");
         term.writeln("  \x1b[90m" + "━".repeat(50) + "\x1b[0m");
         term.writeln("  \x1b[90mType \x1b[37mhelp\x1b[90m for commands \x1b[90m│\x1b[0m \x1b[37m?\x1b[90m quick help \x1b[90m│\x1b[0m \x1b[37mCtrl+C\x1b[90m cancel\x1b[0m");
         term.writeln("");
@@ -134,7 +140,7 @@ export function showBanner() {
         term.writeln("  \x1b[90mAlways verify findings according to your internal security policies.\x1b[0m");
     } else if (cols >= 45) {
         // MEDIUM SCREEN
-        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.0.0\x1b[0m");
+        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.1.1\x1b[0m");
         term.writeln("  \x1b[90m" + "━".repeat(38) + "\x1b[0m");
         term.writeln("  \x1b[90mType \x1b[37mhelp\x1b[90m \x1b[90m│\x1b[0m \x1b[37m?\x1b[90m quick \x1b[90m│\x1b[0m \x1b[37mCtrl+C\x1b[90m cancel\x1b[0m");
         term.writeln("");
@@ -143,7 +149,7 @@ export function showBanner() {
         term.writeln("  \x1b[90mVerify findings per internal security policies.\x1b[0m");
     } else {
         // NARROW SCREEN (Large fonts)
-        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.0.0\x1b[0m");
+        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.1.1\x1b[0m");
         term.writeln("  \x1b[90m━━━━━━━━━━━━━━━\x1b[0m");
         term.writeln("  \x1b[90mType \x1b[37mhelp\x1b[90m or \x1b[37m?\x1b[90m");
         term.writeln("  \x1b[90mPress \x1b[37mCtrl+C\x1b[90m to cancel\x1b[0m");
@@ -161,9 +167,14 @@ export function writePrompt() {
 }
 
 export function writeOutput(output) {
-    const lines = output.split("\n");
-    for (const line of lines) {
-        term.writeln(line);
+    _isSystemWriting = true;
+    try {
+        const lines = output.split("\n");
+        for (const line of lines) {
+            term.writeln(line);
+        }
+    } finally {
+        _isSystemWriting = false;
     }
 }
 

@@ -55,6 +55,10 @@ export const CMD_ALIASES = {
     "tech": "stack", "techstack": "stack", "wappalyzer": "stack", "cms": "stack",
     // load / performance
     "perf": "load", "performance": "load", "speed": "load", "pagespeed": "load", "timing": "load",
+    // registrar
+    "reg": "registrar", "lifecycle": "registrar",
+    // hosting
+    "hoster": "hosting", "provider": "hosting", "webhost": "hosting",
 };
 
 export const ALL_KNOWN_CMDS = [
@@ -66,4 +70,5 @@ export const ALL_KNOWN_CMDS = [
     "rev-dns", "port-scan", "ftp-check", "export",
     "blacklist", "ssllabs", "securityheaders", "whois-ext",
     "errors", "pixels", "stack", "load",
+    "registrar", "hosting",
 ].filter(c => /^[a-z]/i.test(c));

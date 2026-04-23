@@ -31,12 +31,14 @@ export const HELP_SECTIONS = [
     { title: "EMAIL", cmds: [
         ["spf", "SPF record", ""],
         ["dmarc", "DMARC policy", ""],
-        ["dkim", "DKIM scan (76 sel.)", ""],
+        ["dkim", "DKIM scan (dynamic)", ""],
     ]},
     { title: "WEB", cmds: [
         ["curl", "HTTP headers", "http headers"],
         ["openssl", "SSL/TLS cert", "ssl cert tls"],
         ["whois", "Domain WHOIS", "domain"],
+        ["registrar", "Registrar lifecycle", "reg lifecycle"],
+        ["hosting", "IP hosting provider", "provider webhost"],
         ["ping", "HTTP latency", "latency"],
         ["trace", "Redirect chain", "redirect follow"],
         ["robots", "robots.txt", "sitemap"],
@@ -73,7 +75,7 @@ export function cmdHelp() {
     // IP-aware dimming: domain-only commands are dimmed when target is an IP
     const currentTarget = ContextManager.getDomain();
     const targetIsIP = currentTarget ? isIPAddress(currentTarget) : false;
-    const domainOnlyCmds = ["email", "spf", "dmarc", "dkim", "openssl", "whois", "pixels", "stack", "robots", "web", "sec"];
+    const domainOnlyCmds = ["email", "spf", "dmarc", "dkim", "openssl", "whois", "registrar", "pixels", "stack", "robots", "web", "sec"];
 
     let o = "";
 

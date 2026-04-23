@@ -42,7 +42,7 @@ export async function cmdDKIM(args) {
     return o;
 }
 
-async function checkSel(sel, base) {
+export async function checkSel(sel, base) {
     const domain = `${sel}._domainkey.${base}`;
     let curr = domain;
     let prov = null;
@@ -59,8 +59,11 @@ async function checkSel(sel, base) {
 
         const dataStr = ans.data || "";
         if (ans.type === 5 || (dataStr && !dataStr.includes("v=DKIM1"))) {
-            curr = dataStr.replace(/["']/g, '').trim();
-            prov = `CNAME ➝ ${curr}`;
+            const target = dataStr.replace(/["']/g, '').trim();
+            // Guard: empty or self-referencing CNAME — bail out
+            if (!target || target === curr) return prov ? { sel, domain, prov } : null;
+            curr = target;
+            prov = depth > 0 ? `CNAME ➝ ${curr} (depth: ${depth + 1})` : `CNAME ➝ ${curr}`;
         } else {
             return { sel, domain, prov };
         }

@@ -21,14 +21,33 @@ export async function handleAutoTarget(cmd, args, opts) {
         } else {
             output = `\n${getSeparator()}\n${ANSI.green}Target set: ${ANSI.yellow}${cleanCmd}${ANSI.reset}\n`;
 
-            // Phase 1 & 2: DNS + WHOIS in parallel
+            // ── True Async Triage ──────────────────────────────────────
+            // All data is gathered FIRST, then the delegation block is
+            // printed ONCE with real values. Nothing prints until all
+            // promises have settled.
+            // ──────────────────────────────────────────────────────────
+
             let whoisData = null;
             const pWhois = chrome.runtime.sendMessage({ command: "whois", payload: { domain: cleanCmd } }).catch(() => null);
             const pNs = cmdDig([cleanCmd], { forcedType: "NS", opts, isShortcut: true }).catch(() => "");
             const pA = cmdDig([cleanCmd], { forcedType: "A", opts: [...(opts || []), "+noinsights"], isShortcut: true }).catch(() => "");
 
-            const [respWhois, nsOut, aOut] = await Promise.all([pWhois, pNs, pA]);
+            // Latency sentinel — fires if initial data takes > 2.5s
+            let latencyWarned = false;
+            const latencyTimer = setTimeout(() => { latencyWarned = true; }, 2500);
+
+            const settled = await Promise.allSettled([pWhois, pNs, pA]);
+            clearTimeout(latencyTimer);
+
+            const respWhois = settled[0].status === "fulfilled" ? settled[0].value : null;
+            const nsOut = settled[1].status === "fulfilled" ? settled[1].value : "";
+            const aOut = settled[2].status === "fulfilled" ? settled[2].value : "";
+
             if (respWhois?.success) whoisData = respWhois.data;
+
+            if (latencyWarned) {
+                output += `\n${ANSI.cyan}[INFO]${ANSI.reset} ${ANSI.dim}Heavy network latency detected. Waiting for DNS...${ANSI.reset}\n`;
+            }
 
             const splitToken = `\x1b[2m── INSIGHTS ──\x1b[0m`;
             let insightsArr = [];
@@ -76,20 +95,17 @@ export async function handleAutoTarget(cmd, args, opts) {
             let webProvider = null;
             if (ips.length > 0) webProvider = await resolveProvider(ips[0]);
 
-            const stackParts = [];
-            if (registrarProvider) stackParts.push(`Reg: ${registrarProvider}`);
-            if (dnsProvider) stackParts.push(`DNS: ${dnsProvider}`);
-            if (webProvider) stackParts.push(`Web: ${webProvider}`);
+            // ── Build the delegation block ONLY after all data is resolved ──
+            const provs = [registrarProvider, dnsProvider, webProvider].filter(Boolean);
 
-            if (stackParts.length >= 1) {
-                const provs = [registrarProvider, dnsProvider, webProvider].filter(Boolean);
+            if (provs.length >= 1) {
                 const allSame = provs.length >= 2 && provs.every(p => p === provs[0]);
-                const unknown = `${ANSI.dim}[...]${ANSI.reset}`;
+                const na = `${ANSI.dim}N/A${ANSI.reset}`;
 
                 let delO = `\n${ANSI.cyan}${ANSI.bold}[INFO] Domain Delegation:${ANSI.reset}`;
-                delO += `\n       ${ANSI.white}Registrar${ANSI.reset} ━ ${registrarProvider || unknown}`;
-                delO += `\n       ${ANSI.white}NameSrvs${ANSI.reset}  ━ ${dnsProvider || unknown}`;
-                delO += `\n       ${ANSI.white}Web Host${ANSI.reset}  ━ ${webProvider || unknown}`;
+                delO += `\n       ${ANSI.white}Registrar${ANSI.reset} ━ ${registrarProvider || na}`;
+                delO += `\n       ${ANSI.white}NameSrvs${ANSI.reset}  ━ ${dnsProvider || na}`;
+                delO += `\n       ${ANSI.white}Web Host${ANSI.reset}  ━ ${webProvider || na}`;
                 
                 if (allSame) {
                     delO += `\n       ${ANSI.green}↳ Consolidated Stack (${provs[0]})${ANSI.reset}`;
@@ -98,7 +114,7 @@ export async function handleAutoTarget(cmd, args, opts) {
                 }
                 insightsArr.unshift(delO);
 
-                // Add manual WHOIS link when any field is unknown
+                // Add manual WHOIS link when any field is unresolvable
                 const hasUnknown = !registrarProvider || !dnsProvider || !webProvider;
                 if (hasUnknown) {
                     insightsArr.push(`${ANSI.cyan}[INFO]${ANSI.reset} Check WHOIS: https://www.whois.com/whois/${cleanCmd}`);

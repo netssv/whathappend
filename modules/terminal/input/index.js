@@ -60,7 +60,7 @@ export function initInputManager() {
 // ---------------------------------------------------------------------------
 
 async function processCommand(rawInput) {
-    const input = rawInput.replace(/\\$/, "").trim();
+    const input = rawInput.trim().replace(/\\+$/, "").trim();
     isProcessing = true;
     setKeyboardLock(true);
     
@@ -82,6 +82,9 @@ async function processCommand(rawInput) {
         "tracking", "trackers", "pixel", "ads",
         // tech stack
         "stack", "tech", "techstack", "wappalyzer", "cms",
+        // registrar + hosting
+        "registrar", "reg", "lifecycle",
+        "hosting", "hoster", "provider", "webhost",
     ];
     
     const cmd = input.split(/\s+/)[0]?.toLowerCase();

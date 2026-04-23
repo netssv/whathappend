@@ -15,14 +15,28 @@ If you discover a security vulnerability in WhatHappened, please report it respo
 
 We will acknowledge receipt within 48 hours and aim to provide a fix within 7 days for critical issues.
 
-## Data Handling
+## Neutral Build Architecture
+
+WhatHappened is built on a **provider-agnostic** philosophy. The tool is designed to diagnose infrastructure objectively, without favoring, promoting, or disfavoring any specific hosting, DNS, email, or registrar provider.
+
+### Design Principles
+
+- **Zero Hardcoded Providers**: All provider detection (IP owners, nameserver operators, registrars, hosting companies) is resolved dynamically at runtime via RDAP queries. There are no static IP-to-provider databases, no vendor maps, and no branded logic paths.
+- **Heuristic DKIM Discovery**: DKIM selectors are inferred from MX and SPF record patterns using generic token extraction — not from a static list of vendor-specific selectors.
+- **Neutral Output**: Diagnostic insights reference providers only as they appear in live RDAP/DNS data. No editorial commentary or provider-specific recommendations are embedded in the output.
+- **CNAME Chain Resolution**: The DKIM auditor follows CNAME chains (up to 3 levels) to extract the actual signing endpoint, regardless of which provider operates the delegation.
+
+This architecture ensures the tool can be used in any environment — enterprise, agency, educational, or personal — without implicit vendor bias.
+
+## Data Handling — Zero-Cloud Policy
 
 WhatHappened follows a strict **Zero-Cloud** policy:
 
 - **No data leaves your browser.** All diagnostic results are processed locally in the extension's Service Worker and Side Panel.
 - **No telemetry, analytics, or tracking** of any kind.
 - **No user accounts or authentication.** There is nothing to sign up for.
-- **Terminal history** is stored exclusively in `chrome.storage.local` on your machine. It is never transmitted anywhere, deleted after you close the terminal, not even in history.
+- **Terminal history** is stored exclusively in `chrome.storage.local` on your machine. It is never transmitted anywhere.
+- **No remote processing.** There is no backend server. The extension does not upload, cache, or relay your queries through any intermediary.
 
 ## Network Access
 
@@ -36,6 +50,10 @@ The extension makes network requests **only** to the following public infrastruc
 | `chrome.scripting` (local) | Live DOM scan, Performance API | No data sent — reads from the active tab locally |
 
 No background requests are made without user action. No data is cached on remote servers.
+
+## Terminal Buffer Security (Command Firewall)
+
+The terminal implements a buffer integrity mechanism (`isSystemWriting`) that prevents automated diagnostic output from being misinterpreted as user-entered commands. When the system is rendering output (e.g., DKIM selector results containing domain strings), keyboard events are dropped entirely to prevent echo injection.
 
 ## External Links
 

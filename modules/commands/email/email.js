@@ -1,6 +1,7 @@
 import { ANSI, insights, resolveBaseDomain } from "../../formatter.js";
 import { normTxt } from "./utils.js";
 import { getPossibleSelectors } from "./dkim-discovery.js";
+import { checkSel } from "./dkim.js";
 
 // ===================================================================
 //  email — Composite MX + SPF + DMARC + DKIM
@@ -55,25 +56,10 @@ export async function cmdEmail(args) {
     o += `> dkim-scan ${baseDomain} (dynamic: ${sels.length} selectors)\n`;
     const dkimResults = await Promise.all(
         sels.map(async sel => {
-            let curr = `${sel}._domainkey.${baseDomain}`;
-            let prov = null;
-            for (let depth = 0; depth < 3; depth++) {
-                let r = await chrome.runtime.sendMessage({command:"dns", payload:{domain:curr, type:"TXT"}});
-                let ans = r?.data?.Answer?.[0];
-                if (!ans) {
-                    const rc = await chrome.runtime.sendMessage({command:"dns", payload:{domain:curr, type:"CNAME"}});
-                    ans = rc?.data?.Answer?.[0];
-                    if (!ans) return depth > 0 ? { sel, found: true, prov } : { sel, found: false };
-                }
-                const dataStr = ans.data || "";
-                if (ans.type === 5 || (dataStr && !dataStr.includes("v=DKIM1"))) {
-                    curr = dataStr.replace(/["']/g, '').trim();
-                    prov = `CNAME ➝ ${curr}`;
-                } else {
-                    return { sel, found: true, prov };
-                }
-            }
-            return prov ? { sel, found: true, prov } : { sel, found: false };
+            const result = await checkSel(sel, baseDomain);
+            return result
+                ? { sel, found: true, prov: result.prov }
+                : { sel, found: false };
         })
     );
 

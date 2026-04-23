@@ -5,10 +5,12 @@ const AVAILABLE_COMMANDS = [
     "dig", "host", "nslookup", "curl", "openssl", "whois",
     "ping", "trace", "target",
     "email", "web", "sec", "ttl", "spf", "dmarc", "dkim", "robots",
+    "registrar", "hosting",
     "help", "clear", "errors",
     "a", "aaaa", "mx", "txt", "ns", "cname", "soa",
     "rev-dns", "port-scan", "ftp-check", "export",
     "blacklist", "ssllabs", "securityheaders", "whois-ext",
+    // aliases
     "dns", "ssl", "headers", "redirect", "security",
     "cls", "reset", "ls", "commands", "man",
     "http", "cert", "tls", "traceroute", "follow",
@@ -20,6 +22,8 @@ const AVAILABLE_COMMANDS = [
     "pixels", "tracking", "trackers", "pixel", "ads",
     "stack", "tech", "techstack", "wappalyzer", "cms",
     "load", "perf", "performance", "speed", "pagespeed", "timing",
+    "reg", "lifecycle",
+    "hoster", "provider", "webhost",
 ];
 
 // Commands that accept a domain parameter (for auto-filling)
@@ -27,9 +31,11 @@ const DOMAIN_COMMANDS = [
     "dig", "host", "nslookup", "curl", "openssl", "whois",
     "ping", "trace",
     "email", "web", "sec", "ttl", "spf", "dmarc", "dkim", "robots",
+    "registrar", "hosting",
     "a", "aaaa", "mx", "txt", "ns", "cname", "soa",
     "rev-dns", "port-scan", "ftp-check",
     "blacklist", "ssllabs", "securityheaders", "whois-ext",
+    // aliases
     "dns", "ssl", "headers", "redirect", "security",
     "http", "cert", "tls", "traceroute", "follow",
     "lookup", "scan", "audit", "mail", "domain",
@@ -39,6 +45,8 @@ const DOMAIN_COMMANDS = [
     "pixels", "tracking", "trackers", "pixel", "ads",
     "stack", "tech", "techstack", "wappalyzer", "cms",
     "load", "perf", "performance", "speed", "pagespeed", "timing",
+    "reg", "lifecycle",
+    "hoster", "provider", "webhost",
 ];
 
 let tabCycleMatches = [];

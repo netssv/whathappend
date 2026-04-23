@@ -2,7 +2,7 @@
  * WhatHappened — HTTP Error Mapping (ITIL-Style)
  *
  * Lookup table for common HTTP/Server status codes with
- * actionable "HostPapa-level" support insights.
+ * actionable, provider-agnostic support insights.
  * Used by curl, web, sec commands for rich error diagnostics.
  */
 

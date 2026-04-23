@@ -8,3 +8,5 @@ export { cmdSec } from "./sec.js";
 export { cmdPixels } from "./pixels.js";
 export { cmdWeb } from "./web.js";
 export { cmdLoad } from "./load.js";
+export { cmdRegistrar } from "./registrar.js";
+export { cmdHosting } from "./hosting.js";
