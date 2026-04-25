@@ -59,6 +59,38 @@ The terminal implements a buffer integrity mechanism (`isSystemWriting`) that pr
 
 Some commands generate clickable links to third-party diagnostic tools (Qualys SSL Labs, MXToolbox, SecurityHeaders). These links are **constructed locally** — we do not send your data to these services. You choose whether to click them.
 
+## Apex Domain Resolution (Local Privacy)
+
+When a subdomain is targeted (e.g., `www.facebook.com` or `courriel.easyhosting.com`), WhatHappened's `toApex()` normalizer extracts the apex (registered) domain (`facebook.com`, `easyhosting.com`) before querying RDAP for WHOIS data. This resolution is performed **entirely locally** using a deterministic suffix-matching algorithm with an embedded ccTLD list (e.g., `co.uk`, `com.br`, `gob.sv`).
+
+- **No external Public Suffix List (PSL)** service is consulted.
+- **No DNS queries** are made to determine the apex domain.
+- **No subdomain data is transmitted** to RDAP servers — only the apex domain is sent.
+- The ccTLD list is static and embedded in the extension source code (`formatter.js`), ensuring offline reliability and zero network exposure.
+
+This design ensures that subdomain structure is never leaked to external services during the domain extraction step.
+
+## Terminal Write Integrity
+
+The progressive triage engine uses ANSI escape sequences to update skeleton rows in-place. A write-lock mechanism (`write-lock.js`) serializes terminal writes during cursor manipulation to prevent buffer corruption. This is a defense-in-depth measure — it prevents accidental command injection from interleaved I/O during automated output.
+
+## DNS Record Privacy
+
+DNS record lookups (A, AAAA, MX, NS, TXT, CNAME, SOA) are performed through Chrome's DNS-over-HTTPS resolver via the background service worker. WhatHappened:
+
+- **Does not correlate** DNS results across domains or sessions.
+- **Does not store** DNS responses beyond the current session's command history.
+- **Does not perform** cross-domain inference — each lookup is independent and scoped to the user's explicit target.
+- DNS data is used solely for display in the terminal output and is discarded when the side panel closes.
+
+## Heuristic Infrastructure Mapping
+
+The `infrastructure-map.js` module contains a static corporate affiliation database (e.g., "Cloudflare" → cloudflare group, "Incapsula" → imperva group). This data is:
+
+- **Embedded locally** in the extension source code — no external API is queried.
+- **Read-only** — the map is never modified at runtime.
+- **Non-identifying** — it maps provider names to corporate groups, not user data to providers. No personally identifiable information is processed or correlated.
+
 ## Permissions
 
 | Permission | Why We Need It |

@@ -1,15 +1,53 @@
-import { ANSI, isIPAddress, cmdError, getSeparator } from "../formatter.js";
+import { ANSI, isIPAddress, toApex, cmdError, getSeparator } from "../formatter.js";
 import { REGEX } from "../data/constants.js";
 import { resolveProvider } from "../utils.js";
 import { DNS_TYPES } from "../data/aliases.js";
 import { ContextManager } from "../context.js";
 import { cmdDig } from "../commands/dns/index.js";
-import { cmdWhois, cmdTrace } from "../commands/web/index.js";
 import { cmdRevDNS } from "../commands/native/index.js";
 import { suggestCommand } from "./parser.js";
+import { term } from "../terminal/terminal-ui.js";
+import { ProgressiveRenderer } from "../terminal/progressive-renderer.js";
+import { buildTriageHistory } from "../terminal/triage-history.js";
+
+// ---------------------------------------------------------------------------
+// Module-level state
+// ---------------------------------------------------------------------------
+
+let _activeRenderer = null;
+
+const ROW_TIMEOUT = 3500;  // Per-row timeout (ms)
+const NA_LABEL = `${ANSI.dim}[N/A]${ANSI.reset}`;
+
+// ---------------------------------------------------------------------------
+// Aggressive Apex Normalization
+// ---------------------------------------------------------------------------
+
+/**
+ * Sanitize raw user input into a clean domain for DNS queries.
+ * Strips protocol, path, trailing dots, trailing slashes, whitespace.
+ *
+ *   "  samanthadean.com  " → "samanthadean.com"
+ *   "www.facebook.com/"   → "www.facebook.com"
+ *   "http://example.com/path" → "example.com"
+ */
+function sanitizeDomain(raw) {
+    return raw
+        .trim()
+        .replace(REGEX.URL_PROTOCOL, "")
+        .replace(REGEX.URL_PATH, "")
+        .replace(REGEX.TRAILING_DOT, "")
+        .replace(/\/+$/, "")
+        .toLowerCase()
+        .trim();
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
 
 export async function handleAutoTarget(cmd, args, opts) {
-    let cleanCmd = cmd.replace(REGEX.URL_PROTOCOL, "").replace(REGEX.URL_PATH, "");
+    let cleanCmd = sanitizeDomain(cmd);
     let output = "";
 
     // Detect raw domain → auto target + dig
@@ -21,110 +59,68 @@ export async function handleAutoTarget(cmd, args, opts) {
         } else {
             output = `\n${getSeparator()}\n${ANSI.green}Target set: ${ANSI.yellow}${cleanCmd}${ANSI.reset}\n`;
 
-            // ── True Async Triage ──────────────────────────────────────
-            // All data is gathered FIRST, then the delegation block is
-            // printed ONCE with real values. Nothing prints until all
-            // promises have settled.
-            // ──────────────────────────────────────────────────────────
-
-            let whoisData = null;
-            const pWhois = chrome.runtime.sendMessage({ command: "whois", payload: { domain: cleanCmd } }).catch(() => null);
-            const pNs = cmdDig([cleanCmd], { forcedType: "NS", opts, isShortcut: true }).catch(() => "");
-            const pA = cmdDig([cleanCmd], { forcedType: "A", opts: [...(opts || []), "+noinsights"], isShortcut: true }).catch(() => "");
-
-            // Latency sentinel — fires if initial data takes > 2.5s
-            let latencyWarned = false;
-            const latencyTimer = setTimeout(() => { latencyWarned = true; }, 2500);
-
-            const settled = await Promise.allSettled([pWhois, pNs, pA]);
-            clearTimeout(latencyTimer);
-
-            const respWhois = settled[0].status === "fulfilled" ? settled[0].value : null;
-            const nsOut = settled[1].status === "fulfilled" ? settled[1].value : "";
-            const aOut = settled[2].status === "fulfilled" ? settled[2].value : "";
-
-            if (respWhois?.success) whoisData = respWhois.data;
-
-            if (latencyWarned) {
-                output += `\n${ANSI.cyan}[INFO]${ANSI.reset} ${ANSI.dim}Heavy network latency detected. Waiting for DNS...${ANSI.reset}\n`;
+            // Write "Target set" directly — progressive path bypasses writeOutput()
+            const targetLines = output.split("\n");
+            for (const line of targetLines) {
+                term.writeln(line);
             }
 
-            const splitToken = `\x1b[2m── INSIGHTS ──\x1b[0m`;
-            let insightsArr = [];
-
-            // --- Domain Delegation ---
-            const ips = aOut.split('\n').filter(l => /^\d{1,3}(\.\d{1,3}){3}$/.test(l.trim())).map(l => l.trim());
-            let nsDomains = nsOut.split('\n').filter(l => l.trim().endsWith('.')).map(l => l.replace(/\.$/, "").trim());
-            const targetRoot = cleanCmd.split(".").slice(-2).join(".");
-
-            // Fallback: If dig NS failed, try to extract from WHOIS
-            if (nsDomains.length === 0 && whoisData?.nameservers?.length) {
-                nsDomains = whoisData.nameservers.map(ns => (ns.ldhName || ns).toLowerCase());
+            // ── Progressive Triage ──────────────────────────────────
+            if (_activeRenderer) {
+                _activeRenderer.cancel();
+                _activeRenderer = null;
             }
 
-            // Extract registrar from parsed WHOIS
-            let registrarProvider = (respWhois?.registrar && respWhois.registrar !== "Unknown") ? respWhois.registrar : null;
+            const renderer = new ProgressiveRenderer(term);
+            _activeRenderer = renderer;
+            renderer.renderSkeleton();
 
-            // Phase 3: RDAP lookups (sequential — no competition)
-            // NS provider: self-hosted → RDAP on NS root domain
-            let dnsProvider = null;
-            if (nsDomains.length > 0) {
-                const nsRoot = nsDomains[0].split(".").slice(-2).join(".");
-                if (nsRoot === targetRoot) {
-                    dnsProvider = `Self-hosted (${targetRoot})`;
+            // ── Apex for WHOIS, original for DNS ────────────────────
+            const apexDomain = toApex(cleanCmd);
+            const isSubdomain = apexDomain !== cleanCmd;
+
+            // ── Interactive Banner Timer ────────────────────────────
+            let bannerShown = false;
+            const bannerTimer = setTimeout(() => {
+                if (renderer.isCancelled()) return;
+                bannerShown = true;
+                term.writeln(`\n${ANSI.cyan}[INFO]${ANSI.reset} ${ANSI.dim}Background triage active. You can start typing commands.${ANSI.reset}`);
+                renderer.addExternalLines(2);
+            }, 1500);
+
+            // ── Per-row resolution (each self-contained) ────────────
+            const pRow1 = resolveRegistrarRow(renderer, apexDomain, isSubdomain);
+            const pRow2 = resolveNSRow(renderer, cleanCmd, opts);
+            const pRow3 = resolveWebHostRow(renderer, cleanCmd, opts);
+
+            // Wait for ALL rows to settle (each has own 3.5s timeout)
+            await Promise.allSettled([pRow1, pRow2, pRow3]);
+            clearTimeout(bannerTimer);
+
+            if (!renderer.isCancelled()) {
+                // ── Gatekeeper: only finalize with ≥2 confirmed ─────
+                const confirmedCount = renderer.getConfirmedCount();
+                const provs = Object.values(renderer._resolved).filter(Boolean);
+
+                if (confirmedCount >= 2 && provs.length >= 2) {
+                    renderer.finalize(provs);
                 } else {
-                    try {
-                        const resp = await chrome.runtime.sendMessage({ command: "whois", payload: { domain: nsRoot } });
-                        if (resp?.success && resp.data?.entities?.length) {
-                            for (const e of resp.data.entities) {
-                                if (e.vcardArray?.[1]) {
-                                    for (const p of e.vcardArray[1]) {
-                                        if ((p[0] === "org" || p[0] === "fn") && p[3]) {
-                                            dnsProvider = p[3]; break;
-                                        }
-                                    }
-                                }
-                                if (dnsProvider) break;
-                            }
-                        }
-                    } catch (_) {}
+                    renderer.finalize([]);
                 }
+
+                if (confirmedCount < 3) {
+                    term.writeln(`${ANSI.cyan}[INFO]${ANSI.reset} Check WHOIS: https://www.whois.com/whois/${cleanCmd}`);
+                    renderer.addExternalLines(1);
+                }
+
+                output += buildTriageHistory(renderer._resolved, provs);
             }
 
-            // Web host: RDAP on first IP
-            let webProvider = null;
-            if (ips.length > 0) webProvider = await resolveProvider(ips[0]);
-
-            // ── Build the delegation block ONLY after all data is resolved ──
-            const provs = [registrarProvider, dnsProvider, webProvider].filter(Boolean);
-
-            if (provs.length >= 1) {
-                const allSame = provs.length >= 2 && provs.every(p => p === provs[0]);
-                const na = `${ANSI.dim}N/A${ANSI.reset}`;
-
-                let delO = `\n${ANSI.cyan}${ANSI.bold}[INFO] Domain Delegation:${ANSI.reset}`;
-                delO += `\n       ${ANSI.white}Registrar${ANSI.reset} ━ ${registrarProvider || na}`;
-                delO += `\n       ${ANSI.white}NameSrvs${ANSI.reset}  ━ ${dnsProvider || na}`;
-                delO += `\n       ${ANSI.white}Web Host${ANSI.reset}  ━ ${webProvider || na}`;
-                
-                if (allSame) {
-                    delO += `\n       ${ANSI.green}↳ Consolidated Stack (${provs[0]})${ANSI.reset}`;
-                } else if (provs.length >= 2) {
-                    delO += `\n       ${ANSI.yellow}↳ Distributed Stack${ANSI.reset}`;
-                }
-                insightsArr.unshift(delO);
-
-                // Add manual WHOIS link when any field is unresolvable
-                const hasUnknown = !registrarProvider || !dnsProvider || !webProvider;
-                if (hasUnknown) {
-                    insightsArr.push(`${ANSI.cyan}[INFO]${ANSI.reset} Check WHOIS: https://www.whois.com/whois/${cleanCmd}`);
-                }
+            if (_activeRenderer === renderer) {
+                _activeRenderer = null;
             }
-            // --------------------------------------
-            
-            if (insightsArr.length > 0) {
-                output += "\n" + splitToken + "\n" + insightsArr.join("\n");
-            }
+
+            return { output, backgroundTriage: bannerShown };
         }
         return output;
     }
@@ -133,7 +129,7 @@ export async function handleAutoTarget(cmd, args, opts) {
     if (isIPAddress(cleanCmd)) {
         ContextManager.setManualTarget(cleanCmd);
         output = `\n${getSeparator()}\n${ANSI.green}Target set: ${ANSI.yellow}${cleanCmd}${ANSI.reset} ${ANSI.dim}[IP detected]${ANSI.reset}\n`;
-        output += `${ANSI.dim}Running rev-dns...${ANSI.reset}\n\n`;
+        output += `${ANSI.dim}Running rev-dns...\x1b[0m\n\n`;
         try {
             output += await cmdRevDNS([cleanCmd]);
         } catch (e) {
@@ -150,4 +146,141 @@ export async function handleAutoTarget(cmd, args, opts) {
     }
     errMsg += `\n${ANSI.dim}Type ${ANSI.white}help${ANSI.dim} for available commands.${ANSI.reset}`;
     return errMsg;
+}
+
+// =========================================================================
+// Self-contained row resolvers (each with own try/catch + 3.5s timeout)
+// =========================================================================
+
+/**
+ * Row 1: Registrar — uses APEX domain for WHOIS/RDAP
+ */
+async function resolveRegistrarRow(renderer, apexDomain, isSubdomain) {
+    if (renderer.isCancelled()) return;
+    try {
+        const resp = await raceTimeout(
+            chrome.runtime.sendMessage({ command: "whois", payload: { domain: apexDomain } }),
+            ROW_TIMEOUT
+        );
+        if (renderer.isCancelled()) return;
+
+        if (resp?.success) {
+            const registrar = (resp.registrar && resp.registrar !== "Unknown") ? resp.registrar : null;
+            const label = registrar
+                ? (isSubdomain ? `${registrar} ${ANSI.dim}(${apexDomain})${ANSI.reset}` : registrar)
+                : null;
+            renderer.updateRow("registrar", label);
+        } else {
+            renderer.updateRow("registrar", null);
+        }
+    } catch (_) {
+        renderer.updateRow("registrar", NA_LABEL);
+    }
+}
+
+/**
+ * Row 2: NameServers — uses ORIGINAL domain for DNS
+ * Resilient NS parser: accepts lines ending with "." OR bare hostnames.
+ */
+async function resolveNSRow(renderer, originalDomain, opts) {
+    if (renderer.isCancelled()) return;
+    try {
+        const nsOut = await raceTimeout(
+            cmdDig([originalDomain], { forcedType: "NS", opts, isShortcut: true }).catch(() => ""),
+            ROW_TIMEOUT
+        );
+        if (renderer.isCancelled()) return;
+
+        // Resilient parser: accept NS lines with or without trailing dot
+        const nsDomains = nsOut.split('\n')
+            .map(l => l.trim())
+            .filter(l => l && /^[a-z0-9]([a-z0-9\-]*\.)+[a-z]{2,}\.?$/i.test(l))
+            .map(l => l.replace(/\.$/, ""));
+
+        if (nsDomains.length === 0) {
+            renderer.updateRow("ns", null);
+            return;
+        }
+
+        const targetRoot = originalDomain.split(".").slice(-2).join(".");
+        const nsRoot = nsDomains[0].split(".").slice(-2).join(".");
+
+        if (nsRoot === targetRoot) {
+            renderer.updateRow("ns", `Self-hosted (${targetRoot})`);
+            return;
+        }
+
+        // Resolve NS provider via RDAP
+        try {
+            const resp = await raceTimeout(
+                chrome.runtime.sendMessage({ command: "whois", payload: { domain: nsRoot } }),
+                ROW_TIMEOUT
+            );
+            if (renderer.isCancelled()) return;
+            if (resp?.success && resp.data?.entities?.length) {
+                for (const e of resp.data.entities) {
+                    if (e.vcardArray?.[1]) {
+                        for (const p of e.vcardArray[1]) {
+                            if ((p[0] === "org" || p[0] === "fn") && p[3]) {
+                                renderer.updateRow("ns", p[3]);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (_) {}
+
+        renderer.updateRow("ns", null);
+    } catch (_) {
+        renderer.updateRow("ns", NA_LABEL);
+    }
+}
+
+/**
+ * Row 3: Web Host — uses ORIGINAL domain for A record, then RDAP on IP
+ */
+async function resolveWebHostRow(renderer, originalDomain, opts) {
+    if (renderer.isCancelled()) return;
+    try {
+        const aOut = await raceTimeout(
+            cmdDig([originalDomain], {
+                forcedType: "A",
+                opts: [...(opts || []), "+noinsights"],
+                isShortcut: true,
+            }).catch(() => ""),
+            ROW_TIMEOUT
+        );
+        if (renderer.isCancelled()) return;
+
+        const ips = aOut.split('\n')
+            .map(l => l.trim())
+            .filter(l => /^\d{1,3}(\.\d{1,3}){3}$/.test(l));
+
+        if (ips.length === 0) {
+            renderer.updateRow("webhost", null);
+            return;
+        }
+
+        try {
+            const provider = await raceTimeout(resolveProvider(ips[0]), ROW_TIMEOUT);
+            if (renderer.isCancelled()) return;
+            renderer.updateRow("webhost", provider);
+        } catch (_) {
+            renderer.updateRow("webhost", NA_LABEL);
+        }
+    } catch (_) {
+        renderer.updateRow("webhost", NA_LABEL);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Timeout utility — rejects on timeout (catch triggers [N/A])
+// ---------------------------------------------------------------------------
+
+function raceTimeout(promise, ms) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error("TIMEOUT")), ms)),
+    ]);
 }

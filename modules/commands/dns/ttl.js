@@ -1,4 +1,4 @@
-import {ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
+import {ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError, toRegisteredDomain } from "../../formatter.js";
 
 // ===================================================================
 //  ttl — TTL for all record types
@@ -34,6 +34,10 @@ export async function cmdTTL(args) {
             if (r.type==="A" && ttl < 60) ins.push({level:"INFO",text:`A TTL=${ttl}s — dynamic DNS or CDN.`});
         } else {
             o += `  ${r.type.padEnd(6)} ${ANSI.dim}-${ANSI.reset}\n`;
+            // RFC 1034: apex domains cannot have CNAMEs
+            if (r.type === "CNAME" && domain === toRegisteredDomain(domain)) {
+                ins.push({level:"INFO",text:"No CNAME at apex — expected per RFC 1034."});
+            }
         }
     }
 

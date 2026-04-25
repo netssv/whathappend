@@ -106,6 +106,27 @@ export function toRegisteredDomain(h) {
     return p.slice(-2).join(".");
 }
 
+/**
+ * Normalize a domain to its apex (registerable) form.
+ * Strips protocol, path, trailing dots, then delegates to toRegisteredDomain()
+ * for ccTLD-aware extraction.
+ *
+ *   www.facebook.com        → facebook.com
+ *   dev.api.example.co.uk   → example.co.uk
+ *   courriel.easyhosting.com → easyhosting.com
+ *
+ * @param {string} domain — raw domain input (may include protocol/path)
+ * @returns {string} apex domain
+ */
+export function toApex(domain) {
+    if (!domain || isIPAddress(domain)) return domain;
+    const d = domain
+        .replace(REGEX.URL_PROTOCOL, "")
+        .replace(REGEX.URL_PATH, "")
+        .replace(REGEX.TRAILING_DOT, "");
+    return toRegisteredDomain(d);
+}
+
 export function resolveBaseDomain(args, cmdName) {
     const info = {};
     const domain = resolveTargetDomain(args[0], info);

@@ -1,5 +1,6 @@
 import { InputEvents } from "./events.js";
 import { term, PROMPT, writePrompt, isSystemWriting } from "../terminal-ui.js";
+import { isWriteLocked, enqueueWrite } from "../write-lock.js";
 import { deleteCharBefore, deleteWordBefore, deleteCharAfter, deleteWordAfter, moveCursorWordLeft, moveCursorWordRight } from "./buffer-ops.js";
 
 let currentLine = "";
@@ -159,12 +160,20 @@ function clearCurrentLine() {
 }
 
 function refreshLine() {
-    term.write("\r" + PROMPT + currentLine + "\x1b[K");
-    const moveBack = currentLine.length - cursorPosition;
-    if (moveBack > 0) {
-        term.write(`\x1b[${moveBack}D`);
+    const doRefresh = () => {
+        term.write("\r" + PROMPT + currentLine + "\x1b[K");
+        const moveBack = currentLine.length - cursorPosition;
+        if (moveBack > 0) {
+            term.write(`\x1b[${moveBack}D`);
+        }
+        InputEvents.emit("EV_INPUT_UPDATED", currentLine);
+    };
+
+    if (isWriteLocked()) {
+        enqueueWrite(doRefresh);
+    } else {
+        doRefresh();
     }
-    InputEvents.emit("EV_INPUT_UPDATED", currentLine);
 }
 
 export function setLine(text) {

@@ -1,5 +1,5 @@
 import { ContextManager } from "./modules/context.js";
-import { isIPAddress } from "./modules/formatter.js";
+import { isIPAddress, toApex } from "./modules/formatter.js";
 import { pushHistory } from "./modules/state.js";
 import { initTerminalUI, showBanner, writePrompt, term } from "./modules/terminal/terminal-ui.js";
 import { initHeaderController, updateWhoisFields, clearWhoisFields } from "./modules/terminal/header-controller.js";
@@ -76,8 +76,11 @@ ContextManager.onTargetChanged((domain) => {
     // Clear stale badges immediately
     clearWhoisFields();
 
+    // Resolve apex domain for RDAP (subdomains cause 404)
+    const apexDomain = toApex(domain);
+
     // Fire-and-forget — call background handler directly (no command engine overhead)
-    chrome.runtime.sendMessage({ command: "whois", payload: { domain } })
+    chrome.runtime.sendMessage({ command: "whois", payload: { domain: apexDomain } })
         .then(resp => {
             if (!resp?.success) return;
 

@@ -95,7 +95,7 @@ async function processCommand(rawInput) {
     }
 
     try {
-        const output = await executeCommand(input);
+        const result = await executeCommand(input);
 
         if (spinnerInterval) {
             stopSpinner(spinnerInterval);
@@ -111,21 +111,35 @@ async function processCommand(rawInput) {
             return;
         }
 
-        if (output === "__CLEAR__") {
-            term.clear();
-            showBanner();
-        } else if (output) {
-            // Don't ghost "Command cancelled." as a standalone output line
-            const clean = output.replace(/\x1b\[[0-9;]*m/g, "").trim();
-            if (clean === "^C" || clean === "Command cancelled.") {
-                // Already handled by Ctrl+C display — skip
-            } else {
-                writeOutput(output);
+        // Progressive triage: output was already rendered directly to xterm
+        // by the ProgressiveRenderer. We only need to log to history.
+        if (result && typeof result === "object" && result.backgroundTriage !== undefined) {
+            const historyOutput = result.output || "";
+            if (historyOutput) {
                 pushHistory({
                     timestamp: new Date().toISOString(),
                     command: input,
-                    output: output,
+                    output: historyOutput,
                 });
+            }
+        } else {
+            const output = result;
+            if (output === "__CLEAR__") {
+                term.clear();
+                showBanner();
+            } else if (output) {
+                // Don't ghost "Command cancelled." as a standalone output line
+                const clean = output.replace(/\x1b\[[0-9;]*m/g, "").trim();
+                if (clean === "^C" || clean === "Command cancelled.") {
+                    // Already handled by Ctrl+C display — skip
+                } else {
+                    writeOutput(output);
+                    pushHistory({
+                        timestamp: new Date().toISOString(),
+                        command: input,
+                        output: output,
+                    });
+                }
             }
         }
     } catch (err) {

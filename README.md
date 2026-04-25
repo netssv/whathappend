@@ -33,6 +33,35 @@ When a command needs network data, the extension's Service Worker uses standard 
 - **Autocomplete Fix**: The Tab completion engine now includes `registrar`, `hosting`, and all their aliases. Typing `re` + Tab correctly suggests `registrar`, `rev-dns`, `redirect`, etc.
 - **Input Sanitizer**: Trailing backslashes (e.g. `marcharwitz.com\`) no longer cause "Unknown command" errors. Both the input preprocessor and engine entry point now strip trailing `\` characters.
 
+## What's new in v2.2.0: Heuristic Apex Resolution & Async Triage
+
+- **Heuristic Apex Resolution**: A new `toApex()` normalizer automatically strips subdomains before RDAP queries. `www.facebook.com` → `facebook.com`, `courriel.easyhosting.com` → `easyhosting.com`. The delegation table shows `Registrar ━ Meta Platforms, Inc. (facebook.com)` when the target differs from the apex domain. All extraction is performed locally — no external PSL service is consulted.
+- **Per-Row Timeouts**: Each delegation row (Registrar, NameSrvs, Web Host) has a 4-second timeout safety net. If a network request doesn't settle in time, the row transitions from `⏳ loading...` to `[TIMEOUT]` instead of hanging indefinitely, allowing the stack summary (`↳ Distributed Stack`) to render immediately.
+- **Terminal Write-Lock**: A mutex-style queue prevents cursor corruption when the progressive renderer updates skeleton rows while the user is typing. Each ANSI cursor manipulation is atomic — user keystrokes are buffered for microseconds, not blocked for the entire triage.
+- **Progressive Triage Engine**: The auto-analysis skeleton renders immediately with `⏳ loading...` placeholders that update in-place as each data source resolves. Network latency no longer affects terminal availability.
+- **Interactive Background Triage**: If the initial triage takes longer than 1.5 seconds, the terminal unlocks with a `[INFO] Background triage active` banner, allowing you to start typing commands immediately.
+
+## What's new in v2.2.1: Latency Resilience
+
+- **Cursor Positioning Fix**: Replaced `buf.cursorY + buf.baseY` absolute positioning (stale due to xterm.js async write batching) with a **relative offset counter** that tracks skeleton geometry deterministically. Rows now overwrite in-place reliably regardless of terminal scroll state.
+- **Per-Row Isolation**: Each delegation row (Registrar, NameSrvs, Web Host) resolves in its own `async` function with a dedicated `try/catch` and 3.5-second timeout. A timeout or error in one row transitions it to `[N/A]` independently — the other rows continue resolving.
+- **Insights Gatekeeper**: The `↳ Distributed Stack` / `↳ Consolidated Stack` summary only renders when **≥2 rows have confirmed values**. No more premature "Distributed Stack" appearing while rows are still loading.
+- **DNS Exception for Subdomains**: WHOIS queries use the apex domain (`www.facebook.com` → `facebook.com`), but A/NS record lookups preserve the original subdomain since IP resolution may differ between `www.` and the apex.
+
+## What's new in v2.2.2: Fixed ANSI Overwrite Ghosting & Infrastructure Correlation
+
+- **Render Queue**: Row updates are now batched via `setTimeout(0)` and flushed as a single atomic terminal write. Multiple `.then()` callbacks firing in rapid succession are deduplicated by delta, eliminating duplicate "ghost" lines.
+- **Infrastructure Correlation**: The `↳ Consolidated Stack` / `↳ Distributed Stack` insight now uses a **corporate affiliation map** (`infrastructure-map.js`) that knows parent/subsidiary relationships (e.g., Hostopia + Internet Names For Business → both Deluxe Corporation → Consolidated). Exact string matching is used as fallback for unlisted providers.
+- **Aggressive Domain Sanitization**: A new `sanitizeDomain()` function normalizes raw user input before the triage engine — stripping whitespace, trailing slashes, protocols, paths, and lowercasing. Domains like `samanthadean.com` no longer fail NS lookups.
+- **Resilient NS Parser**: The nameserver response parser now accepts bare hostnames (without trailing `.`), preventing false negatives when DNS-over-HTTPS responses omit the trailing dot.
+
+## What's new in v2.3.0: Heuristic Infrastructure Mapping (Release 3)
+
+- **ANSI Row-Lock & Clear**: Reversed the clear sequence to `\x1b[2K\r` (erase-then-position) instead of `\r\x1b[2K` (position-then-erase). This eliminates "ghost" remnants on high-latency RDAP responses (e.g., Pinterest, elsalvador.com) where the old `⏳ loading...` text was briefly visible below the resolved value.
+- **Expanded Infrastructure Map**: Added 15 new corporate groups including Cloudflare (NS + CDN + DNS), Incapsula/Imperva (WAF + reverse proxy), StackPath/MaxCDN, AWS CloudFront/EC2/S3, and major managed WordPress hosts (WP Engine, Kinsta, Flywheel). The map now covers 35+ corporate families with 100+ keyword matches.
+- **Cloudflare/Incapsula Consolidation**: If NameSrvs is Cloudflare and Web Host is Cloudflare, the result is now correctly `↳ Consolidated Stack (cloudflare)`. Previously reported as Distributed. Same fix for Incapsula/Imperva security stacks.
+- **RFC-Aware CNAME Insights**: When `cname` or `ttl` is run on an apex domain and returns no CNAME record, the insight now explains: `[INFO] Apex domains usually lack CNAMEs per RFC 1034 standards` — preventing user confusion about "missing" records.
+
 ## No Third-Party Dependencies
 
 This extension is completely self-contained to keep your data secure:

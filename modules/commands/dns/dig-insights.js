@@ -1,5 +1,5 @@
 import { ANSI } from "../../formatter.js";
-import { toRegisteredDomain } from "../../formatter.js";
+import { toRegisteredDomain, isIPAddress } from "../../formatter.js";
 import { resolveProvider } from "../../utils.js";
 
 // ===================================================================
@@ -105,7 +105,16 @@ async function aInsights(domain, type, ans, ins) {
 }
 
 function cnameInsights(domain, ans, ins) {
-    if (ans.length>0) ins.push({level:"INFO",text:`Alias → ${ans[0].data||"?"}`});
+    if (ans.length > 0) {
+        ins.push({level:"INFO",text:`Alias → ${ans[0].data||"?"}`});
+    } else {
+        // Detect if this is an apex domain (no CNAME expected per RFC 1034)
+        const apex = toRegisteredDomain(domain);
+        if (domain === apex) {
+            ins.push({level:"INFO",text:"Apex domains usually lack CNAMEs per RFC 1034 standards."});
+            ins.push({level:"INFO",text:"CNAMEs at the zone apex conflict with NS/SOA records."});
+        }
+    }
     ins.push({level:"INFO",text:`Test Global DNS: https://dnschecker.org/#CNAME/${domain}`});
     return ins;
 }

@@ -91,6 +91,10 @@ export async function executeCommand(input) {
                 default:
                     // If not a known command, check if it's an auto-target domain/IP
                     output = await handleAutoTarget(cmd, args, opts);
+                    // Progressive triage returns an object — pass through directly
+                    if (output && typeof output === "object" && output.backgroundTriage !== undefined) {
+                        return output;
+                    }
                     break;
             }
         }
