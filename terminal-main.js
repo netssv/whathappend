@@ -65,7 +65,7 @@ ContextManager.onTargetChanged((domain) => {
     chrome.runtime.sendMessage({ command: "whois", payload: { domain: apexDomain } })
         .then(resp => {
             if (resp?.success) {
-                updateWhoisFields(resp.registrar || null);
+                updateWhoisFields(resp.registrar || null, `https://www.whois.com/whois/${apexDomain}`);
             }
         }).catch(() => {});
 
@@ -77,9 +77,10 @@ ContextManager.onTargetChanged((domain) => {
                 const nsHost = nsRecords[0].data.replace(/\.$/, "");
                 const targetRoot = domain.split(".").slice(-2).join(".");
                 const nsRoot = nsHost.split(".").slice(-2).join(".");
+                const nsUrl = `https://intodns.com/${domain}`;
 
                 if (nsRoot === targetRoot) {
-                    updateNSField(`Self-hosted (${targetRoot})`);
+                    updateNSField(`Self-hosted (${targetRoot})`, nsUrl);
                 } else {
                     // Quick RDAP lookup for NS provider
                     chrome.runtime.sendMessage({ command: "whois", payload: { domain: nsRoot } })
@@ -89,15 +90,15 @@ ContextManager.onTargetChanged((domain) => {
                                     if (e.vcardArray?.[1]) {
                                         for (const p of e.vcardArray[1]) {
                                             if ((p[0] === "org" || p[0] === "fn") && p[3]) {
-                                                updateNSField(p[3]);
+                                                updateNSField(p[3], nsUrl);
                                                 return;
                                             }
                                         }
                                     }
                                 }
                             }
-                            updateNSField(nsHost);
-                        }).catch(() => { updateNSField(nsHost); });
+                            updateNSField(nsHost, nsUrl);
+                        }).catch(() => { updateNSField(nsHost, nsUrl); });
                 }
             }
         }).catch(() => {});
@@ -107,10 +108,11 @@ ContextManager.onTargetChanged((domain) => {
         .then(resp => {
             const aRecord = resp?.data?.Answer?.find(a => a.type === 1);
             if (aRecord && aRecord.data) {
-                chrome.runtime.sendMessage({ command: "ip-whois", payload: { ip: aRecord.data } })
+                const ip = aRecord.data;
+                chrome.runtime.sendMessage({ command: "ip-whois", payload: { ip } })
                     .then(ipResp => {
                         if (ipResp?.success && ipResp.org) {
-                            updateHostField(ipResp.org);
+                            updateHostField(ipResp.org, `https://ipinfo.io/${ip}`);
                         }
                     }).catch(() => {});
             }

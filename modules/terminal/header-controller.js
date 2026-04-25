@@ -4,6 +4,7 @@ const contextDomainInput = document.getElementById("context-domain");
 const contextRegistrar = document.getElementById("context-registrar");
 const contextNS = document.getElementById("context-ns");
 const contextHost = document.getElementById("context-host");
+const contextTriad = document.getElementById("context-triad");
 let _headerPreviousValue = "";
 let terminalInstance = null;
 
@@ -62,38 +63,70 @@ export function isHeaderFocused() {
     return contextDomainInput && document.activeElement === contextDomainInput;
 }
 
+// ---------------------------------------------------------------------------
+// Triad visibility + click-to-verify
+// ---------------------------------------------------------------------------
+
+function refreshTriadVisibility() {
+    if (!contextTriad) return;
+    const hasAny = contextRegistrar?.textContent || contextNS?.textContent || contextHost?.textContent;
+    if (hasAny) {
+        contextTriad.classList.add("visible");
+    } else {
+        contextTriad.classList.remove("visible");
+    }
+}
+
+function setTriadValue(el, text, url) {
+    if (!el) return;
+    el.textContent = text || "";
+    el.title = url ? `${text} — click to verify` : (text || "");
+    if (url) {
+        el.dataset.href = url;
+        el.classList.add("clickable");
+    } else {
+        delete el.dataset.href;
+        el.classList.remove("clickable");
+    }
+    refreshTriadVisibility();
+}
+
+// One-time click delegation on the triad container
+if (contextTriad) {
+    contextTriad.addEventListener("click", (e) => {
+        const target = e.target.closest(".triad-value[data-href]");
+        if (target?.dataset.href) {
+            chrome.tabs.create({ url: target.dataset.href });
+        }
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Public update functions
+// ---------------------------------------------------------------------------
+
+export function updateWhoisFields(registrar, url) {
+    setTriadValue(contextRegistrar, registrar, url);
+}
+
+export function updateNSField(ns, url) {
+    setTriadValue(contextNS, ns, url);
+}
+
+export function updateHostField(host, url) {
+    setTriadValue(contextHost, host, url);
+}
+
 /**
- * Update the Registrar and Expiry badges in the context bar.
- * Called asynchronously when WHOIS data arrives.
- * @param {string|null} registrar - Registrar name or null
- * @param {string|null} expiryDate - ISO date string or null
- */
-export function updateWhoisFields(registrar) {
-    if (contextRegistrar) {
-        contextRegistrar.textContent = registrar ? registrar.split(" ")[0] : "";
-        contextRegistrar.title = registrar ? `Registrar: ${registrar}` : "";
-    }
-}
-
-export function updateNSField(ns) {
-    if (contextNS) {
-        contextNS.textContent = ns ? ns.split(" ")[0].replace(/,? inc\.?/i, '') : "";
-        contextNS.title = ns ? `NameServers: ${ns}` : "";
-    }
-}
-
-export function updateHostField(host) {
-    if (contextHost) {
-        contextHost.textContent = host ? host.split(" ")[0].replace(/,? inc\.?/i, '') : "";
-        contextHost.title = host ? `Web Host: ${host}` : "";
-    }
-}
-
-/**
- * Clear the WHOIS metadata badges (called before a new async lookup starts).
+ * Clear all infrastructure badges (called before a new async lookup starts).
  */
 export function clearWhoisFields() {
-    if (contextRegistrar) { contextRegistrar.textContent = ""; contextRegistrar.title = ""; }
-    if (contextNS) { contextNS.textContent = ""; contextNS.title = ""; }
-    if (contextHost) { contextHost.textContent = ""; contextHost.title = ""; }
+    [contextRegistrar, contextNS, contextHost].forEach(el => {
+        if (el) {
+            el.textContent = ""; el.title = "";
+            delete el.dataset.href;
+            el.classList.remove("clickable");
+        }
+    });
+    refreshTriadVisibility();
 }

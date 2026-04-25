@@ -1,15 +1,13 @@
 /* -------------------------------------------------------------------------
- * Context Bar — Active Tab Domain Display
- * Sits above the terminal; updated by ContextManager in terminal.js
+ * Context Bar — Active Tab Domain Display + Infrastructure Triad
+ * Two-row header: domain on top, REG | NS | HOST on bottom
  * ------------------------------------------------------------------------- */
 
 #context-bar {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 4px;
-    height: 48px;
-    padding: 6px 8px;
+    gap: 0;
+    padding: 0;
     background: var(--bg-panel);
     border-bottom: 1px solid var(--bg-panel-border);
     font-size: 13px;
@@ -19,11 +17,14 @@
     transition: background 0.3s ease;
 }
 
-.context-row {
+/* --- Top Row: Domain + Controls ---------------------------------------- */
+
+.context-row.context-top {
     display: flex;
     align-items: center;
     gap: 6px;
-    width: 100%;
+    height: 28px;
+    padding: 4px 8px;
     white-space: nowrap;
     overflow: hidden;
 }
@@ -97,42 +98,77 @@
     flex-shrink: 0;
 }
 
-/* -------------------------------------------------------------------------
- * Context Meta — Async WHOIS Registrar / Expiry badges
- * ------------------------------------------------------------------------- */
+/* --- Bottom Row: Infrastructure Triad ---------------------------------- */
 
-.context-meta {
+#context-triad {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0 8px;
+    border-top: 1px solid transparent;
+    transition: height 0.3s ease, opacity 0.35s ease, padding 0.3s ease, border-color 0.3s ease;
+}
+
+#context-triad.visible {
+    height: 22px;
+    opacity: 1;
+    padding: 3px 8px;
+    border-top-color: var(--bg-panel-border);
+}
+
+.triad-col {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+    min-width: 0;
+}
+
+/* Subtle left border as column separator (skip first) */
+.triad-col:not(:first-child) {
+    padding-left: 8px;
+    border-left: 1px solid var(--bg-panel-border);
+}
+
+.triad-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--text-dark);
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+.triad-value {
     font-size: 10px;
-    color: var(--text-dim);
-    flex-shrink: 1;
+    color: var(--text-light);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100px;
-    opacity: 0;
-    transition: opacity 0.4s ease;
+    min-width: 0;
+    transition: color 0.3s ease;
 }
 
-.context-meta:not(:empty) {
-    opacity: 1;
-}
-
-.context-meta:not(:first-child):not(:empty)::before {
-    content: "│";
-    margin: 0 4px;
+.triad-value:empty::after {
+    content: "\00B7\00B7\00B7";
     color: var(--text-dark);
 }
 
-.context-meta.expiry-warn {
-    color: var(--accent-yellow);
+.triad-value.clickable {
+    cursor: pointer;
+    transition: color 0.15s ease;
 }
 
-.context-meta.expiry-crit {
-    color: var(--accent-red, #ff5555);
+.triad-value.clickable:hover {
+    color: var(--accent-green);
+    text-decoration: underline;
+    text-underline-offset: 2px;
 }
 
 /* -------------------------------------------------------------------------
- * Font Size Controls — [−] [+]
+ * Font Size Controls
  * ------------------------------------------------------------------------- */
 
 #font-controls {
