@@ -6,7 +6,11 @@
 // signatures. Provider-agnostic: no branding strings in output.
 // ===================================================================
 
-const BASE_SELECTORS = ["default", "s1", "s2", "key1", "key2", "mail", "dkim", "email"];
+const BASE_SELECTORS = [
+    "default", "s1", "s2", "key1", "key2", "mail", "dkim", "email", 
+    "k1", "k2", "k3", "m1", "m2", "m3", "selector1", "selector2", 
+    "google", "zendesk1", "zendesk2", "smtp", "mta1", "mta2"
+];
 
 // Tokens too generic to be useful as selectors
 const EXCLUDED = [
@@ -31,9 +35,9 @@ const MX_INFERENCE_RULES = [
     ["googlemail.com",     ["google"]],
     ["aspmx",              ["google"]],
     // Zoho
-    ["zoho.com",           ["zmail"]],
-    ["zoho.eu",            ["zmail"]],
-    ["zohomail",           ["zmail"]],
+    ["zoho.com",           ["zmail", "zoho"]],
+    ["zoho.eu",            ["zmail", "zoho"]],
+    ["zohomail",           ["zmail", "zoho"]],
     // ProtonMail
     ["protonmail",         ["protonmail", "protonmail2", "protonmail3"]],
     ["proton.me",          ["protonmail", "protonmail2", "protonmail3"]],
@@ -42,31 +46,40 @@ const MX_INFERENCE_RULES = [
     ["mailhostbox",        ["hmail"]],
     ["registrar-servers",  ["default", "mail"]],
     // Transactional / ESP platforms
-    ["sendgrid",           ["s1", "s2", "sendgrid"]],
-    ["mailgun",            ["smtp", "mailo", "k1"]],
-    ["amazonses",          ["dkim"]],
-    ["amazonaws",          ["dkim"]],
-    ["mailchimp",          ["k1"]],
-    ["mandrillapp",        ["mandrill"]],
-    ["postmarkapp",        ["pm"]],
-    ["sparkpost",          ["sparkpost"]],
-    ["mcsv.net",           ["k1"]],
+    ["sendgrid",           ["s1", "s2", "sendgrid", "sg"]],
+    ["mailgun",            ["smtp", "mailo", "k1", "k2", "k3", "mg", "pic"]],
+    ["amazonses",          ["dkim", "amazonses"]],
+    ["amazonaws",          ["dkim", "amazonses"]],
+    ["mailchimp",          ["k1", "k2", "k3"]],
+    ["mandrillapp",        ["mandrill", "md", "m1"]],
+    ["postmarkapp",        ["pm", "pm2", "pm3"]],
+    ["sparkpost",          ["sparkpost", "scph0416", "scph0616", "sp"]],
+    ["mcsv.net",           ["k1", "k2", "k3"]],
+    // CRM & Helpdesk
+    ["zendesk",            ["zendesk1", "zendesk2"]],
+    ["salesforce",         ["sf1", "sf2"]],
+    ["hubspot",            ["hs1", "hs2"]],
+    ["freshdesk",          ["fd1", "fd2", "freshdesk"]],
+    ["intercom",           ["intercom"]],
+    ["netigate",           ["netigate"]],
     // Hosting-bundled mail
     ["dreamhost",          ["dreamhost"]],
-    ["bluehost",           ["default"]],
-    ["godaddy",            ["default"]],
-    ["namecheap",          ["default"]],
+    ["bluehost",           ["default", "bluehost"]],
+    ["godaddy",            ["default", "godaddy"]],
+    ["namecheap",          ["default", "namecheap"]],
     ["ovh.",               ["ovh"]],
     ["gandi.",             ["gandi"]],
     // Fastmail
     ["fastmail",           ["fm1", "fm2", "fm3"]],
     ["messagingengine",    ["fm1", "fm2", "fm3"]],
     // Migadu
-    ["migadu",             ["key1"]],
+    ["migadu",             ["key1", "key2", "key3"]],
     // Mimecast
-    ["mimecast",           ["mimecast"]],
+    ["mimecast",           ["mimecast", "mc1", "mc2"]],
     // Barracuda
-    ["barracuda",          ["barracuda"]],
+    ["barracuda",          ["barracuda", "bess1", "bess2"]],
+    // Proofpoint
+    ["proofpoint",         ["pp1", "pp2", "proofpoint"]],
 ];
 
 /**

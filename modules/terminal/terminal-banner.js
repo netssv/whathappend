@@ -15,7 +15,7 @@ export function showBanner(term) {
 
     if (cols >= 60) {
         // WIDE SCREEN
-        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[90m│\x1b[0m Web Infrastructure Triage \x1b[90m│\x1b[0m \x1b[33mv2.3.0\x1b[0m");
+        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[90m│\x1b[0m Web Infrastructure Triage \x1b[90m│\x1b[0m \x1b[33mv2.3.1\x1b[0m");
         term.writeln("  \x1b[90m" + "━".repeat(50) + "\x1b[0m");
         term.writeln("  \x1b[90mType \x1b[37mhelp\x1b[90m for commands \x1b[90m│\x1b[0m \x1b[37m?\x1b[90m quick help \x1b[90m│\x1b[0m \x1b[37mCtrl+C\x1b[90m cancel\x1b[0m");
         term.writeln("");
@@ -24,7 +24,7 @@ export function showBanner(term) {
         term.writeln("  \x1b[90mAlways verify findings according to your internal security policies.\x1b[0m");
     } else if (cols >= 45) {
         // MEDIUM SCREEN
-        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.3.0\x1b[0m");
+        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.3.1\x1b[0m");
         term.writeln("  \x1b[90m" + "━".repeat(38) + "\x1b[0m");
         term.writeln("  \x1b[90mType \x1b[37mhelp\x1b[90m \x1b[90m│\x1b[0m \x1b[37m?\x1b[90m quick \x1b[90m│\x1b[0m \x1b[37mCtrl+C\x1b[90m cancel\x1b[0m");
         term.writeln("");
@@ -33,7 +33,7 @@ export function showBanner(term) {
         term.writeln("  \x1b[90mVerify findings per internal security policies.\x1b[0m");
     } else {
         // NARROW SCREEN (Large fonts)
-        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.3.0\x1b[0m");
+        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.3.1\x1b[0m");
         term.writeln("  \x1b[90m━━━━━━━━━━━━━━━\x1b[0m");
         term.writeln("  \x1b[90mType \x1b[37mhelp\x1b[90m or \x1b[37m?\x1b[90m");
         term.writeln("  \x1b[90mPress \x1b[37mCtrl+C\x1b[90m to cancel\x1b[0m");
