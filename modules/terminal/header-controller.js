@@ -2,7 +2,8 @@ import { ContextManager } from "../context.js";
 
 const contextDomainInput = document.getElementById("context-domain");
 const contextRegistrar = document.getElementById("context-registrar");
-const contextExpiry = document.getElementById("context-expiry");
+const contextNS = document.getElementById("context-ns");
+const contextHost = document.getElementById("context-host");
 let _headerPreviousValue = "";
 let terminalInstance = null;
 
@@ -67,23 +68,24 @@ export function isHeaderFocused() {
  * @param {string|null} registrar - Registrar name or null
  * @param {string|null} expiryDate - ISO date string or null
  */
-export function updateWhoisFields(registrar, expiryDate) {
+export function updateWhoisFields(registrar) {
     if (contextRegistrar) {
-        contextRegistrar.textContent = registrar || "";
+        contextRegistrar.textContent = registrar ? registrar.split(" ")[0] : "";
         contextRegistrar.title = registrar ? `Registrar: ${registrar}` : "";
     }
-    if (contextExpiry && expiryDate) {
-        const dd = Math.floor((new Date(expiryDate) - new Date()) / 864e5);
-        const label = dd < 0 ? `EXP ${Math.abs(dd)}d ago` : `${dd}d`;
-        contextExpiry.textContent = label;
-        contextExpiry.title = `Expiry: ${expiryDate.slice(0, 10)} (${dd < 0 ? "EXPIRED" : dd + " days remaining"})`;
-        contextExpiry.classList.remove("expiry-warn", "expiry-crit");
-        if (dd < 0) contextExpiry.classList.add("expiry-crit");
-        else if (dd < 30) contextExpiry.classList.add("expiry-warn");
-    } else if (contextExpiry) {
-        contextExpiry.textContent = "";
-        contextExpiry.title = "";
-        contextExpiry.classList.remove("expiry-warn", "expiry-crit");
+}
+
+export function updateNSField(ns) {
+    if (contextNS) {
+        contextNS.textContent = ns ? ns.split(" ")[0].replace(/,? inc\.?/i, '') : "";
+        contextNS.title = ns ? `NameServers: ${ns}` : "";
+    }
+}
+
+export function updateHostField(host) {
+    if (contextHost) {
+        contextHost.textContent = host ? host.split(" ")[0].replace(/,? inc\.?/i, '') : "";
+        contextHost.title = host ? `Web Host: ${host}` : "";
     }
 }
 
@@ -92,5 +94,6 @@ export function updateWhoisFields(registrar, expiryDate) {
  */
 export function clearWhoisFields() {
     if (contextRegistrar) { contextRegistrar.textContent = ""; contextRegistrar.title = ""; }
-    if (contextExpiry) { contextExpiry.textContent = ""; contextExpiry.title = ""; contextExpiry.classList.remove("expiry-warn", "expiry-crit"); }
+    if (contextNS) { contextNS.textContent = ""; contextNS.title = ""; }
+    if (contextHost) { contextHost.textContent = ""; contextHost.title = ""; }
 }

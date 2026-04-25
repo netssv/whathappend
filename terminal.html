@@ -19,15 +19,20 @@
 <body style="display:flex;flex-direction:column;height:100%;">
     <!-- Active tab context display with logo -->
     <div id="context-bar">
-        <img id="context-logo" src="icons/icon.svg" alt="WH" width="16" height="16" />
-        <input id="context-domain" type="text" value="No active target" readonly spellcheck="false" autocomplete="off" />
-        <span id="context-registrar" class="context-meta"></span>
-        <span id="context-expiry" class="context-meta"></span>
-        <div id="font-controls">
-            <button id="font-decrease" title="Decrease font size (min 10px)">−</button>
-            <button id="font-increase" title="Increase font size (max 20px)">+</button>
+        <div class="context-row context-top">
+            <img id="context-logo" src="icons/icon.svg" alt="WH" width="16" height="16" />
+            <input id="context-domain" type="text" value="No active target" readonly spellcheck="false" autocomplete="off" />
+            <div id="font-controls">
+                <button id="font-decrease" title="Decrease font size (min 10px)">−</button>
+                <button id="font-increase" title="Increase font size (max 20px)">+</button>
+            </div>
+            <span id="context-version">v2.3.1</span>
         </div>
-        <span id="context-version">v2.3.1</span>
+        <div class="context-row context-bottom">
+            <span id="context-registrar" class="context-meta" title="Registrar"></span>
+            <span id="context-ns" class="context-meta" title="NameServers"></span>
+            <span id="context-host" class="context-meta" title="Web Host"></span>
+        </div>
     </div>
 
     <div id="terminal-container"></div>
