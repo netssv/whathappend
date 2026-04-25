@@ -1,0 +1,96 @@
+/* -------------------------------------------------------------------------
+ * Tab-Switch Notification Bar
+ * Slides in between header and terminal when active tab changes
+ * ------------------------------------------------------------------------- */
+
+#tab-switch-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 0;
+    padding: 0 10px;
+    overflow: hidden;
+    opacity: 0;
+    background: linear-gradient(135deg, rgba(0, 200, 255, 0.06), rgba(0, 200, 255, 0.02));
+    border-bottom: 1px solid transparent;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    flex-shrink: 0;
+    white-space: nowrap;
+    transition: height 0.25s ease, opacity 0.25s ease, padding 0.25s ease, border-color 0.25s ease;
+}
+
+#tab-switch-bar.visible {
+    height: 28px;
+    padding: 0 10px;
+    opacity: 1;
+    border-bottom-color: rgba(0, 200, 255, 0.15);
+}
+
+#tab-switch-icon {
+    font-size: 13px;
+    color: #00c8ff;
+    flex-shrink: 0;
+    animation: tabPulseIcon 1.5s ease-in-out infinite;
+}
+
+@keyframes tabPulseIcon {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+#tab-switch-label {
+    color: var(--text-dark);
+    flex-shrink: 0;
+}
+
+#tab-switch-domain {
+    color: #00c8ff;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+#tab-switch-btn {
+    border: 1px solid rgba(0, 200, 255, 0.3);
+    border-radius: 10px;
+    background: rgba(0, 200, 255, 0.08);
+    color: #00c8ff;
+    font-size: 10px;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    padding: 2px 10px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+    letter-spacing: 0.3px;
+}
+
+#tab-switch-btn:hover {
+    background: rgba(0, 200, 255, 0.18);
+    border-color: rgba(0, 200, 255, 0.5);
+    color: #fff;
+}
+
+#tab-switch-btn:active {
+    transform: scale(0.95);
+}
+
+#tab-switch-dismiss {
+    border: none;
+    background: transparent;
+    color: var(--text-dark);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0 2px;
+    flex-shrink: 0;
+    transition: color 0.15s ease;
+    line-height: 1;
+}
+
+#tab-switch-dismiss:hover {
+    color: var(--text-light);
+}

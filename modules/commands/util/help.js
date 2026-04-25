@@ -69,6 +69,7 @@ export const HELP_SECTIONS = [
         ["info", "System diagnostics", "telemetry status"],
         ["errors", "Error & insight guide", "error"],
         ["clear", "Clear terminal", "cls reset"],
+        ["exit", "End session & clear", "quit"],
         ["help", "Show this menu", "? ls man"],
     ]},
 ];

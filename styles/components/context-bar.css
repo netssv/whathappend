@@ -17,8 +17,6 @@
     transition: background 0.3s ease;
 }
 
-/* --- Top Row: Domain + Controls ---------------------------------------- */
-
 .context-row.context-top {
     display: flex;
     align-items: center;
@@ -35,10 +33,8 @@
 }
 
 #context-logo {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-    border-radius: 3px;
+    width: 16px; height: 16px;
+    flex-shrink: 0; border-radius: 3px;
     opacity: 0.4;
     transition: opacity 0.4s ease, filter 0.4s ease;
 }
@@ -52,22 +48,20 @@
     filter: drop-shadow(0 0 3px var(--accent-yellow-glow));
 }
 
+/* --- Domain Input ------------------------------------------------------ */
+
 #context-domain {
     background: transparent;
     border: 1px solid transparent;
     border-radius: 3px;
     color: var(--text-dim);
-    font-family: inherit;
-    font-size: inherit;
+    font-family: inherit; font-size: inherit;
     padding: 1px 4px;
-    min-width: 80px;
-    max-width: 100%;
-    flex: 1 1 auto;
-    outline: none;
+    min-width: 80px; max-width: 100%;
+    flex: 1 1 auto; outline: none;
     transition: color 0.3s ease, border-color 0.3s ease, background 0.3s ease;
     cursor: default;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: hidden; text-overflow: ellipsis;
 }
 
 #context-domain:focus,
@@ -75,146 +69,76 @@
     border-color: var(--accent-green-alpha);
     background: var(--bg-input-focus);
     color: var(--text-bright);
-    cursor: text;
-    user-select: text;
+    cursor: text; user-select: text;
 }
 
-#context-bar.manual #context-domain {
-    color: var(--accent-yellow);
-    border-color: var(--accent-yellow-alpha);
-}
+#context-bar.manual #context-domain { color: var(--accent-yellow); border-color: var(--accent-yellow-alpha); }
+#context-bar.active #context-domain { color: var(--text-light); }
+#context-bar.active #context-domain:focus { color: var(--text-bright); }
 
-#context-bar.active #context-domain {
-    color: var(--text-light);
-}
+#context-version { font-size: 10px; color: var(--text-dark); flex-shrink: 0; }
 
-#context-bar.active #context-domain:focus {
-    color: var(--text-bright);
-}
-
-#context-version {
-    font-size: 10px;
-    color: var(--text-dark);
-    flex-shrink: 0;
-}
-
-/* --- Bottom Row: Infrastructure Triad ---------------------------------- */
+/* --- Infrastructure Triad ---------------------------------------------- */
 
 #context-triad {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    height: 0;
-    overflow: hidden;
-    opacity: 0;
+    height: 0; overflow: hidden; opacity: 0;
     padding: 0 8px;
     border-top: 1px solid transparent;
     transition: height 0.3s ease, opacity 0.35s ease, padding 0.3s ease, border-color 0.3s ease;
 }
 
 #context-triad.visible {
-    height: 22px;
-    opacity: 1;
+    height: 26px; opacity: 1;
     padding: 3px 8px;
     border-top-color: var(--bg-panel-border);
 }
 
 .triad-col {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    overflow: hidden;
-    min-width: 0;
+    display: flex; align-items: center;
+    gap: 5px; overflow: hidden; min-width: 0;
 }
 
-/* Subtle left border as column separator (skip first) */
-.triad-col:not(:first-child) {
-    padding-left: 8px;
-    border-left: 1px solid var(--bg-panel-border);
-}
+.triad-col:not(:first-child) { padding-left: 8px; border-left: 1px solid var(--bg-panel-border); }
 
 .triad-label {
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    color: var(--text-dark);
-    flex-shrink: 0;
-    text-transform: uppercase;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+    color: var(--text-dim); flex-shrink: 0; text-transform: uppercase;
 }
 
 .triad-value {
-    font-size: 10px;
-    color: var(--text-light);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0;
-    transition: color 0.3s ease;
+    font-size: 11.5px; color: var(--text-bright);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    min-width: 0; transition: color 0.3s ease;
 }
 
-.triad-value:empty::after {
-    content: "\00B7\00B7\00B7";
-    color: var(--text-dark);
-}
+.triad-value:empty::after { content: "\00B7\00B7\00B7"; color: var(--text-dark); }
+.triad-value.clickable { cursor: pointer; transition: color 0.15s ease; }
+.triad-value.clickable:hover { color: var(--accent-green); text-decoration: underline; text-underline-offset: 2px; }
 
-.triad-value.clickable {
-    cursor: pointer;
-    transition: color 0.15s ease;
-}
+/* --- Font Size Controls ------------------------------------------------ */
 
-.triad-value.clickable:hover {
-    color: var(--accent-green);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-}
-
-/* -------------------------------------------------------------------------
- * Font Size Controls
- * ------------------------------------------------------------------------- */
-
-#font-controls {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    margin-left: auto;
-    flex-shrink: 0;
-}
+#font-controls { display: flex; align-items: center; gap: 2px; margin-left: auto; flex-shrink: 0; }
 
 #font-controls button {
-    width: 18px;
-    height: 18px;
-    border: 1px solid var(--bg-scrollbar-thumb);
-    border-radius: 3px;
-    background: var(--bg-btn);
-    color: var(--text-btn);
-    font-size: 12px;
-    font-family: inherit;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
-    padding: 0;
+    width: 18px; height: 18px;
+    border: 1px solid var(--bg-scrollbar-thumb); border-radius: 3px;
+    background: var(--bg-btn); color: var(--text-btn);
+    font-size: 12px; font-family: inherit; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s ease; padding: 0;
 }
 
-#font-controls button:hover {
-    background: var(--bg-btn-hover);
-    color: var(--accent-green);
-    border-color: var(--accent-green-alpha-light);
-}
+#font-controls button:hover { background: var(--bg-btn-hover); color: var(--accent-green); border-color: var(--accent-green-alpha-light); }
+#font-controls button:active { background: var(--bg-btn-active); transform: scale(0.92); }
 
-#font-controls button:active {
-    background: var(--bg-btn-active);
-    transform: scale(0.92);
-}
+/* --- Animations -------------------------------------------------------- */
 
-/* Flash animation on domain change */
 @keyframes contextPulse {
     0%   { background: var(--bg-active); }
     30%  { background: var(--bg-active-pulse); }
     100% { background: var(--bg-active); }
 }
 
-#context-bar.pulse {
-    animation: contextPulse 0.6s ease-out;
-}
+#context-bar.pulse { animation: contextPulse 0.6s ease-out; }

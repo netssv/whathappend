@@ -71,6 +71,13 @@ export function initTerminalUI(containerId) {
         setTermCols(term.cols);
     });
 
+    // Watch for header geometry changes (triad/tab-switch bar show/hide)
+    const observer = new ResizeObserver(() => {
+        fitAddon.fit();
+        setTermCols(term.cols);
+    });
+    observer.observe(container);
+
     setupFontControls();
 
     return new Promise((resolve) => {
@@ -80,6 +87,15 @@ export function initTerminalUI(containerId) {
             resolve();
         }, 50);
     });
+}
+
+/** Re-fit the terminal to the current available space. */
+export function refitTerminal() {
+    if (fitAddon) {
+        fitAddon.fit();
+        setTermCols(term.cols);
+        term.scrollToBottom();
+    }
 }
 
 // ---------------------------------------------------------------------------

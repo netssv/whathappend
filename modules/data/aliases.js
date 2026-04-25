@@ -59,6 +59,8 @@ export const CMD_ALIASES = {
     "reg": "registrar", "lifecycle": "registrar",
     // hosting
     "hoster": "hosting", "provider": "hosting", "webhost": "hosting",
+    // exit
+    "quit": "exit",
 };
 
 export const ALL_KNOWN_CMDS = [
@@ -70,5 +72,5 @@ export const ALL_KNOWN_CMDS = [
     "rev-dns", "port-scan", "ftp-check", "export",
     "blacklist", "ssllabs", "securityheaders", "whois-ext",
     "errors", "pixels", "stack", "load",
-    "registrar", "hosting",
+    "registrar", "hosting", "exit",
 ].filter(c => /^[a-z]/i.test(c));

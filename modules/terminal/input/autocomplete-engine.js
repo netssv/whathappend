@@ -6,7 +6,7 @@ const AVAILABLE_COMMANDS = [
     "ping", "trace", "target",
     "email", "web", "sec", "ttl", "spf", "dmarc", "dkim", "robots",
     "registrar", "hosting", "history",
-    "help",    "history", "crt", "wayback", "archive", "green", "cookies", "about", "info",
+    "help",    "history", "crt", "wayback", "archive", "green", "cookies", "about", "info", "exit",
     "a", "aaaa", "mx", "txt", "ns", "cname", "soa", "dnssec",
     "rev-dns", "port-scan", "ftp-check", "export",
     "blacklist", "ssllabs", "securityheaders", "whois-ext",
