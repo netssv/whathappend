@@ -46,10 +46,18 @@ The extension makes network requests **only** to the following public infrastruc
 |----------|---------|-----------|
 | `dns.google` | DNS-over-HTTPS lookups | Domain name you are querying |
 | `rdap.org` | WHOIS/RDAP registry data, IP owner detection | Domain or IP you are querying |
+| `crt.sh` / `certspotter.com` | Certificate Transparency Logs | The domain you are querying |
+| `archive.org` | Wayback Machine API | The domain you are querying |
+| `api.thegreenwebfoundation.org` | Environmental hosting check | The domain you are querying |
+| `ip-api.com` | Geolocation and routing data | The IP address you are querying |
 | User-specified URLs | HTTP header inspection, ping, trace | The URL you typed into the terminal |
 | `chrome.scripting` (local) | Live DOM scan, Performance API | No data sent — reads from the active tab locally |
 
 No background requests are made without user action. No data is cached on remote servers.
+
+### Third-Party API Privacy
+
+All requests to third-party APIs (`dns.google`, `rdap.org`, `crt.sh`, `api.certspotter.com`, `archive.org`, `api.thegreenwebfoundation.org`, `ip-api.com`) are executed securely via the background Service Worker as read-only queries. We strictly enforce a policy where **no cookies, private HTTP headers, or authentication tokens are ever sent** to these external sources. The only data transmitted is the explicit domain or IP you are querying.
 
 ## Terminal Buffer Security (Command Firewall)
 
@@ -90,6 +98,12 @@ The `infrastructure-map.js` module contains a static corporate affiliation datab
 - **Embedded locally** in the extension source code — no external API is queried.
 - **Read-only** — the map is never modified at runtime.
 - **Non-identifying** — it maps provider names to corporate groups, not user data to providers. No personally identifiable information is processed or correlated.
+
+## Local Telemetry & Diagnostics
+
+The \`info\` command collects session diagnostics (such as command execution count and browser engine metadata) for display within the terminal.
+- **Strictly Local**: This telemetry is calculated on-the-fly and resides entirely in memory.
+- **Zero Exfiltration**: No telemetry, analytics, or session data is ever transmitted to a remote server. When the session ends, the diagnostic counters are destroyed.
 
 ## Permissions
 

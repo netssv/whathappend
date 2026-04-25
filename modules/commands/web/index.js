@@ -10,3 +10,8 @@ export { cmdWeb } from "./web.js";
 export { cmdLoad } from "./load.js";
 export { cmdRegistrar } from "./registrar.js";
 export { cmdHosting } from "./hosting.js";
+export { cmdHistory } from "./history.js";
+export { cmdLinks } from "./links.js";
+export { cmdWayback } from "./wayback.js";
+export { cmdGreen } from "./green.js";
+export { cmdCookies } from "./cookies.js";

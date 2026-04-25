@@ -24,32 +24,14 @@ async function bootstrap() {
     // 4. Show initial prompt
     showBanner();
 
-    // 5. Context Manager Init + Initial Auto-Analysis Prompt
+    // 5. Context Manager Init + Initial Auto-Analysis
     const initialDomain = await ContextManager.init();
     if (initialDomain) {
         setKeyboardLock(true);
-        term.write(`\x1b[33m?\x1b[0m Run auto-analysis on \x1b[36m${initialDomain}\x1b[0m? [Y/n] `);
-
-        const disposable = term.onKey(({ key, domEvent }) => {
-            const k = key.toLowerCase();
-            // Ignore modifier keys and multi-char keys (except enter/esc)
-            if (k.length > 1 && domEvent.keyCode !== 13 && domEvent.keyCode !== 27) return;
-
-            if (k === 'y' || domEvent.keyCode === 13) { // Y or Enter
-                term.write(domEvent.keyCode === 13 ? "Y\r\n" : "y\r\n");
-                disposable.dispose();
-                setKeyboardLock(false);
-
-                writePrompt();
-                term.write(initialDomain + "\r\n");
-                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, initialDomain);
-            } else { // N, Esc, or any other key defaults to No
-                term.write((domEvent.keyCode === 27 ? "N" : key) + "\r\n");
-                disposable.dispose();
-                setKeyboardLock(false);
-                writePrompt();
-            }
-        });
+        // Automatically start the progressive triage for the active tab
+        writePrompt();
+        term.write(initialDomain + "\r\n");
+        InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, initialDomain);
     } else {
         writePrompt();
     }

@@ -16,11 +16,11 @@ import { checkTargetGuards } from "./core/guards.js";
 import { handleAutoTarget } from "./core/fallback.js";
 
 // Command modules
-import { cmdDig, cmdHost, cmdNslookup, cmdTTL } from "./commands/dns/index.js";
+import { cmdDig, cmdHost, cmdNslookup, cmdTTL, cmdDnssec } from "./commands/dns/index.js";
 import { cmdEmail, cmdSPF, cmdDMARC, cmdDKIM } from "./commands/email/index.js";
-import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdRegistrar, cmdHosting } from "./commands/web/index.js";
+import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdRegistrar, cmdHosting, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies } from "./commands/web/index.js";
 import { cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "./commands/native/index.js";
-import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors } from "./commands/util/index.js";
+import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo } from "./commands/util/index.js";
 import { cmdStack } from "./commands/stack/index.js";
 
 // ---------------------------------------------------------------------------
@@ -66,15 +66,21 @@ export async function executeCommand(input) {
                 case "email": output = await cmdEmail(args); break;
                 case "web": output = await cmdWeb(args); break;
                 case "ttl": output = await cmdTTL(args); break;
+                case "dnssec": output = await cmdDnssec(args); break;
                 case "spf": output = await cmdSPF(args); break;
                 case "dmarc": output = await cmdDMARC(args); break;
                 case "dkim": output = await cmdDKIM(args); break;
                 case "robots": output = await cmdRobots(args); break;
                 case "sec": output = await cmdSec(args); break;
                 case "pixels": output = await cmdPixels(args); break;
+                case "links": output = await cmdLinks(args); break;
                 case "load": output = await cmdLoad(args); break;
                 case "registrar": output = await cmdRegistrar(args); break;
                 case "hosting": output = await cmdHosting(args); break;
+                case "history": output = await cmdHistory(args); break;
+                case "wayback": output = await cmdWayback(args); break;
+                case "green": output = await cmdGreen(args); break;
+                case "cookies": output = await cmdCookies(args); break;
                 case "stack": output = await cmdStack(args); break;
                 case "rev-dns": output = await cmdRevDNS(args); break;
                 case "port-scan": output = await cmdPortScan(args); break;
@@ -87,6 +93,8 @@ export async function executeCommand(input) {
                 case "target": output = cmdTarget(args); break;
                 case "help": output = cmdHelp(); break;
                 case "errors": output = cmdErrors(); break;
+                case "about": output = cmdAbout(); break;
+                case "info": output = await cmdInfo(); break;
                 case "clear": return "__CLEAR__";
                 default:
                     // If not a known command, check if it's an auto-target domain/IP

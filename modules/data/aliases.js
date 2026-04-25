@@ -4,8 +4,8 @@
  */
 
 export const DNS_SHORTCUTS = { a:"A", aaaa:"AAAA", mx:"MX", txt:"TXT", ns:"NS", cname:"CNAME", soa:"SOA" };
-export const DNS_TYPES = ["A","AAAA","MX","TXT","CNAME","NS","SOA"];
-export const DNS_NUM = {1:"A",2:"NS",5:"CNAME",6:"SOA",15:"MX",16:"TXT",28:"AAAA"};
+export const DNS_TYPES = ["A","AAAA","MX","TXT","CNAME","NS","SOA","DS","DNSKEY"];
+export const DNS_NUM = {1:"A",2:"NS",5:"CNAME",6:"SOA",15:"MX",16:"TXT",28:"AAAA",43:"DS",48:"DNSKEY"};
 
 export const CMD_ALIASES = {
     // clear

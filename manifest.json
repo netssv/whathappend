@@ -9,6 +9,7 @@
         "sidePanel",
         "storage",
         "scripting",
+        "cookies",
         "clipboardRead"
     ],
     "host_permissions": [

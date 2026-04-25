@@ -49,3 +49,38 @@ export async function handleDetectLivePixels() {
         return { error: `Injection failed: ${err.message}` };
     }
 }
+
+// ===================================================================
+// Get Links — Extract src/href for Mixed Content Scan
+// ===================================================================
+
+export async function handleGetLinks() {
+    try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab?.id) return { error: "No active tab found." };
+        if (!tab.url?.startsWith("http")) return { error: "Cannot access this page (non-HTTP)." };
+
+        const results = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => {
+                const links = [];
+                const seen = new Set();
+                document.querySelectorAll("[src], [href]").forEach(el => {
+                    const url = el.src || el.href;
+                    if (url && url.startsWith("http") && !seen.has(url)) {
+                        seen.add(url);
+                        links.push({ tag: el.tagName.toLowerCase(), url });
+                    }
+                });
+                return links;
+            },
+        });
+
+        if (results?.[0]?.result) {
+            return { success: true, data: { links: results[0].result, url: tab.url } };
+        }
+        return { error: "Could not read page links." };
+    } catch (err) {
+        return { error: `DOM access failed: ${err.message}` };
+    }
+}

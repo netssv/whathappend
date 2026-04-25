@@ -6,8 +6,9 @@ import { handleSSL } from "./handlers/ssl.js";
 import { handleWHOIS, handleIPWhois } from "./handlers/whois.js";
 import { handlePing } from "./handlers/ping.js";
 import { handleRedirectTrace } from "./handlers/trace.js";
-import { handleGetPageHTML, handleDetectLivePixels } from "./handlers/dom.js";
+import { handleGetPageHTML, handleDetectLivePixels, handleGetLinks } from "./handlers/dom.js";
 import { handleGetPerfTiming } from "./handlers/perf.js";
+import { handleGetCookies } from "./handlers/cookies.js";
 import { handlePortProbe } from "./handlers/port.js";
 import { handleExportHistory } from "./handlers/export.js";
 
@@ -58,8 +59,14 @@ export function setupRouter() {
             case "detect-live-pixels":
                 handleDetectLivePixels().then(sendResponse);
                 break;
+            case "get-links":
+                handleGetLinks().then(sendResponse);
+                break;
             case "get-perf-timing":
                 handleGetPerfTiming().then(sendResponse);
+                break;
+            case "get-cookies":
+                handleGetCookies(payload).then(sendResponse);
                 break;
             case "get-active-domain":
                 getActiveDomain().then(sendResponse);

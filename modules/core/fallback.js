@@ -84,7 +84,7 @@ export async function handleAutoTarget(cmd, args, opts) {
             const bannerTimer = setTimeout(() => {
                 if (renderer.isCancelled()) return;
                 bannerShown = true;
-                term.writeln(`\n${ANSI.cyan}[INFO]${ANSI.reset} ${ANSI.dim}Background triage active. You can start typing commands.${ANSI.reset}`);
+                term.writeln(`\n${ANSI.cyan}[INFO]${ANSI.reset} ${ANSI.dim}Background triage active.${ANSI.reset}`);
                 renderer.addExternalLines(2);
             }, 1500);
 

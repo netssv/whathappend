@@ -62,6 +62,18 @@ When a command needs network data, the extension's Service Worker uses standard 
 - **Cloudflare/Incapsula Consolidation**: If NameSrvs is Cloudflare and Web Host is Cloudflare, the result is now correctly `↳ Consolidated Stack (cloudflare)`. Previously reported as Distributed. Same fix for Incapsula/Imperva security stacks.
 - **RFC-Aware CNAME Insights**: When `cname` or `ttl` is run on an apex domain and returns no CNAME record, the insight now explains: `[INFO] Apex domains usually lack CNAMEs per RFC 1034 standards` — preventing user confusion about "missing" records.
 
+## What's new in v2.3.1: System Diagnostics & Identity
+
+- **Command `about`**: A stylized ASCII banner and philosophical manifesto detailing WhatHappened's core principles: Atomic Architecture, Zero-Cloud Privacy, and Heuristic Discovery Engine.
+- **Command `info`**: A real-time telemetry dashboard showing extension version, native host connectivity status (Python Bridge), browser engine details, and local session stats.
+- **Enhanced DKIM Discovery Engine**: Expanded inference rules covering major ESPs (SendGrid, Mailgun, SparkPost) and CRM platforms (Zendesk, Salesforce, HubSpot, Intercom) to capture dozens of additional dynamic selectors.
+
+### Triage Temporal
+
+We've introduced two complementary commands for historical investigation:
+- **`history` (Network Infrastructure)**: Uses Certificate Transparency (CT) logs to trace the lifecycle of a domain's SSL certificates. It identifies the first and last infrastructure footprints to show when a domain actually became active.
+- **`wayback` (Content Visibility)**: Uses the Archive.org API to find the last time the domain's *content* was publicly accessible. This is invaluable for Junior Analysts when triaging a site that currently resolves to an error page or a parked domain. If `wayback` shows the site was online 2 days ago, it often indicates a recent DNS migration, expired hosting, or WAF block rather than a permanently dead domain.
+
 ## No Third-Party Dependencies
 
 This extension is completely self-contained to keep your data secure:
@@ -85,10 +97,11 @@ We only link to highly credible, industry-standard tools. We **never** send your
 | Category | Commands | What it does |
 |----------|----------|-------------|
 | **Audits** | `email` `web` `sec` | Runs a bunch of checks at once and gives you the highlights. |
-| **DNS** | `dig` `host` `nslookup` `a` `aaaa` `mx` `txt` `ns` `cname` `soa` `ttl` | Native DNS queries (via Google DoH). |
+| **DNS** | `dig` `host` `nslookup` `a` `aaaa` `mx` `txt` `ns` `cname` `soa` `ttl` `dnssec` | Native DNS queries (via Google DoH) and DNSSEC validation. |
 | **Email** | `spf` `dmarc` `dkim` | Email security checks (includes heuristic DKIM selector inference from MX/SPF). |
-| **Web** | `curl` `openssl` `whois` `registrar` `hosting` `ping` `trace` `robots` | HTTP requests, certs, lifecycle, hosting, and routing. |
-| **Analysis** | `pixels` `load` `stack` | Tracking pixel detection (Live DOM memory scanning), page load performance, and tech stack fingerprinting. |
+| **Web** | `curl` `openssl` `whois` `registrar` `hosting` `ping` `trace` `green` | HTTP requests, certs, lifecycle, hosting, routing, and environmental hosting checks. |
+| **OSINT & Content** | `robots` `links` `history` `wayback` | Public information gathering (robots.txt, mixed content scans, cert transparency, archive timelines). |
+| **Analysis** | `pixels` `load` `stack` `cookies` | Tracking pixel detection, page load performance, tech stack fingerprinting, and privacy cookie auditing. |
 | **External** | `blacklist` `ssllabs` `securityheaders` `whois-ext` | Generates safe, clickable links to the credible tools mentioned above. |
 
 *(Type `help` in the terminal for the full list, or append `?` to a command like `email?` for details).*
