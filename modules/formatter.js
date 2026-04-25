@@ -7,6 +7,7 @@
 
 import { ContextManager } from "./context.js";
 import { REGEX } from "./data/constants.js";
+import { getTermCols } from "./state.js";
 
 // ---------------------------------------------------------------------------
 // ANSI Color Constants
@@ -23,7 +24,10 @@ export const ANSI = {
 // Insights Renderer — [PASS] [WARN] [CRIT] [INFO]
 // ---------------------------------------------------------------------------
 
-export function getSeparator(char = "━", len = 50) {
+export function getSeparator(char = "━", forcedLen = null) {
+    const cols = getTermCols();
+    // Adapt to terminal width dynamically
+    const len = forcedLen || Math.max(20, cols - 2);
     return `${ANSI.dim}${char.repeat(len)}${ANSI.reset}`;
 }
 

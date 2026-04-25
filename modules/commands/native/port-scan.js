@@ -15,7 +15,7 @@ export async function cmdPortScan(args) {
         ? args[1].split(",").map(p => parseInt(p.trim())).filter(p => p > 0 && p <= 65535)
         : defaultPorts;
 
-    let o = `> port-scan ${target} [${portsArg.length} ports]\n`;
+    let o = `> nc -z -v -w2 ${target} ${portsArg.slice(0,3).join(" ")}${portsArg.length > 3 ? "..." : ""}\n`;
     o += `${ANSI.dim}Using browser probe (timing heuristics — approximate results)${ANSI.reset}\n\n`;
 
     try {
@@ -70,7 +70,7 @@ export function formatPortResults(data, target, ports, isBrowser) {
     const ins = [];
     if (isBrowser) {
         ins.push({ level: "WARN", text: "Browser probing is blocked by Chrome for non-HTTP ports (ERR_UNSAFE_PORT)." });
-        ins.push({ level: "INFO", text: `Test Port Scan: https://viewdns.info/portscan/?host=${encodeURIComponent(target)}` });
+        ins.push({ level: "INFO", text: `External Check: https://viewdns.info/portscan/?host=${encodeURIComponent(target)}` });
     }
     if (openPorts.includes(80) && openPorts.includes(443)) ins.push({ level: "PASS", text: "HTTP + HTTPS both available." });
     if (openPorts.includes(80) && !openPorts.includes(443)) ins.push({ level: "WARN", text: "HTTP open but no HTTPS detected." });

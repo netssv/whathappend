@@ -11,6 +11,23 @@ export async function cmdInfo() {
     const ua = navigator.userAgent;
     const stats = getHistory().length;
     
+    let publicIp = "Offline";
+    try {
+        const ipResp = await fetch("https://1.1.1.1/cdn-cgi/trace", { signal: AbortSignal.timeout(2000) });
+        const text = await ipResp.text();
+        const match = text.match(/ip=([^\n]+)/);
+        if (match) publicIp = match[1];
+    } catch (e) {}
+
+    let storageUsed = "Unknown";
+    try {
+        const bytes = await chrome.storage.local.getBytesInUse(null);
+        storageUsed = (bytes / 1024).toFixed(2) + " KB";
+    } catch (e) {}
+
+    const ram = navigator.deviceMemory ? navigator.deviceMemory + "GB" : "Unknown";
+    const cores = navigator.hardwareConcurrency || "Unknown";
+
     let nativeHostStatus = `${ANSI.red}Disconnected (Browser Sandbox Mode)${ANSI.reset}`;
     
     try {
@@ -37,10 +54,14 @@ export async function cmdInfo() {
 > info (System Diagnostics)
 
   ${ANSI.dim}Manifest Version:${ANSI.reset} v${version}
+  ${ANSI.dim}Public IP:${ANSI.reset}        ${ANSI.cyan}${publicIp}${ANSI.reset}
   ${ANSI.dim}Native Host:${ANSI.reset}      ${nativeHostStatus}
+  ${ANSI.dim}Storage Cache:${ANSI.reset}    ${storageUsed}
+  ${ANSI.dim}Hardware:${ANSI.reset}         ${cores} Cores / ~${ram} RAM
   ${ANSI.dim}Browser Engine:${ANSI.reset}   ${ua}
-  ${ANSI.dim}Session Stats:${ANSI.reset}    ${stats} resources scanned this session
+  ${ANSI.dim}Session Stats:${ANSI.reset}    ${stats} commands executed
 
+${ANSI.dim}WhatHappened is an Open Source Infrastructure Terminal.${ANSI.reset}
 ${ANSI.dim}All telemetry is strictly local. No data leaves your machine.${ANSI.reset}
 `;
 }

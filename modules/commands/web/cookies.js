@@ -9,7 +9,7 @@ export async function cmdCookies(args) {
     const t = resolveTargetDomain(args[0], info);
     if (!t) return cmdUsage("cookies", "<domain>");
     
-    let o = `> cookies ${t}\n`;
+    let o = `> curl -I -s https://${t} | grep -i set-cookie\n`;
     
     // Require active tab context or manual domain, but cookies are domain-wide
     // For simplicity, we just ask the background script for cookies for the domain
@@ -62,7 +62,7 @@ export async function cmdCookies(args) {
         } else {
             ins.push({ level: "PASS", text: `Found ${cookies.length} cookie(s). No immediate session flags missing.` });
         }
-        
+        ins.push({ level: "INFO", text: `External Check: https://themarkup.org/blacklight?url=${t}` });
         return o + insights(ins);
         
     } catch (e) {

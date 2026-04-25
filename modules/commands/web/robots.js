@@ -97,6 +97,7 @@ export async function cmdRobots(args) {
         if (hasCrawlDelay) {
             ins.push({level:"INFO",text:"Crawl-delay present (ignored by Googlebot)."});
         }
+        ins.push({ level: "INFO", text: `External Check: https://technicalseo.com/tools/robots-txt/` });
 
         o += insights(ins);
     }

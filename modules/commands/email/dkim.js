@@ -27,7 +27,7 @@ export async function cmdDKIM(args) {
         sels = getPossibleSelectors(mxData, spfData);
     }
 
-    let o = `> dkim-scan ${base} (${manualSel ? 'manual' : 'dynamic'}: ${sels.length} selectors)\n`;
+    let o = `> for sel in ${sels.slice(0,3).join(" ")}${sels.length>3?"...":""}; do dig $sel._domainkey.${base} txt +short; done\n`;
 
     const results = await Promise.all(sels.map(s => checkSel(s, base)));
     const found = results.filter(Boolean);
@@ -81,6 +81,6 @@ function buildInsights(found, base) {
         const provs = [...new Set(found.map(d => d.prov).filter(Boolean))];
         if (provs.length) ins.push({level:"INFO", text:`Providers: ${provs.join(", ")}`});
     }
-    ins.push({level:"INFO", text:`Test DKIM: https://mxtoolbox.com/dkim.aspx`});
+    ins.push({level:"INFO", text:`External Check: https://mxtoolbox.com/dkim.aspx`});
     return ins;
 }

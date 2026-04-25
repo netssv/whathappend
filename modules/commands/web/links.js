@@ -9,7 +9,7 @@ export async function cmdLinks(args) {
     const domain = resolveTargetDomain(args[0], info);
     if (!domain) return cmdUsage("links", "<domain>");
 
-    let o = `> links ${domain} (Mixed Content Scan)\n`;
+    let o = `> curl -s https://${domain} | grep -ioE '(src|href)="http://[^"]+"'\n`;
 
     try {
         let links = [];
@@ -74,7 +74,7 @@ export async function cmdLinks(args) {
         } else if (isSecure) {
             ins.push({ level: "PASS", text: "All resources loaded securely over HTTPS." });
         }
-        
+        ins.push({ level: "INFO", text: `External Check: https://www.jitbit.com/sslcheck/?url=https://${domain}` });
         return o + insights(ins);
     } catch (err) {
         return o + formatError("EXECUTION_FAILED", err.message);

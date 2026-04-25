@@ -23,7 +23,8 @@ export function initInputManager() {
     // 2. Orchestrate Sub-Module Events
     InputEvents.on(InputEvents.EV_COMMAND_SUBMIT, async (input) => {
         if (!input) {
-            writePrompt();
+            // Empty Enter → quick-start analysis of active tab
+            await processCommand("start");
             return;
         }
         await processCommand(input);
@@ -60,7 +61,76 @@ export function initInputManager() {
 // ---------------------------------------------------------------------------
 
 async function processCommand(rawInput) {
-    const input = rawInput.trim().replace(/\\+$/, "").trim();
+    let input = rawInput.trim().replace(/\\+$/, "").trim();
+    if (input.startsWith("> ")) {
+        input = input.substring(2).trim();
+    }
+    
+    // ── Reverse Command Mapping (Educational Feedback Loop) ──
+    const lowerInput = input.toLowerCase();
+    let mappedInput = input;
+    
+    if (lowerInput.startsWith("ping -c 10 ") || lowerInput.startsWith("ping -c 4 ")) {
+        const match = input.match(/ping -c (?:10|4) ([^\s]+)/);
+        if (match) mappedInput = `speed ${match[1]}`;
+    } else if (lowerInput.startsWith("curl -o /dev/null http://speedtest")) {
+        const match = input.match(/(\d+)MB\.zip/);
+        mappedInput = match ? `speedtest ${match[1]}` : "speedtest";
+    } else if (lowerInput.startsWith("curl -w ") && lowerInput.includes("ttfb")) {
+        const match = input.match(/https?:\/\/([^\s]+)/);
+        if (match) mappedInput = `load ${match[1]}`;
+    } else if (lowerInput.startsWith("whois ") && lowerInput.includes("orgname")) {
+        const match = input.match(/whois ([^\s]+)/);
+        if (match) mappedInput = `hosting ${match[1]}`;
+    } else if (lowerInput.startsWith("whois ") && lowerInput.includes("registrar")) {
+        const match = input.match(/whois ([^\s]+)/);
+        if (match) mappedInput = `registrar ${match[1]}`;
+    } else if (lowerInput.startsWith("curl -i -s https://") && lowerInput.includes("set-cookie")) {
+        const match = input.match(/https?:\/\/([^\s]+)/);
+        if (match) mappedInput = `cookies ${match[1]}`;
+    } else if (lowerInput.startsWith("curl -s https://api.thegreenwebfoundation.org")) {
+        const match = input.match(/greencheck\/([^\s]+)/);
+        if (match) mappedInput = `green ${match[1]}`;
+    } else if (lowerInput.startsWith("curl -s \"https://crt.sh")) {
+        const match = input.match(/q=([^&]+)/);
+        if (match) mappedInput = `history ${match[1]}`;
+    } else if (lowerInput.startsWith("curl -s https://") && lowerInput.includes("src|href")) {
+        const match = input.match(/https?:\/\/([^\s]+)/);
+        if (match) mappedInput = `links ${match[1]}`;
+    } else if (lowerInput.startsWith("curl -s https://") && lowerInput.includes("google-analytics")) {
+        const match = input.match(/https?:\/\/([^\s]+)/);
+        if (match) mappedInput = `pixels ${match[1]}`;
+    } else if (lowerInput.startsWith("nc -z -v -w2 ")) {
+        const parts = input.split(" ");
+        if (parts.length > 4) mappedInput = `port-scan ${parts[4]} ${parts.slice(5).join(" ").replace("...", "")}`;
+    } else if (lowerInput.startsWith("nc -v -w5 ")) {
+        const parts = input.split(" ");
+        if (parts.length > 3) mappedInput = `ftp-check ${parts[3]}`;
+    } else if (lowerInput.startsWith("for sel in ")) {
+        const match = input.match(/\._domainkey\.([^\s]+)/);
+        if (match) mappedInput = `dkim ${match[1]}`;
+    } else if (lowerInput.startsWith("curl -i -s https://") && lowerInput.includes("wappalyzer")) {
+        const match = input.match(/https?:\/\/([^\s]+)/);
+        if (match) mappedInput = `stack ${match[1]}`;
+    } else if (lowerInput.startsWith("curl -i -s https://") && lowerInput.includes("head -n 1")) {
+        const match = input.match(/https?:\/\/([^\s]+)/);
+        if (match) mappedInput = `isup ${match[1]}`;
+    } else if (lowerInput.startsWith("dig ") && lowerInput.includes("+short")) {
+        const parts = lowerInput.split(" ");
+        if (parts.length >= 3) {
+            const domain = parts[1];
+            const type = parts[2];
+            if (["a", "aaaa", "mx", "txt", "ns", "cname", "soa"].includes(type)) {
+                mappedInput = `${type} ${domain}`;
+            }
+        }
+    }
+
+    if (mappedInput !== input) {
+        term.writeln(`\r\x1b[90m> Translating raw command to: ${mappedInput}\x1b[0m`);
+        input = mappedInput;
+    }
+
     isProcessing = true;
     setKeyboardLock(true);
     
@@ -85,6 +155,12 @@ async function processCommand(rawInput) {
         // registrar + hosting
         "registrar", "reg", "lifecycle",
         "hosting", "hoster", "provider", "webhost",
+        // start / switch
+        "start", "run", "go", "begin", "analyze", "switch",
+        // network parity
+        "isup", "upcheck", "down", "downcheck", "status",
+        "speed", "jitter", "latency-test",
+        "speedtest", "bandwidth", "nettest",
     ];
     
     const cmd = input.split(/\s+/)[0]?.toLowerCase();

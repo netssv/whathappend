@@ -1,9 +1,9 @@
 import { ContextManager } from "./modules/context.js";
 import { isIPAddress, toApex } from "./modules/formatter.js";
-import { pushHistory, restoreSession, setSessionTarget, setSessionTriad } from "./modules/state.js";
+import { pushHistory, restoreSession, setSessionTarget } from "./modules/state.js";
 import { initTerminalUI, showBanner, writePrompt, term } from "./modules/terminal/terminal-ui.js";
 import { initHeaderController, updateWhoisFields, updateNSField, updateHostField, clearWhoisFields, showTabSwitch, hideTabSwitch } from "./modules/terminal/header-controller.js";
-import { initInputManager, isCommandProcessing } from "./modules/terminal/input/index.js";
+import { initInputManager } from "./modules/terminal/input/index.js";
 import { InputEvents } from "./modules/terminal/input/events.js";
 import { setKeyboardLock } from "./modules/terminal/input/keyboard-events.js";
 
@@ -59,6 +59,16 @@ async function bootstrap() {
 
         term.writeln(`\x1b[90m── Session restored (${session.history.length} cmd) → \x1b[36m${session.target}\x1b[90m ──\x1b[0m`);
         writePrompt();
+
+        // If active tab differs from restored target, suggest switching
+        if (initialDomain && toApex(initialDomain) !== toApex(session.target)) {
+            showTabSwitch(initialDomain, (newDomain) => {
+                ContextManager.setManualTarget(newDomain);
+                writePrompt();
+                term.write(newDomain + "\r\n");
+                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, newDomain);
+            });
+        }
     } else if (session.target) {
         // Target exists but no history
         ContextManager.setManualTarget(session.target);
@@ -71,6 +81,16 @@ async function bootstrap() {
         }
         term.writeln(`\x1b[90m── Session restored → \x1b[36m${session.target}\x1b[90m ──\x1b[0m`);
         writePrompt();
+
+        // If active tab differs from restored target, suggest switching
+        if (initialDomain && toApex(initialDomain) !== toApex(session.target)) {
+            showTabSwitch(initialDomain, (newDomain) => {
+                ContextManager.setManualTarget(newDomain);
+                writePrompt();
+                term.write(newDomain + "\r\n");
+                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, newDomain);
+            });
+        }
     } else if (initialDomain) {
         setKeyboardLock(true);
         // Automatically start the progressive triage for the active tab
@@ -92,11 +112,9 @@ async function bootstrap() {
 
 bootstrap();
 
-
-
-// Async WHOIS: When a manual target is set, fire-and-forget a WHOIS lookup
-// directly to the background handler and update the header bar with pre-parsed fields.
-// The terminal prompt is NOT blocked.
+// Async Header: When a manual target is set, clear stale header badges.
+// The progressive triage resolvers in triage-resolvers.js will populate
+// the header triad as each row resolves — single source of truth.
 ContextManager.onTargetChanged((domain) => {
     if (!domain || isIPAddress(domain)) return;
 
@@ -106,79 +124,15 @@ ContextManager.onTargetChanged((domain) => {
     // Persist target for session restore
     setSessionTarget(domain);
 
-    // Clear stale badges immediately
+    // Clear stale badges immediately — triage resolvers will repopulate
     clearWhoisFields();
-
-    // Resolve apex domain for RDAP (subdomains cause 404)
-    const apexDomain = toApex(domain);
-
-    // 1. Fetch Registrar (Apex Domain)
-    chrome.runtime.sendMessage({ command: "whois", payload: { domain: apexDomain } })
-        .then(resp => {
-            if (resp?.success) {
-                const reg = resp.registrar || null;
-                updateWhoisFields(reg, `https://www.whois.com/whois/${apexDomain}`);
-                setSessionTriad("registrar", reg);
-            }
-        }).catch(() => {});
-
-    // 2. Fetch NameServers (Original Domain) — IP-based resolution
-    chrome.runtime.sendMessage({ command: "dns", payload: { domain: domain, type: "NS" } })
-        .then(resp => {
-            const nsRecords = resp?.data?.Answer?.filter(a => a.type === 2);
-            if (nsRecords && nsRecords.length > 0) {
-                const nsHost = nsRecords[0].data.replace(/\.$/, "");
-                const targetRoot = domain.split(".").slice(-2).join(".");
-                const nsRoot = nsHost.split(".").slice(-2).join(".");
-                const nsUrl = `https://intodns.com/${domain}`;
-
-                if (nsRoot === targetRoot) {
-                    updateNSField(`Self-hosted (${targetRoot})`, nsUrl);
-                    setSessionTriad("ns", `Self-hosted (${targetRoot})`);
-                } else {
-                    // Resolve NS hostname IP → ip-whois for actual operator
-                    chrome.runtime.sendMessage({ command: "dns", payload: { domain: nsHost, type: "A" } })
-                        .then(nsAResp => {
-                            const nsA = nsAResp?.data?.Answer?.find(a => a.type === 1);
-                            if (nsA?.data) {
-                                chrome.runtime.sendMessage({ command: "ip-whois", payload: { ip: nsA.data } })
-                                    .then(ipResp => {
-                                        const provider = ipResp?.success && ipResp.org ? ipResp.org : nsHost;
-                                        updateNSField(provider, nsUrl);
-                                        setSessionTriad("ns", provider);
-                                    }).catch(() => { updateNSField(nsHost, nsUrl); setSessionTriad("ns", nsHost); });
-                            } else {
-                                // Fallback: capitalize domain root
-                                const fb = nsRoot.split(".")[0];
-                                const label = fb.charAt(0).toUpperCase() + fb.slice(1);
-                                updateNSField(label, nsUrl);
-                                setSessionTriad("ns", label);
-                            }
-                        }).catch(() => { updateNSField(nsHost, nsUrl); setSessionTriad("ns", nsHost); });
-                }
-            }
-        }).catch(() => {});
-
-    // 3. Fetch Web Host (A -> IP -> RDAP)
-    chrome.runtime.sendMessage({ command: "dns", payload: { domain: domain, type: "A" } })
-        .then(resp => {
-            const aRecord = resp?.data?.Answer?.find(a => a.type === 1);
-            if (aRecord && aRecord.data) {
-                const ip = aRecord.data;
-                chrome.runtime.sendMessage({ command: "ip-whois", payload: { ip } })
-                    .then(ipResp => {
-                        if (ipResp?.success && ipResp.org) {
-                            updateHostField(ipResp.org, `https://ipinfo.io/${ip}`);
-                            setSessionTriad("host", ipResp.org);
-                        }
-                    }).catch(() => {});
-            }
-        }).catch(() => {});
 });
 
 // Tab-change notification: Show interactive bar so user can choose to switch
 ContextManager.onTabChanged((domain, prev) => {
-    if (isCommandProcessing()) return;
+    // Don't suggest switching if the new domain matches the current target
+    const current = ContextManager.getDomain();
+    if (current && toApex(domain) === toApex(current)) return;
 
     showTabSwitch(domain, (newDomain) => {
         // User clicked "Switch" — adopt the new domain and run triage

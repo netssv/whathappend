@@ -59,7 +59,7 @@ export async function cmdWeb(args) {
         o += `notAfter: ${ec}${cert.notAfter}${ANSI.reset} (${dl}d)\n`;
         if (dl<0) ins.push({level:"CRIT",text:"SSL EXPIRED."});
         else if (dl<30) ins.push({level:"WARN",text:`SSL expires in ${dl}d.`});
-        else ins.push({level:"PASS",text:`SSL valid (${dl}d).`});
+        else if (dl<30) ins.push({level:"PASS",text:`SSL valid (${dl}d).`});
     } else if (sslR.data?.connectivity) {
         o += `${ANSI.yellow}Connected but no CT data.${ANSI.reset}\n`;
     } else {
@@ -67,6 +67,7 @@ export async function cmdWeb(args) {
         ins.push({level:"CRIT",text:"No HTTPS."});
     }
 
+    ins.push({ level: "INFO", text: `External Check: https://builtwith.com/${encodeURIComponent(domain)}` });
     o += insights(ins);
     return o;
 }

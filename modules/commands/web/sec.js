@@ -83,7 +83,7 @@ export async function cmdSec(args) {
         else ins.unshift({level:"CRIT",text:`${fail} security issues.`});
         ins.push({level:"INFO",text:`Deep header analysis: https://securityheaders.com/?q=${encodeURIComponent(domain)}&followRedirects=on`});
     }
-
+    ins.push({ level: "INFO", text: `External Check: https://wheregoes.com/trace/2026/?url=${domain}` });
     o += insights(ins);
     return o;
 }

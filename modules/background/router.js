@@ -11,6 +11,9 @@ import { handleGetPerfTiming } from "./handlers/perf.js";
 import { handleGetCookies } from "./handlers/cookies.js";
 import { handlePortProbe } from "./handlers/port.js";
 import { handleExportHistory } from "./handlers/export.js";
+import { handleIsUpLocal, handleIsUpGlobal } from "./handlers/isup.js";
+import { handleSpeed } from "./handlers/speed.js";
+import { handleSpeedtest } from "./handlers/speedtest.js";
 
 // ===================================================================
 // Message Router
@@ -80,6 +83,20 @@ export function setupRouter() {
             // ── Export ──
             case "export-history":
                 handleExportHistory(payload).then(sendResponse);
+                break;
+
+            // ── Network parity ──
+            case "isup-local":
+                handleIsUpLocal(payload).then(sendResponse);
+                break;
+            case "isup-global":
+                handleIsUpGlobal(payload).then(sendResponse);
+                break;
+            case "speed":
+                handleSpeed(payload).then(sendResponse);
+                break;
+            case "speedtest":
+                handleSpeedtest(payload || {}).then(sendResponse);
                 break;
 
             default:

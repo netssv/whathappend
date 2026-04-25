@@ -25,7 +25,7 @@ export async function cmdRegistrar(args) {
     const creationDate = extractRegistration(d);
     const expiryDate = extractExpiry(d);
 
-    let o = `> registrar ${domain}\n`;
+    let o = `> whois ${domain} | grep -i 'registrar'\n`;
     o += `${ANSI.white}Registrar:${ANSI.reset}  ${registrar}\n`;
 
     if (creationDate) {
@@ -61,6 +61,7 @@ export async function cmdRegistrar(args) {
     }
 
     ins.push({ level: "INFO", text: `Lookup: https://www.whois.com/whois/${domain}` });
+    ins.push({ level: "INFO", text: `External Check: https://who.is/whois/${domain}` });
     o += insights(ins);
     return o;
 }

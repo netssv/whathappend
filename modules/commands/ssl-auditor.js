@@ -65,7 +65,7 @@ export function processSSLAudit(target, payload) {
     
     // We don't have HTTP headers here (unlike the old crt.sh mixed call), so we suggest checking them
     ins.push({ level: "WARN", text: `SSL dates inferred from historical CT logs (browser sandboxed).` });
-    ins.push({ level: "INFO", text: `Test SSL: https://www.ssllabs.com/ssltest/analyze.html?d=${encodeURIComponent(target)}` });
+    ins.push({ level: "INFO", text: `External Check: https://www.ssllabs.com/ssltest/analyze.html?d=${encodeURIComponent(target)}` });
     ins.push({ level: "INFO", text: `Verify HSTS and security protocols with: ${ANSI.white}headers ${target}${ANSI.reset}` });
     
     o += insights(ins);

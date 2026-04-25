@@ -47,6 +47,7 @@ export async function cmdTrace(args) {
     }
 
     ins.push({level:"INFO",text:`Test Redirects: https://httpstatus.io/`});
+    ins.push({ level: "INFO", text: `External Check: https://wheregoes.com/trace/2026/?url=${info.domain}` });
 
     o += insights(ins);
     return o;

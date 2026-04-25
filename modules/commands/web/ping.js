@@ -15,7 +15,7 @@ export async function cmdPing(args) {
 
     const {results} = resp.data;
     let o = "";
-    o += `> ping ${domain}\n`;
+    o += `> ping -c 4 ${domain}\n`;
 
     o += `PING ${domain} (HTTP/S HEAD)\n`;
     const targetIsIP = /^(\d{1,3}\.){3}\d{1,3}$/.test(domain) || /^[a-f0-9:]+$/i.test(domain);
@@ -41,6 +41,7 @@ export async function cmdPing(args) {
         if (loss>0) ins.push({level:"WARN",text:`${loss}% packet loss.`});
     }
 
+    ins.push({ level: "INFO", text: `External Check: https://check-host.net/check-ping?host=${domain}` });
     o += insights(ins);
     return o;
 }

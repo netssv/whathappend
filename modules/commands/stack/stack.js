@@ -11,7 +11,7 @@ export async function cmdStack(args) {
     const domain = resolveTargetDomain(args[0], info);
     if (!domain) return cmdUsage("stack", "<domain>");
 
-    let o = `> stack ${domain}\n`;
+    let o = `> curl -I -s https://${domain} && wappalyzer https://${domain}\n`;
     o += `${ANSI.dim}Detecting technology stack...${ANSI.reset}\n\n`;
 
     let html = "";

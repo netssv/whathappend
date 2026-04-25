@@ -31,7 +31,7 @@ export async function cmdHosting(args) {
 }
 
 async function resolveAndFormat(ip, domain) {
-    let o = `> hosting ${domain}\n`;
+    let o = `> whois ${domain} | grep -iE 'orgname|netname'\n`;
     o += `${ANSI.white}IP:${ANSI.reset}         ${ip}\n`;
 
     const provider = await resolveProvider(ip);
@@ -49,6 +49,7 @@ async function resolveAndFormat(ip, domain) {
         ins.push({ level: "INFO", text: `Manual lookup: https://www.whois.com/whois/${ip}` });
     }
     ins.push({ level: "INFO", text: `IP WHOIS: https://rdap.org/ip/${ip}` });
+    ins.push({ level: "INFO", text: `External Check: https://who.is/whois/${domain}` });
 
     o += insights(ins);
     return o;

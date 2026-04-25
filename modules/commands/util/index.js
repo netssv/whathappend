@@ -5,3 +5,6 @@ export { cmdErrors } from "./errors.js";
 export { cmdAbout } from "./about.js";
 export { cmdInfo } from "./system-info.js";
 export { cmdExit } from "./exit.js";
+export { cmdSwitch } from "./switch.js";
+export { cmdStart } from "./start.js";
+export { cmdConfig } from "./config.js";

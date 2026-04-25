@@ -154,7 +154,7 @@ function formatInsights(d, domain) {
         else ins.push({ level: "INFO", text: `Age: ${y}y (${dd}d). ${y >= 2 ? "Established." : "Building reputation."}` });
     }
 
-    ins.push({ level: "INFO", text: `Test WHOIS: https://www.whois.com/whois/${domain}` });
+    ins.push({ level: "INFO", text: `External Check: https://www.whois.com/whois/${domain}` });
     return insights(ins);
 }
 
@@ -176,7 +176,7 @@ async function ipWhois(ip, flags) {
     o += `${ANSI.white}Organization:${ANSI.reset} ${org}\n`;
     o += insights([
         { level: "INFO", text: `Owner: ${org}` },
-        { level: "INFO", text: `Test WHOIS: https://www.whois.com/whois/${ip}` },
+        { level: "INFO", text: `External Check: https://www.whois.com/whois/${ip}` },
     ]);
     return o;
 }

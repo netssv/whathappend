@@ -20,6 +20,25 @@ Everything runs locally in your browser. We don't have servers, we don't have a 
 
 When a command needs network data, the extension's Service Worker uses standard public web APIs (like Google's DNS-over-HTTPS or the RDAP registry). The data comes straight from them to your browser.
 
+## Getting Started
+
+When you open the side panel, you'll see a prompt. The fastest way to begin:
+
+1. **Press Enter** — The terminal auto-detects the domain of the active browser tab and runs a full infrastructure triage (Registrar, NameServers, Web Host).
+2. **Type `start`** — Same behavior. Works as an explicit command you can remember.
+3. **Type `start example.com`** — Skip auto-detection and analyze a specific domain.
+
+The `start` command (and its aliases `run`, `go`, `begin`) is the universal entry point for any audit. From there, you can drill deeper with specific commands like `email`, `sec`, or `dig`.
+
+```text
+❯ start                    # Analyze whatever tab you're looking at
+❯ start shopify.com        # Analyze a specific domain
+❯ email                    # Deep-dive: email security audit
+❯ config                   # View/change preferences
+```
+
+Type `help` for the full command list, or append `?` to any command (e.g., `start?`, `email?`) for usage details.
+
 ## What's new in v2.1.0
 
 - **Humanized Commands**: `registrar` for domain lifecycle (registrar, creation, expiry, days remaining) and `hosting` for instant IP-to-provider mapping — both backed by live RDAP.
@@ -73,6 +92,24 @@ When a command needs network data, the extension's Service Worker uses standard 
 We've introduced two complementary commands for historical investigation:
 - **`history` (Network Infrastructure)**: Uses Certificate Transparency (CT) logs to trace the lifecycle of a domain's SSL certificates. It identifies the first and last infrastructure footprints to show when a domain actually became active.
 - **`wayback` (Content Visibility)**: Uses the Archive.org API to find the last time the domain's *content* was publicly accessible. This is invaluable for Junior Analysts when triaging a site that currently resolves to an error page or a parked domain. If `wayback` shows the site was online 2 days ago, it often indicates a recent DNS migration, expired hosting, or WAF block rather than a permanently dead domain.
+## What's new in v2.3.2: Network Parity & User Preferences
+
+### Network Parity
+
+- **Command `isup`**: Compares local reachability against Google's global DNS-over-HTTPS infrastructure to determine if a site is globally down (unresolvable) or blocked only from your network. Outputs a side-by-side `Local Access` vs `Global Access` comparison with actionable insights (ISP routing, firewall, CDN edge-cache scenarios).
+- **Command `speed`**: Performs 5 sequential HEAD requests and calculates average latency and jitter (standard deviation). A jitter σ > 50ms triggers a `[WARN] Unstable connection` insight. Useful for diagnosing congestion vs. server-side latency.
+
+### User Preferences
+
+- **`config expert-mode on/off`**: New toggle for raw technical data in diagnostic output (default: off).
+- **`config list`**: Alias for viewing all current settings.
+- **RDAP Entity Filter**: The triage engine now filters out RDAP maintainer references (`MNT-*`, `*-MNT`, `AS####`) that were incorrectly displayed as provider names.
+
+### Header Retry UX
+
+- **Click-to-Retry**: When a triad field (REG/NS/HOST) fails to resolve, it shows a pulsing amber `↻ retry` indicator. Clicking it triggers a fresh lookup with a spinning green animation.
+- **Generation Counter**: Background retries are automatically cancelled when the user switches targets, preventing stale results from polluting the header.
+- **Header Refactor**: `header-controller.js` decomposed into `header-domain.js`, `header-triad.js`, and `header-tab-switch.js` via a barrel re-export.
 
 ## No Third-Party Dependencies
 
@@ -103,6 +140,7 @@ We only link to highly credible, industry-standard tools. We **never** send your
 | **OSINT & Content** | `robots` `links` `history` `wayback` | Public information gathering (robots.txt, mixed content scans, cert transparency, archive timelines). |
 | **Analysis** | `pixels` `load` `stack` `cookies` | Tracking pixel detection, page load performance, tech stack fingerprinting, and privacy cookie auditing. |
 | **External** | `blacklist` `ssllabs` `securityheaders` `whois-ext` | Generates safe, clickable links to the credible tools mentioned above. |
+| **Util** | `start` `switch` `target` `config` `export` `exit` | Quick-start analysis, tab switching, preferences, session management. |
 
 *(Type `help` in the terminal for the full list, or append `?` to a command like `email?` for details).*
 

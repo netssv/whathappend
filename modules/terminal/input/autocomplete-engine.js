@@ -1,6 +1,18 @@
 import { InputEvents } from "./events.js";
 import { ContextManager } from "../../context.js";
 
+function getLongestCommonPrefix(words) {
+    if (!words || words.length === 0) return "";
+    let prefix = words[0];
+    for (let i = 1; i < words.length; i++) {
+        while (words[i].indexOf(prefix) !== 0) {
+            prefix = prefix.substring(0, prefix.length - 1);
+            if (prefix === "") return "";
+        }
+    }
+    return prefix;
+}
+
 const AVAILABLE_COMMANDS = [
     "dig", "host", "nslookup", "curl", "openssl", "whois",
     "ping", "trace", "target",
@@ -21,9 +33,15 @@ const AVAILABLE_COMMANDS = [
     "dump", "report", "save",
     "pixels", "tracking", "trackers", "pixel", "ads", "links",
     "stack", "tech", "techstack", "wappalyzer", "cms",
-    "load", "perf", "performance", "speed", "pagespeed", "timing",
+    "load", "perf", "performance", "pagespeed", "timing",
     "reg", "lifecycle",
     "hoster", "provider", "webhost",
+    "switch", "sw", "tab",
+    "start", "run", "go", "begin", "analyze",
+    "config", "settings", "set", "prefs",
+    "isup", "upcheck", "down", "downcheck", "status",
+    "speed", "jitter", "latency-test",
+    "speedtest", "bandwidth", "nettest",
 ];
 
 // Commands that accept a domain parameter (for auto-filling)
@@ -44,10 +62,39 @@ const DOMAIN_COMMANDS = [
     "bl", "rbl", "ssltest", "sheaders", "icann",
     "pixels", "tracking", "trackers", "pixel", "ads",
     "stack", "tech", "techstack", "wappalyzer", "cms",
-    "load", "perf", "performance", "speed", "pagespeed", "timing",
+    "load", "perf", "performance", "pagespeed", "timing",
     "reg", "lifecycle",
     "hoster", "provider", "webhost",
+    "isup", "upcheck", "down", "downcheck", "status",
+    "speed", "jitter", "latency-test",
+    "speedtest", "bandwidth", "nettest",
 ];
+
+// Raw Bash Educational Snippets
+const RAW_SNIPPETS = [
+    "curl -I -s https://",
+    "curl -w \"\\nTTFB: %{time_starttransfer}s\\nTotal: %{time_total}s\\n\" -o /dev/null -s https://",
+    "curl -s https://api.thegreenwebfoundation.org/greencheck/",
+    "curl -s \"https://crt.sh/?q=",
+    "curl -o /dev/null http://speedtest.tele2.net/10MB.zip",
+    "curl -I -s https://", // cookies prefix
+    "ping -c 10 ",
+    "ping -c 4 ",
+    "whois ",
+    "dig ",
+    "nc -z -v -w2 ",
+    "nc -v -w5 ",
+    "for sel in "
+];
+
+// Context-aware subcommand completion (keys scoped to their parent command only)
+const CONFIG_KEYS = ["timeout", "retry-timeout", "auto-triage", "tab-notify", "expert-mode", "reset", "list"];
+const SUBCOMMAND_MAP = {
+    config:   CONFIG_KEYS,
+    settings: CONFIG_KEYS,
+    set:      CONFIG_KEYS,
+    prefs:    CONFIG_KEYS,
+};
 
 let tabCycleMatches = [];
 let tabCycleIndex = -1;
@@ -57,12 +104,24 @@ export function initAutocompleteEngine() {
         const input = currentLine.trimStart();
         if (!input) return;
 
+        // If we are already cycling, continue cycling and ignore other logic
+        if (tabCycleMatches.length > 0) {
+            tabCycleIndex = (tabCycleIndex + 1) % tabCycleMatches.length;
+            InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, tabCycleMatches[tabCycleIndex]);
+            return;
+        }
+
         const rawParts = input.split(/\s+/);
         const parts = input.trim().split(/\s+/);
         const hasTrailingSpace = input.endsWith(" ");
 
-        // Auto-fill context domain if command is fully typed with no arguments
-        if (parts.length === 1 && (rawParts.length === 1 || (rawParts.length === 2 && rawParts[1] === "")) && DOMAIN_COMMANDS.includes(parts[0].toLowerCase())) {
+        const commandMatches = AVAILABLE_COMMANDS.filter((c) => c.startsWith(parts[0].toLowerCase()));
+        const isDomainCmd = DOMAIN_COMMANDS.includes(parts[0].toLowerCase());
+        const canDomainFill = isDomainCmd && (hasTrailingSpace || commandMatches.length === 1);
+
+        // Auto-fill context domain if command is fully typed
+        // Prioritize command autocomplete if there are longer command matches, unless there's a trailing space
+        if (parts.length === 1 && (rawParts.length === 1 || (rawParts.length === 2 && rawParts[1] === "")) && canDomainFill) {
             const domain = ContextManager.getDomain();
             if (domain) {
                 InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, parts[0] + " " + domain + " ");
@@ -70,28 +129,65 @@ export function initAutocompleteEngine() {
             }
         }
 
-        // Standard command prefix completion
-        if (parts.length === 1 && !hasTrailingSpace) {
-            // Cycle through existing matches if we're already cycling
-            if (tabCycleMatches.length > 0) {
-                tabCycleIndex = (tabCycleIndex + 1) % tabCycleMatches.length;
-                InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, tabCycleMatches[tabCycleIndex] + " ");
+        // ── Subcommand completion: config <key> ─────────────────────
+        const baseCmd = parts[0].toLowerCase();
+        if (SUBCOMMAND_MAP[baseCmd] && parts.length <= 2) {
+            const subKeys = SUBCOMMAND_MAP[baseCmd];
+            const partial = parts.length === 2 ? parts[1].toLowerCase() : "";
+
+            const matches = subKeys.filter(k => k.startsWith(partial));
+            if (matches.length === 0) return;
+
+            if (matches.length === 1) {
+                InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, `${baseCmd} ${matches[0]} `);
+            } else {
+                const prefix = getLongestCommonPrefix(matches);
+                if (prefix.length > partial.length) {
+                    InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, `${baseCmd} ${prefix}`);
+                } else {
+                    InputEvents.emit("EV_PRINT_OPTIONS", matches);
+                    tabCycleMatches = matches.map(m => `${baseCmd} ${m} `);
+                    tabCycleIndex = -1;
+                }
+            }
+            return;
+        }
+
+        // ── Bash Snippet Completion (Matches Full String) ──
+        if (input.includes(" ") || input.includes("-")) {
+            const snippetMatches = RAW_SNIPPETS.filter(s => s.toLowerCase().startsWith(input.toLowerCase()));
+            if (snippetMatches.length === 1) {
+                InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, snippetMatches[0]);
+                return;
+            } else if (snippetMatches.length > 1) {
+                const prefix = getLongestCommonPrefix(snippetMatches);
+                if (prefix.length > input.length) {
+                    InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, prefix);
+                } else {
+                    InputEvents.emit("EV_PRINT_OPTIONS", snippetMatches);
+                    tabCycleMatches = snippetMatches;
+                    tabCycleIndex = -1;
+                }
                 return;
             }
+        }
 
-            // Find new matches
+        // Standard command prefix completion
+        if (parts.length === 1 && !hasTrailingSpace) {
             const matches = AVAILABLE_COMMANDS.filter((c) => c.startsWith(input.toLowerCase()));
 
             if (matches.length === 1) {
                 InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, matches[0] + " ");
             } else if (matches.length > 1) {
-                // Request UI to print options
-                InputEvents.emit("EV_PRINT_OPTIONS", matches);
+                const prefix = getLongestCommonPrefix(matches);
 
-                // Start cycling state and auto-fill the first match
-                tabCycleMatches = matches;
-                tabCycleIndex = 0;
-                InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, matches[0] + " ");
+                if (prefix.length > input.length) {
+                    InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, prefix);
+                } else {
+                    InputEvents.emit("EV_PRINT_OPTIONS", matches);
+                    tabCycleMatches = matches.map(m => m + " ");
+                    tabCycleIndex = -1;
+                }
             }
         }
     });

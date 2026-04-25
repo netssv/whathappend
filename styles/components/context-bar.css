@@ -117,6 +117,40 @@
 .triad-value.clickable { cursor: pointer; transition: color 0.15s ease; }
 .triad-value.clickable:hover { color: var(--accent-green); text-decoration: underline; text-underline-offset: 2px; }
 
+/* Retryable: empty field with clickable retry indicator */
+.triad-value.retryable { cursor: pointer; }
+.triad-value.retryable::after {
+    content: "↻ retry";
+    color: var(--accent-yellow);
+    font-size: 10px;
+    letter-spacing: 0.3px;
+    animation: triad-pulse 2s ease-in-out infinite;
+}
+.triad-value.retryable:hover::after {
+    color: var(--accent-green);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    animation: none;
+}
+
+@keyframes triad-pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* Retrying: actively loading after user click */
+.triad-value.retrying::after {
+    content: "↻";
+    color: var(--accent-green);
+    font-size: 11px;
+    animation: triad-spin 0.8s linear infinite;
+}
+
+@keyframes triad-spin {
+    from { display: inline-block; transform: rotate(0deg); }
+    to { display: inline-block; transform: rotate(360deg); }
+}
+
 /* --- Font Size Controls ------------------------------------------------ */
 
 #font-controls { display: flex; align-items: center; gap: 2px; margin-left: auto; flex-shrink: 0; }

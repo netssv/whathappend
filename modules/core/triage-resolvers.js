@@ -1,14 +1,15 @@
 import { ANSI } from "../formatter.js";
-import { resolveProvider } from "../utils.js";
+import { resolveProvider, isRdapMaintainer } from "../utils.js";
 import { cmdDig } from "../commands/dns/index.js";
+import { updateWhoisFields, updateNSField, updateHostField } from "../terminal/header-controller.js";
+import { setSessionTriad } from "../state.js";
 
 // ===================================================================
 // Triage Row Resolvers — Self-contained async resolvers for each
 // row of the progressive triage skeleton.
 // ===================================================================
 
-const ROW_TIMEOUT = 3500;
-const NA_LABEL = `${ANSI.dim}[N/A]${ANSI.reset}`;
+const ROW_TIMEOUT = 5000;
 
 // ---------------------------------------------------------------------------
 // Row 1: Registrar — uses APEX domain for WHOIS/RDAP
@@ -29,11 +30,17 @@ export async function resolveRegistrarRow(renderer, apexDomain, isSubdomain) {
                 ? (isSubdomain ? `${registrar} ${ANSI.dim}(${apexDomain})${ANSI.reset}` : registrar)
                 : null;
             renderer.updateRow("registrar", label);
+
+            // Push to header triad + persist
+            if (registrar) {
+                updateWhoisFields(registrar, `https://www.whois.com/whois/${apexDomain}`);
+                setSessionTriad("registrar", registrar);
+            }
         } else {
             renderer.updateRow("registrar", null);
         }
     } catch (_) {
-        renderer.updateRow("registrar", NA_LABEL);
+        renderer.updateRow("registrar", null);
     }
 }
 
@@ -62,9 +69,13 @@ export async function resolveNSRow(renderer, originalDomain, opts) {
 
         const targetRoot = originalDomain.split(".").slice(-2).join(".");
         const nsRoot = nsDomains[0].split(".").slice(-2).join(".");
+        const nsUrl = `https://intodns.com/${originalDomain}`;
 
         if (nsRoot === targetRoot) {
-            renderer.updateRow("ns", `Self-hosted (${targetRoot})`);
+            const selfLabel = `Self-hosted (${targetRoot})`;
+            renderer.updateRow("ns", selfLabel);
+            updateNSField(selfLabel, nsUrl);
+            setSessionTriad("ns", selfLabel);
             return;
         }
 
@@ -80,17 +91,27 @@ export async function resolveNSRow(renderer, originalDomain, opts) {
                 const provider = await raceTimeout(resolveProvider(nsIp), ROW_TIMEOUT);
                 if (renderer.isCancelled()) return;
                 if (provider) {
-                    renderer.updateRow("ns", provider);
-                    return;
+                    // Filter out RDAP maintainer refs (e.g. "AS8560-MNT")
+                    if (isRdapMaintainer(provider)) {
+                        // Fall through to domain-name fallback below
+                    } else {
+                        renderer.updateRow("ns", provider);
+                        updateNSField(provider, nsUrl);
+                        setSessionTriad("ns", provider);
+                        return;
+                    }
                 }
             }
         } catch (_) {}
 
         // Fallback: infer from domain name (google.com → Google)
         const fallback = nsRoot.split(".")[0];
-        renderer.updateRow("ns", fallback.charAt(0).toUpperCase() + fallback.slice(1));
+        const fallbackLabel = fallback.charAt(0).toUpperCase() + fallback.slice(1);
+        renderer.updateRow("ns", fallbackLabel);
+        updateNSField(fallbackLabel, nsUrl);
+        setSessionTriad("ns", fallbackLabel);
     } catch (_) {
-        renderer.updateRow("ns", NA_LABEL);
+        renderer.updateRow("ns", null);
     }
 }
 
@@ -123,12 +144,20 @@ export async function resolveWebHostRow(renderer, originalDomain, opts) {
         try {
             const provider = await raceTimeout(resolveProvider(ips[0]), ROW_TIMEOUT);
             if (renderer.isCancelled()) return;
-            renderer.updateRow("webhost", provider);
+            // Filter out RDAP maintainer refs
+            const cleanProvider = (provider && !isRdapMaintainer(provider)) ? provider : null;
+            renderer.updateRow("webhost", cleanProvider);
+
+            // Push to header triad + persist
+            if (cleanProvider) {
+                updateHostField(cleanProvider, `https://ipinfo.io/${ips[0]}`);
+                setSessionTriad("host", cleanProvider);
+            }
         } catch (_) {
-            renderer.updateRow("webhost", NA_LABEL);
+            renderer.updateRow("webhost", null);
         }
     } catch (_) {
-        renderer.updateRow("webhost", NA_LABEL);
+        renderer.updateRow("webhost", null);
     }
 }
 

@@ -54,13 +54,25 @@ export const CMD_ALIASES = {
     // stack / tech
     "tech": "stack", "techstack": "stack", "wappalyzer": "stack", "cms": "stack",
     // load / performance
-    "perf": "load", "performance": "load", "speed": "load", "pagespeed": "load", "timing": "load",
+    "perf": "load", "performance": "load", "pagespeed": "load", "timing": "load",
     // registrar
     "reg": "registrar", "lifecycle": "registrar",
     // hosting
     "hoster": "hosting", "provider": "hosting", "webhost": "hosting",
     // exit
     "quit": "exit",
+    // switch
+    "sw": "switch", "tab": "switch",
+    // start
+    "run": "start", "go": "start", "begin": "start", "analyze": "start",
+    // config
+    "settings": "config", "set": "config", "prefs": "config",
+    // isup
+    "upcheck": "isup", "down": "isup", "downcheck": "isup", "status": "isup",
+    // speed
+    "jitter": "speed", "latency-test": "speed",
+    // speedtest
+    "bandwidth": "speedtest", "nettest": "speedtest",
 };
 
 export const ALL_KNOWN_CMDS = [
@@ -72,5 +84,6 @@ export const ALL_KNOWN_CMDS = [
     "rev-dns", "port-scan", "ftp-check", "export",
     "blacklist", "ssllabs", "securityheaders", "whois-ext",
     "errors", "pixels", "stack", "load",
-    "registrar", "hosting", "exit",
+    "registrar", "hosting", "exit", "switch",
+    "start", "config", "isup", "speed", "speedtest",
 ].filter(c => /^[a-z]/i.test(c));

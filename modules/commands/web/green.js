@@ -9,7 +9,7 @@ export async function cmdGreen(args) {
     const t = resolveTargetDomain(args[0], info);
     if (!t) return cmdUsage("green", "<domain>");
     
-    let o = `> green ${t}\n`;
+    let o = `> curl -s https://api.thegreenwebfoundation.org/greencheck/${t}\n`;
     
     try {
         const res = await fetch(`https://api.thegreenwebfoundation.org/greencheck/${t}`, {
@@ -31,7 +31,7 @@ export async function cmdGreen(args) {
         } else {
             ins.push({ level: "INFO", text: "Standard hosting detected (Not confirmed as green energy)" });
         }
-        
+        ins.push({ level: "INFO", text: `External Check: https://www.thegreenwebfoundation.org/green-web-check/?url=${domain}` });
         return o + insights(ins);
         
     } catch (e) {

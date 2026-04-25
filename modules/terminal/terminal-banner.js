@@ -1,7 +1,7 @@
 // ===================================================================
-// Terminal Banner — Responsive startup message
+// Terminal Banner — Guided startup message
 //
-// Extracted from terminal-ui.js for maintainability.
+// Redesigned for v2.3.2: more actionable, less noise.
 // Adapts to three breakpoints: wide (≥60), medium (≥45), narrow.
 // ===================================================================
 
@@ -15,32 +15,35 @@ export function showBanner(term) {
 
     if (cols >= 60) {
         // WIDE SCREEN
-        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[90m│\x1b[0m Web Infrastructure Triage \x1b[90m│\x1b[0m \x1b[33mv2.3.1\x1b[0m");
-        term.writeln("  \x1b[90m" + "━".repeat(50) + "\x1b[0m");
-        term.writeln("  \x1b[90mType \x1b[37mhelp\x1b[90m for commands \x1b[90m│\x1b[0m \x1b[37m?\x1b[90m quick help \x1b[90m│\x1b[0m \x1b[37mCtrl+C\x1b[90m cancel\x1b[0m");
+        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[90mv2.3.2\x1b[0m \x1b[90m│\x1b[0m Analysis Engine");
+        term.writeln("  \x1b[90m" + "━".repeat(44) + "\x1b[0m");
+        term.writeln("  \x1b[35m❯\x1b[0m Press \x1b[1m\x1b[37mEnter\x1b[0m\x1b[90m or type\x1b[0m \x1b[1m\x1b[37mstart\x1b[0m\x1b[90m to begin.\x1b[0m");
+        term.writeln("  \x1b[35m❯\x1b[0m Type \x1b[1m\x1b[37mhelp\x1b[0m\x1b[90m for the full command list.\x1b[0m");
         term.writeln("");
-        term.writeln("  \x1b[33mDisclaimer: \x1b[90mThis extension provides fast, preliminary triage data.");
-        term.writeln("  \x1b[90mIt relies on browser APIs and cannot replace certified audits.");
-        term.writeln("  \x1b[90mAlways verify findings according to your internal security policies.\x1b[0m");
+        term.writeln("  \x1b[33mDisclaimer:\x1b[0m \x1b[90mFast, preliminary triage data.");
+        term.writeln("  \x1b[90mBrowser APIs only — verify per internal policies.\x1b[0m");
+        term.writeln("  \x1b[90m(If on a blank page: navigate to a website and press Enter)\x1b[0m");
+        term.writeln("  \x1b[90m(Or manually type a domain, e.g. google.com)\x1b[0m");
     } else if (cols >= 45) {
         // MEDIUM SCREEN
-        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.3.1\x1b[0m");
-        term.writeln("  \x1b[90m" + "━".repeat(38) + "\x1b[0m");
-        term.writeln("  \x1b[90mType \x1b[37mhelp\x1b[90m \x1b[90m│\x1b[0m \x1b[37m?\x1b[90m quick \x1b[90m│\x1b[0m \x1b[37mCtrl+C\x1b[90m cancel\x1b[0m");
+        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.3.2\x1b[0m");
+        term.writeln("  \x1b[90m" + "━".repeat(34) + "\x1b[0m");
+        term.writeln("  \x1b[35m❯\x1b[0m \x1b[37mEnter\x1b[0m\x1b[90m or\x1b[0m \x1b[37mstart\x1b[0m\x1b[90m to begin\x1b[0m");
+        term.writeln("  \x1b[35m❯\x1b[0m \x1b[37mhelp\x1b[0m\x1b[90m for commands\x1b[0m");
         term.writeln("");
-        term.writeln("  \x1b[33mDisclaimer: \x1b[90mFast, preliminary triage data only.");
-        term.writeln("  \x1b[90mRelies on browser APIs (no deep network scans).");
-        term.writeln("  \x1b[90mVerify findings per internal security policies.\x1b[0m");
+        term.writeln("  \x1b[33m[!]\x1b[0m \x1b[90mPreliminary triage only.\x1b[0m");
+        term.writeln("  \x1b[90mIf on a blank tab: open a website & press Enter\x1b[0m");
+        term.writeln("  \x1b[90mOr type a domain (e.g. google.com)\x1b[0m");
     } else {
         // NARROW SCREEN (Large fonts)
-        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.3.1\x1b[0m");
+        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.3.2\x1b[0m");
         term.writeln("  \x1b[90m━━━━━━━━━━━━━━━\x1b[0m");
-        term.writeln("  \x1b[90mType \x1b[37mhelp\x1b[90m or \x1b[37m?\x1b[90m");
-        term.writeln("  \x1b[90mPress \x1b[37mCtrl+C\x1b[90m to cancel\x1b[0m");
+        term.writeln("  \x1b[35m❯\x1b[0m \x1b[37mstart\x1b[0m\x1b[90m to begin\x1b[0m");
+        term.writeln("  \x1b[35m❯\x1b[0m \x1b[37mhelp\x1b[0m\x1b[90m for commands\x1b[0m");
         term.writeln("");
-        term.writeln("  \x1b[33m[!] \x1b[90mPreliminary triage only.");
-        term.writeln("  \x1b[33m[!] \x1b[90mBrowser API limitations.");
-        term.writeln("  \x1b[33m[!] \x1b[90mVerify via internal policies.\x1b[0m");
+        term.writeln("  \x1b[33m[!]\x1b[0m \x1b[90mPreliminary triage only.\x1b[0m");
+        term.writeln("  \x1b[90mOpen a website & press Enter\x1b[0m");
+        term.writeln("  \x1b[90mOr type a domain (e.g. google.com)\x1b[0m");
     }
 
     term.writeln("");

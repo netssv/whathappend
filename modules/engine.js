@@ -18,9 +18,9 @@ import { handleAutoTarget } from "./core/fallback.js";
 // Command modules
 import { cmdDig, cmdHost, cmdNslookup, cmdTTL, cmdDnssec } from "./commands/dns/index.js";
 import { cmdEmail, cmdSPF, cmdDMARC, cmdDKIM } from "./commands/email/index.js";
-import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdRegistrar, cmdHosting, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies } from "./commands/web/index.js";
+import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdRegistrar, cmdHosting, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdIsUp, cmdSpeed, cmdSpeedtest } from "./commands/web/index.js";
 import { cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "./commands/native/index.js";
-import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit } from "./commands/util/index.js";
+import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig } from "./commands/util/index.js";
 import { cmdStack } from "./commands/stack/index.js";
 
 // ---------------------------------------------------------------------------
@@ -81,6 +81,9 @@ export async function executeCommand(input) {
                 case "wayback": output = await cmdWayback(args); break;
                 case "green": output = await cmdGreen(args); break;
                 case "cookies": output = await cmdCookies(args); break;
+                case "isup": output = await cmdIsUp(args); break;
+                case "speed": output = await cmdSpeed(args); break;
+                case "speedtest": output = await cmdSpeedtest(args); break;
                 case "stack": output = await cmdStack(args); break;
                 case "rev-dns": output = await cmdRevDNS(args); break;
                 case "port-scan": output = await cmdPortScan(args); break;
@@ -93,9 +96,27 @@ export async function executeCommand(input) {
                 case "target": output = cmdTarget(args); break;
                 case "help": output = cmdHelp(); break;
                 case "errors": output = cmdErrors(); break;
-                case "about": output = cmdAbout(); break;
+                case "about": output = await cmdAbout(); break;
                 case "info": output = await cmdInfo(); break;
                 case "exit": output = await cmdExit(); break;
+                case "switch": {
+                    const result = await cmdSwitch();
+                    if (result && typeof result === "object" && result.__switch) {
+                        // Re-enter engine with the domain — triggers handleAutoTarget
+                        return await executeCommand(result.domain);
+                    }
+                    output = result;
+                    break;
+                }
+                case "start": {
+                    const result = await cmdStart(args);
+                    if (result && typeof result === "object" && result.__switch) {
+                        return await executeCommand(result.domain);
+                    }
+                    output = result;
+                    break;
+                }
+                case "config": output = await cmdConfig(args); break;
                 case "clear": return "__CLEAR__";
                 default:
                     // If not a known command, check if it's an auto-target domain/IP

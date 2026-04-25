@@ -94,7 +94,7 @@ export async function cmdEmail(args) {
         ins.push({level:"INFO",text:`Know your selector? Run 'dkim ${baseDomain} <selector>'`});
     }
 
-    ins.push({level:"INFO",text:`Test Email Health: https://mxtoolbox.com/emailhealth/${baseDomain}/`});
+    ins.push({level:"INFO",text:`External Check: https://mxtoolbox.com/emailhealth/${baseDomain}/`});
 
     o += insights(ins);
     return o;

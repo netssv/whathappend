@@ -35,7 +35,7 @@ export async function cmdOpenSSL(args) {
     if (!certificate) {
         let o = `${ANSI.yellow}SSL Active${ANSI.reset} — HTTPS handshake OK\n`;
         o += `${ANSI.dim}Certificate transparency lookup timed out (CertSpotter).${ANSI.reset}\n`;
-        o += `${ANSI.dim}Deep Analysis: https://www.ssllabs.com/ssltest/analyze.html?d=${encodeURIComponent(domain)}${ANSI.reset}\n`;
+        o += `${ANSI.dim}External Check: https://www.ssllabs.com/ssltest/analyze.html?d=${encodeURIComponent(domain)}${ANSI.reset}\n`;
         return o;
     }
 

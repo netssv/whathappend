@@ -15,3 +15,6 @@ export { cmdLinks } from "./links.js";
 export { cmdWayback } from "./wayback.js";
 export { cmdGreen } from "./green.js";
 export { cmdCookies } from "./cookies.js";
+export { cmdIsUp } from "./isup.js";
+export { cmdSpeed } from "./speed.js";
+export { cmdSpeedtest } from "./speedtest.js";

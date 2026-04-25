@@ -105,6 +105,32 @@ The \`info\` command collects session diagnostics (such as command execution cou
 - **Strictly Local**: This telemetry is calculated on-the-fly and resides entirely in memory.
 - **Zero Exfiltration**: No telemetry, analytics, or session data is ever transmitted to a remote server. When the session ends, the diagnostic counters are destroyed.
 
+## User Configuration — Local Storage Only
+
+The `config` command allows users to modify runtime preferences (network timeouts, auto-triage behavior, notification settings). All configuration data is:
+
+- **Stored exclusively in `chrome.storage.local`** on the user's machine. No configuration data is transmitted to any remote server.
+- **Schema-validated at write time**: Timeout values are enforced as numeric with a strict ceiling of 10,000ms (10 seconds) to prevent system hangs. Boolean values are coerced from natural-language inputs (`true/false`, `on/off`, `yes/no`).
+- **Resettable**: The `config reset` command removes all custom settings and reverts to hardcoded defaults. No external API is consulted during reset.
+- **Non-identifying**: Configuration keys describe system behavior (e.g., `timeout`, `auto-triage`, `expert-mode`), not user identity or browsing habits. No PII is stored in the config namespace.
+
+## External API Disclosure — `isup` Command
+
+The `isup` command queries a single external API for **global reachability contrast**:
+
+| Endpoint | Purpose | Data Sent |
+|----------|---------|-----------|
+| `https://dns.google/resolve` | Check if the target domain is globally resolvable via Google's DNS infrastructure | **Only the target domain name** |
+
+### What is NOT sent:
+- No browser cookies, session tokens, or authentication headers.
+- No user-agent fingerprinting or tracking identifiers.
+- No browsing history, tab information, or extension metadata.
+- No IP address of the user is intentionally transmitted (standard HTTPS connection behavior applies).
+
+### Why it exists:
+The purpose of `isup` is to differentiate between "my network can't reach it" and "the server is actually down." This requires an out-of-band check from a different network vantage point. We use Google's DNS-over-HTTPS as a reliable proxy for global existence without relying on transient third-party uptime APIs. The API is queried in a stateless, anonymous `GET` request with no cookies or credentials attached.
+
 ## Permissions
 
 | Permission | Why We Need It |

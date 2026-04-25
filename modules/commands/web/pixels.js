@@ -51,7 +51,7 @@ export async function cmdPixels(args) {
     const domain = resolveTargetDomain(args[0], info);
     if (!domain) return cmdUsage("pixels", "<domain>");
 
-    let o = `> pixels ${domain}\n`;
+    let o = `> curl -s https://${domain} | grep -iE 'google-analytics|fbq|gtag'\n`;
     
     let html = "";
     let fetchMethod = "";
@@ -138,7 +138,7 @@ export async function cmdPixels(args) {
         }
         
         ins.push({level:"INFO",text:`Test Trackers: https://builtwith.com/${encodeURIComponent(domain)}`});
-
+        ins.push({ level: "INFO", text: `External Check: https://themarkup.org/blacklight?url=${domain}` });
         o += insights(ins);
         return o;
 

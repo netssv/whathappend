@@ -9,7 +9,7 @@ export async function cmdFTPCheck(args) {
     const target = resolveTargetDomain(args[0], info);
     if (!target) return cmdUsage("ftp-check", "<domain>");
 
-    let o = `> ftp-check ${target} (port 21)\n`;
+    let o = `> nc -v -w5 ${target} 21\n`;
 
     try {
         const resp = await chrome.runtime.sendMessage({

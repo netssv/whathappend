@@ -50,7 +50,7 @@ function mxInsights(domain, ans, ins) {
         else ins.push({level:"PASS",text:`MX records handled internally by ${rootDomain}.`});
     }
     
-    ins.push({level:"INFO",text:`Test MX health: https://mxtoolbox.com/domain/${domain}`});
+    ins.push({level:"INFO",text:`External Check: https://mxtoolbox.com/domain/${domain}`});
     return ins;
 }
 
@@ -58,12 +58,12 @@ function txtInsights(ans, ins) {
     const tx = ans.map(r=>(r.data||"").toLowerCase().replace(/"/g,""));
     if (!tx.some(d=>d.startsWith("v=spf1"))) {
         ins.push({level:"WARN",text:"No SPF — vulnerable to email spoofing (attackers can fake your domain)."});
-        ins.push({level:"INFO",text:`Check SPF: https://mxtoolbox.com/spf.aspx`});
+        ins.push({level:"INFO",text:`External Check: https://mxtoolbox.com/spf.aspx`});
     } else ins.push({level:"PASS",text:"SPF configured."});
     
     if (!tx.some(d=>d.startsWith("v=dmarc1"))) {
         ins.push({level:"WARN",text:"No DMARC — spoofed emails bypass spam filters."});
-        ins.push({level:"INFO",text:`Check DMARC: https://mxtoolbox.com/dmarc.aspx`});
+        ins.push({level:"INFO",text:`External Check: https://mxtoolbox.com/dmarc.aspx`});
     } else ins.push({level:"PASS",text:"DMARC configured."});
     
     if (ans.length===0) ins.push({level:"WARN",text:"No TXT records at all."});
@@ -84,7 +84,7 @@ async function nsInsights(domain, ans, ins) {
         if (nsProv) ins.push({level:"INFO",text:`DNS: ${nsProv}.`});
     }
     
-    ins.push({level:"INFO",text:`Test DNS health: https://intodns.com/${domain}`});
+    ins.push({level:"INFO",text:`External Check: https://intodns.com/${domain}`});
     return ins;
 }
 
@@ -100,7 +100,7 @@ async function aInsights(domain, type, ans, ins) {
     if (ans.length>0&&ans[0].TTL<60)
         ins.push({level:"INFO",text:`Low TTL (${ans[0].TTL}s) — dynamic DNS.`});
         
-    ins.push({level:"INFO",text:`Test Global DNS: https://dnschecker.org/#${type}/${domain}`});
+    ins.push({level:"INFO",text:`External Check: https://dnschecker.org/#${type}/${domain}`});
     return ins;
 }
 
@@ -115,6 +115,6 @@ function cnameInsights(domain, ans, ins) {
             ins.push({level:"INFO",text:"CNAMEs at the zone apex conflict with NS/SOA records."});
         }
     }
-    ins.push({level:"INFO",text:`Test Global DNS: https://dnschecker.org/#CNAME/${domain}`});
+    ins.push({level:"INFO",text:`External Check: https://dnschecker.org/#CNAME/${domain}`});
     return ins;
 }

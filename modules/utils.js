@@ -3,6 +3,16 @@ import { isIPAddress } from "./formatter.js";
 
 export const stripANSI = (s) => s.replace(REGEX.ANSI_STRIP, "");
 
+/**
+ * Detect RDAP/RIPE maintainer entity names that aren't real provider names.
+ * Matches: MNT-LARSEN, AS8560-MNT, CLDIN-MNT, AS-12345, etc.
+ */
+export function isRdapMaintainer(name) {
+    if (!name) return false;
+    const u = name.toUpperCase();
+    return u.endsWith("-MNT") || u.startsWith("MNT-") || /^AS\d/.test(u);
+}
+
 export function ensureProtocol(url) {
     if (!url.startsWith("http://") && !url.startsWith("https://")) {
         return "https://" + url;

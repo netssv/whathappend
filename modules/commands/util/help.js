@@ -52,6 +52,9 @@ export const HELP_SECTIONS = [
         ["stack", "Tech stack detect", "tech cms"],
     ]},
     { title: "NETWORK", cmds: [
+        ["isup", "Local vs global parity", "upcheck down"],
+        ["speed", "Latency jitter test", "jitter"],
+        ["speedtest", "Local bandwidth test", "bandwidth"],
         ["rev-dns", "Reverse DNS (PTR)", "rdns ptr"],
         ["port-scan", "Port scanner", "ports nmap"],
         ["ftp-check", "FTP banner grab", "ftp"],
@@ -63,8 +66,11 @@ export const HELP_SECTIONS = [
         ["whois-ext", "ICANN/DomainTools", "icann"],
     ]},
     { title: "UTIL", cmds: [
+        ["start", "Analyze active tab", "run go begin"],
         ["export", "Save report", "dump save"],
         ["target", "Set target domain", ""],
+        ["switch", "Switch to active tab", "sw tab"],
+        ["config", "User preferences", "settings set"],
         ["about", "Philosophy & identity", ""],
         ["info", "System diagnostics", "telemetry status"],
         ["errors", "Error & insight guide", "error"],
@@ -76,10 +82,6 @@ export const HELP_SECTIONS = [
 
 export function cmdHelp() {
     const cols = getTermCols();
-    // Narrow mode: < 60 cols → stack command + description vertically
-    const narrow = cols < 60;
-    // Medium: 60-75 → show cmd + desc only
-    const medium = cols >= 60 && cols < 75;
 
     // IP-aware dimming: domain-only commands are dimmed when target is an IP
     const currentTarget = ContextManager.getDomain();
@@ -107,22 +109,19 @@ export function cmdHelp() {
             const descColor = ANSI.dim;
             const dimTag = isDimmed ? ` ${ANSI.yellow}[domain]${ANSI.reset}` : "";
 
-            if (narrow) {
-                // Narrow: command on first line, description indented below
+            if (cols < 50) {
+                // Ultra narrow (mobile/squeezed side panel)
                 o += `  ${nameColor}${name}${ANSI.reset}${dimTag}\n`;
                 o += `    ${descColor}${desc}${ANSI.reset}\n`;
-            } else if (medium) {
-                // Medium: padded command + desc
+                if (aliases) {
+                    o += `    ${ANSI.gray}↪ ${aliases}${ANSI.reset}\n`;
+                }
+            } else {
+                // Standard mode (clean 2-column layout with alias below)
                 const pad = Math.max(1, 16 - name.length);
                 o += `  ${nameColor}${name}${ANSI.reset}${" ".repeat(pad)}${descColor}${desc}${ANSI.reset}${dimTag}\n`;
-            } else {
-                // Wide: command + desc + aliases
-                const pad1 = Math.max(1, 17 - name.length);
-                const descPad = Math.max(1, 25 - desc.length);
                 if (aliases) {
-                    o += `  ${nameColor}${name}${ANSI.reset}${" ".repeat(pad1)}${descColor}${desc}${" ".repeat(descPad)}${ANSI.gray}${aliases}${ANSI.reset}${dimTag}\n`;
-                } else {
-                    o += `  ${nameColor}${name}${ANSI.reset}${" ".repeat(pad1)}${descColor}${desc}${ANSI.reset}${dimTag}\n`;
+                    o += `  ${" ".repeat(16)}${ANSI.gray}↪ ${aliases}${ANSI.reset}\n`;
                 }
             }
         }

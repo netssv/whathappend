@@ -1,4 +1,4 @@
-import { setTermCols } from "../state.js";
+import { setTermCols, getHistory } from "../state.js";
 import { showBanner as _showBanner } from "./terminal-banner.js";
 
 // ---------------------------------------------------------------------------
@@ -148,7 +148,12 @@ export function showBanner() {
 }
 
 export function writePrompt() {
-    term.write(PROMPT_PREFIX + PROMPT);
+    // Write the prompt, and the dim placeholder only if it's the very first command
+    if (getHistory().length === 0) {
+        term.write(PROMPT_PREFIX + PROMPT + "\x1b[90mgoogle.com\x1b[0m\x1b[10D");
+    } else {
+        term.write(PROMPT_PREFIX + PROMPT);
+    }
 }
 
 export function writeOutput(output) {
