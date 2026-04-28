@@ -11,39 +11,66 @@ export async function handleGetWebVitals() {
         const results = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             func: () => {
-                // LCP
-                let lcp = -1;
-                try {
-                    const lcpEntries = performance.getEntriesByType("largest-contentful-paint");
-                    if (lcpEntries.length > 0) lcp = lcpEntries[lcpEntries.length - 1].startTime;
-                } catch (_) {}
+                return new Promise((resolve) => {
+                    let lcp = -1;
+                    let cls = -1;
+                    let inp = -1;
 
-                // CLS (sum of all layout-shift entries without recent input)
-                let cls = -1;
-                try {
-                    const lsEntries = performance.getEntriesByType("layout-shift");
-                    if (lsEntries.length > 0) {
-                        cls = lsEntries
-                            .filter(e => !e.hadRecentInput)
-                            .reduce((sum, e) => sum + e.value, 0);
-                    }
-                } catch (_) {}
+                    // Fallback: Check if they are already in the performance buffer
+                    try {
+                        const all = performance.getEntries();
+                        for (const e of all) {
+                            if (e.entryType === "largest-contentful-paint" && e.startTime > lcp) lcp = e.startTime;
+                            if (e.entryType === "layout-shift" && !e.hadRecentInput) {
+                                if (cls === -1) cls = 0;
+                                cls += e.value;
+                            }
+                            if (e.entryType === "event" && e.duration > inp) inp = e.duration;
+                        }
+                    } catch (_) {}
 
-                // INP (worst interaction-to-next-paint from event timing)
-                let inp = -1;
-                try {
-                    const events = performance.getEntriesByType("event");
-                    if (events.length > 0) {
-                        inp = Math.max(...events.map(e => e.duration));
-                    }
-                } catch (_) {}
+                    try {
+                        const lcpObs = new PerformanceObserver((list) => {
+                            const entries = list.getEntries();
+                            if (entries.length > 0) lcp = entries[entries.length - 1].startTime;
+                        });
+                        lcpObs.observe({ type: "largest-contentful-paint", buffered: true });
+                    } catch (_) {}
 
-                return { lcp, cls, inp, url: location.href };
+                    try {
+                        let totalCls = cls === -1 ? 0 : cls;
+                        const clsObs = new PerformanceObserver((list) => {
+                            for (const e of list.getEntries()) {
+                                if (!e.hadRecentInput) totalCls += e.value;
+                            }
+                            cls = totalCls;
+                        });
+                        clsObs.observe({ type: "layout-shift", buffered: true });
+                    } catch (_) {}
+
+                    try {
+                        let maxInp = inp;
+                        const inpObs = new PerformanceObserver((list) => {
+                            for (const e of list.getEntries()) {
+                                if (e.duration > maxInp) maxInp = e.duration;
+                            }
+                            inp = maxInp;
+                        });
+                        inpObs.observe({ type: "event", buffered: true });
+                    } catch (_) {}
+
+                    setTimeout(() => {
+                        resolve({ lcp, cls, inp, url: location.href, debug: "promise_resolved" });
+                    }, 250);
+                });
             },
         });
 
         if (results?.[0]?.result) {
             const d = results[0].result;
+            if (d.debugError) {
+                return { error: `Script error: ${d.debugError}` };
+            }
             return {
                 success: true,
                 data: {
@@ -54,7 +81,7 @@ export async function handleGetWebVitals() {
                 },
             };
         }
-        return { error: "Could not read Core Web Vitals." };
+        return { error: `Could not read Core Web Vitals. Result: ${JSON.stringify(results)}` };
     } catch (err) {
         return { error: `Web Vitals access failed: ${err.message}` };
     }

@@ -92,11 +92,9 @@ async function bootstrap() {
             });
         }
     } else if (initialDomain) {
-        setKeyboardLock(true);
-        // Automatically start the progressive triage for the active tab
+        // Test de inicio eliminado (no auto-start).
+        // Solo mostramos el prompt, el header mostrará el dominio activo.
         writePrompt();
-        term.write(initialDomain + "\r\n");
-        InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, initialDomain);
     } else {
         writePrompt();
     }
@@ -120,6 +118,13 @@ ContextManager.onTargetChanged((domain) => {
 
     // Hide any pending tab-switch notification (user already switched)
     hideTabSwitch();
+
+    // Update header logo to domain favicon (use apex for better reliability)
+    const logoEl = document.getElementById("context-logo");
+    if (logoEl) {
+        logoEl.src = `https://www.google.com/s2/favicons?domain=${toApex(domain)}&sz=64`;
+        logoEl.style.borderRadius = "3px"; // Make it look like a neat icon
+    }
 
     // Persist target for session restore
     setSessionTarget(domain);

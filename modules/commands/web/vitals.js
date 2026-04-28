@@ -15,9 +15,10 @@ export async function cmdVitals(args) {
         const resp = await chrome.runtime.sendMessage({ command: "get-web-vitals" });
 
         if (!resp?.success || !resp.data) {
+            const errMsg = resp?.error || "Make sure a website is open in the active tab.";
             return o + cmdError(
                 `Could not read Core Web Vitals.${ANSI.reset}\n` +
-                `${ANSI.dim}Make sure a website is open in the active tab.${ANSI.reset}`
+                `${ANSI.dim}${errMsg}${ANSI.reset}`
             );
         }
 

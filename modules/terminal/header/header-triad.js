@@ -1,8 +1,8 @@
 import { ContextManager } from "../../context.js";
 import { refitTerminal } from "../terminal-ui.js";
 import { toApex } from "../../formatter.js";
-import { resolveProvider, isRdapMaintainer } from "../../utils.js";
 import { setSessionTriad } from "../../state.js";
+import { handleTriadRetryClick } from "./header-retry.js";
 
 // ===================================================================
 // Header Triad — Infrastructure badges (REG / NS / HOST)
@@ -35,9 +35,25 @@ function refreshTriadVisibility() {
     setTimeout(() => refitTerminal(), 350);
 }
 
+function cleanProviderName(name) {
+    if (!name) return "";
+    return name
+        .replace(/,?\s+Inc\.?$/i, "")
+        .replace(/,?\s+LLC\.?$/i, "")
+        .replace(/,?\s+LTD\.?$/i, "")
+        .replace(/\s+GmbH$/i, "")
+        .replace(/\s+NOC$/i, "")
+        .replace(/\s+Group$/i, "")
+        .replace(/Amazon\.com Services LLC/i, "AWS")
+        .replace(/Amazon Data Services.*/i, "AWS")
+        .replace(/Google LLC/i, "Google")
+        .trim();
+}
+
 function setTriadValue(el, text, url) {
     if (!el) return;
-    el.textContent = text || "";
+    const cleanText = cleanProviderName(text);
+    el.textContent = cleanText || "";
     el.title = url ? `${text} — click to verify` : (text || "");
     // Clear loading/retryable state when a real value arrives
     el.classList.remove("retryable", "retrying");
@@ -48,6 +64,12 @@ function setTriadValue(el, text, url) {
         delete el.dataset.href;
         el.classList.remove("clickable");
     }
+    
+    // Trigger subtle pop animation on value update
+    el.classList.remove("pop");
+    void el.offsetWidth; // Force DOM reflow to restart animation
+    if (cleanText) el.classList.add("pop");
+
     refreshTriadVisibility();
 }
 
@@ -60,7 +82,11 @@ if (contextTriad) {
         // Handle retry clicks on empty fields
         const retryTarget = e.target.closest(".triad-value.retryable");
         if (retryTarget) {
-            _handleRetryClick(retryTarget);
+            let type;
+            if (retryTarget === contextRegistrar) type = "registrar";
+            else if (retryTarget === contextNS) type = "ns";
+            else if (retryTarget === contextHost) type = "host";
+            if (type) handleTriadRetryClick(retryTarget, type, setTriadValue);
             return;
         }
         // Handle verify clicks on populated fields
@@ -116,75 +142,3 @@ export function clearWhoisFields() {
 // Retry click handler — single-field retry on user click
 // ---------------------------------------------------------------------------
 
-const CLICK_TIMEOUT = 15000;
-const race = (p) => Promise.race([p, new Promise((_, r) => setTimeout(() => r("TIMEOUT"), CLICK_TIMEOUT))]);
-
-async function _handleRetryClick(el) {
-    const domain = ContextManager.getDomain();
-    if (!domain) return;
-    const apexDomain = toApex(domain);
-
-    // Show spinning loading state
-    el.classList.remove("retryable");
-    el.classList.add("retrying");
-    el.textContent = "";
-
-    try {
-        if (el === contextRegistrar) {
-            const resp = await race(chrome.runtime.sendMessage({ command: "whois", payload: { domain: apexDomain } }));
-            if (resp?.success && resp.registrar && resp.registrar !== "Unknown") {
-                setTriadValue(el, resp.registrar, `https://www.whois.com/whois/${apexDomain}`);
-                setSessionTriad("registrar", resp.registrar);
-                return;
-            }
-        } else if (el === contextNS) {
-            const resp = await race(chrome.runtime.sendMessage({ command: "dns", payload: { domain, type: "NS" } }));
-            const nsRecords = resp?.data?.Answer?.filter(a => a.type === 2);
-            if (nsRecords?.length > 0) {
-                const nsHost = nsRecords[0].data.replace(/\.$/, "");
-                const nsRoot = nsHost.split(".").slice(-2).join(".");
-                const targetRoot = domain.split(".").slice(-2).join(".");
-                const nsUrl = `https://intodns.com/${domain}`;
-                if (nsRoot === targetRoot) {
-                    const label = `Self-hosted (${targetRoot})`;
-                    setTriadValue(el, label, nsUrl);
-                    setSessionTriad("ns", label);
-                    return;
-                }
-                // Try IP-based provider resolution
-                const aResp = await race(chrome.runtime.sendMessage({ command: "dns", payload: { domain: nsHost, type: "A" } }));
-                const nsA = aResp?.data?.Answer?.find(a => a.type === 1);
-                if (nsA?.data) {
-                    const prov = await race(resolveProvider(nsA.data));
-                    if (prov && !isRdapMaintainer(prov)) {
-                        setTriadValue(el, prov, nsUrl);
-                        setSessionTriad("ns", prov);
-                        return;
-                    }
-                }
-                // Fallback: domain name
-                const fb = nsRoot.split(".")[0];
-                const label = fb.charAt(0).toUpperCase() + fb.slice(1);
-                setTriadValue(el, label, nsUrl);
-                setSessionTriad("ns", label);
-                return;
-            }
-        } else if (el === contextHost) {
-            const resp = await race(chrome.runtime.sendMessage({ command: "dns", payload: { domain, type: "A" } }));
-            const aRec = resp?.data?.Answer?.find(a => a.type === 1);
-            if (aRec?.data) {
-                const prov = await race(resolveProvider(aRec.data));
-                if (prov && !isRdapMaintainer(prov)) {
-                    setTriadValue(el, prov, `https://ipinfo.io/${aRec.data}`);
-                    setSessionTriad("host", prov);
-                    return;
-                }
-            }
-        }
-    } catch (_) {}
-
-    // Still failed — re-mark as retryable
-    el.classList.remove("retrying");
-    el.textContent = "";
-    el.classList.add("retryable");
-}

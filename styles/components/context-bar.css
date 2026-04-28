@@ -89,28 +89,57 @@
     transition: height 0.3s ease, opacity 0.35s ease, padding 0.3s ease, border-color 0.3s ease;
 }
 
+@keyframes slideDownFadeIn {
+    0% { height: 0; opacity: 0; transform: translateY(-5px); }
+    100% { height: 28px; opacity: 1; transform: translateY(0); }
+}
+
 #context-triad.visible {
-    height: 26px; opacity: 1;
-    padding: 3px 8px;
-    border-top-color: var(--bg-panel-border);
+    height: 32px; opacity: 1;
+    padding: 6px 8px;
+    border-top-color: var(--bg-active-border);
+    background: linear-gradient(to right, rgba(0,255,136,0.03), transparent);
+    animation: slideDownFadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 .triad-col {
     display: flex; align-items: center;
-    gap: 5px; overflow: hidden; min-width: 0;
+    gap: 6px; overflow: hidden; min-width: 0;
+    padding: 2px 6px 2px 2px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-.triad-col:not(:first-child) { padding-left: 8px; border-left: 1px solid var(--bg-panel-border); }
+.triad-col:not(:first-child) { 
+    margin-left: 6px;
+}
 
 .triad-label {
-    font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
-    color: var(--text-dim); flex-shrink: 0; text-transform: uppercase;
+    font-size: 9px; font-weight: 800; letter-spacing: 0.5px;
+    color: var(--bg-main); flex-shrink: 0; text-transform: uppercase;
+    padding: 2px 5px; border-radius: 3px;
 }
 
+/* Distinct accessible colors for labels */
+.triad-col:nth-child(1) .triad-label { background: #40c4ff; } /* REG: Light Blue */
+.triad-col:nth-child(2) .triad-label { background: #b388ff; } /* NS: Purple */
+.triad-col:nth-child(3) .triad-label { background: #69f0ae; } /* HOST: Green */
+
 .triad-value {
-    font-size: 11.5px; color: var(--text-bright);
+    font-size: 11.5px; color: #ffffff; /* pure white for max contrast */
+    font-weight: 600; 
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    min-width: 0; transition: color 0.3s ease;
+    min-width: 0; transition: color 0.2s ease;
+}
+
+@keyframes valuePop {
+    0% { transform: translateY(4px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+.triad-value.pop {
+    animation: valuePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .triad-value:empty::after { content: "\00B7\00B7\00B7"; color: var(--text-dark); }

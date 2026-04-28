@@ -198,6 +198,13 @@ async function processCommand(rawInput) {
                     output: historyOutput,
                 });
             }
+            if (result.chainedCommand) {
+                // Ensure we release the lock so the new command can process immediately
+                isProcessing = false;
+                setKeyboardLock(false);
+                setTimeout(() => InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, result.chainedCommand), 50);
+                return; // Early return to prevent normal cleanup from locking it again
+            }
         } else {
             const output = result;
             if (output === "__CLEAR__") {

@@ -29,8 +29,8 @@ export function suggestCommand(input) {
 
 export function parseCommand(input) {
     const tokens = input.split(/\s+/);
-    const flags = tokens.filter(t => t.startsWith("--"));
+    const flags = tokens.filter(t => t.startsWith("-") && t !== "-");
     const opts = tokens.filter(t => t.startsWith("+"));
-    const nf = tokens.filter(t => !t.startsWith("--") && !t.startsWith("+"));
+    const nf = tokens.filter(t => !(t.startsWith("-") && t !== "-") && !t.startsWith("+"));
     return { cmd: nf[0]?.toLowerCase()||"", args: nf.slice(1), flags, opts };
 }

@@ -1,5 +1,6 @@
 import { InputEvents } from "./events.js";
 import { ContextManager } from "../../context.js";
+import { AVAILABLE_COMMANDS, DOMAIN_COMMANDS, RAW_SNIPPETS, SUBCOMMAND_MAP } from "../../data/autocomplete-data.js";
 
 function getLongestCommonPrefix(words) {
     if (!words || words.length === 0) return "";
@@ -13,97 +14,7 @@ function getLongestCommonPrefix(words) {
     return prefix;
 }
 
-const AVAILABLE_COMMANDS = [
-    "dig", "host", "nslookup", "curl", "openssl", "whois",
-    "ping", "trace", "target",
-    "email", "web", "sec", "ttl", "spf", "dmarc", "dkim", "robots",
-    "registrar", "hosting", "history",
-    "help",    "history", "crt", "wayback", "archive", "green", "cookies", "about", "info", "exit",
-    "a", "aaaa", "mx", "txt", "ns", "cname", "soa", "dnssec",
-    "rev-dns", "port-scan", "ftp-check", "export",
-    "blacklist", "ssllabs", "securityheaders", "whois-ext",
-    // aliases
-    "dns", "ssl", "headers", "redirect", "security",
-    "cls", "reset", "ls", "commands", "man",
-    "http", "cert", "tls", "traceroute", "follow",
-    "lookup", "scan", "audit", "mail", "domain",
-    "latency", "sitemap", "record",
-    "rdns", "ptr", "ports", "nmap", "portscan", "ftp",
-    "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann",
-    "dump", "report", "save",
-    "pixels", "tracking", "trackers", "pixel", "ads", "links",
-    "stack", "tech", "techstack", "wappalyzer", "cms",
-    "load", "perf", "performance", "pagespeed", "timing",
-    "reg", "lifecycle",
-    "hoster", "provider", "webhost",
-    "switch", "sw", "tab",
-    "start", "run", "go", "begin", "analyze",
-    "config", "settings", "set", "prefs",
-    "isup", "upcheck", "down", "downcheck", "status",
-    "speed", "jitter", "latency-test",
-    "speedtest", "bandwidth", "nettest",
-    "ip", "myip", "public-ip",
-    "security-txt", "sec-txt", "securitytxt",
-    "vitals", "cwv", "web-vitals", "core-vitals",
-    "flush", "clearcache", "clear-cache",
-    "notes", "note", "memo", "annotation",
-];
 
-// Commands that accept a domain parameter (for auto-filling)
-const DOMAIN_COMMANDS = [
-    "dig", "host", "nslookup", "curl", "openssl", "whois",
-    "ping", "trace",
-    "email", "web", "sec", "ttl", "spf", "dmarc", "dkim", "robots",
-    "registrar", "hosting", "history", "wayback", "green", "cookies",
-    "a", "aaaa", "mx", "txt", "ns", "cname", "soa", "dnssec",
-    "rev-dns", "port-scan", "ftp-check",
-    "blacklist", "ssllabs", "securityheaders", "whois-ext",
-    // aliases
-    "dns", "ssl", "headers", "redirect", "security",
-    "http", "cert", "tls", "traceroute", "follow",
-    "lookup", "scan", "audit", "mail", "domain",
-    "latency", "sitemap", "record",
-    "rdns", "ptr", "ports", "nmap", "portscan", "ftp",
-    "bl", "rbl", "ssltest", "sheaders", "icann",
-    "pixels", "tracking", "trackers", "pixel", "ads",
-    "stack", "tech", "techstack", "wappalyzer", "cms",
-    "load", "perf", "performance", "pagespeed", "timing",
-    "reg", "lifecycle",
-    "hoster", "provider", "webhost",
-    "isup", "upcheck", "down", "downcheck", "status",
-    "speed", "jitter", "latency-test",
-    "speedtest", "bandwidth", "nettest",
-    "ip", "myip", "public-ip",
-    "security-txt", "sec-txt", "securitytxt",
-    "vitals", "cwv", "web-vitals", "core-vitals",
-    "flush", "clearcache", "clear-cache",
-];
-
-// Raw Bash Educational Snippets
-const RAW_SNIPPETS = [
-    "curl -I -s https://",
-    "curl -w \"\\nTTFB: %{time_starttransfer}s\\nTotal: %{time_total}s\\n\" -o /dev/null -s https://",
-    "curl -s https://api.thegreenwebfoundation.org/greencheck/",
-    "curl -s \"https://crt.sh/?q=",
-    "curl -o /dev/null https://speed.cloudflare.com/__down?bytes=10485760",
-    "curl -I -s https://", // cookies prefix
-    "ping -c 10 ",
-    "ping -c 4 ",
-    "whois ",
-    "dig ",
-    "nc -z -v -w2 ",
-    "nc -v -w5 ",
-    "for sel in "
-];
-
-// Context-aware subcommand completion (keys scoped to their parent command only)
-const CONFIG_KEYS = ["timeout", "retry-timeout", "auto-triage", "tab-notify", "expert-mode", "reset", "list"];
-const SUBCOMMAND_MAP = {
-    config:   CONFIG_KEYS,
-    settings: CONFIG_KEYS,
-    set:      CONFIG_KEYS,
-    prefs:    CONFIG_KEYS,
-};
 
 let tabCycleMatches = [];
 let tabCycleIndex = -1;
@@ -135,6 +46,31 @@ export function initAutocompleteEngine() {
             if (domain) {
                 InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, parts[0] + " " + domain + " ");
                 return;
+            }
+        }
+
+        // ── Domain Flag Autocompletion (e.g., google.com -vitals) ──
+        const isDomain = /^[a-z0-9]([a-z0-9\-]*\.)+[a-z]{2,}$/i.test(parts[0]);
+        if (isDomain && parts.length <= 2) {
+            const CHAIN_FLAGS = ["-go", "-vitals", "-cwv", "-ip", "-myip", "-whois", "-registrar", "-hosting", "-ssl", "-cert", "-headers", "-stack", "-wappalyzer"];
+            const partial = parts.length === 2 ? parts[1].toLowerCase() : (hasTrailingSpace ? "-" : "");
+            
+            if (partial.startsWith("-")) {
+                const matches = CHAIN_FLAGS.filter(f => f.startsWith(partial));
+                if (matches.length === 1) {
+                    InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, `${parts[0]} ${matches[0]} `);
+                    return;
+                } else if (matches.length > 1) {
+                    const prefix = getLongestCommonPrefix(matches);
+                    if (prefix.length > partial.length) {
+                        InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, `${parts[0]} ${prefix}`);
+                    } else {
+                        InputEvents.emit("EV_PRINT_OPTIONS", matches);
+                        tabCycleMatches = matches.map(m => `${parts[0]} ${m} `);
+                        tabCycleIndex = -1;
+                    }
+                    return;
+                }
             }
         }
 
@@ -184,20 +120,45 @@ export function initAutocompleteEngine() {
         // Standard command prefix completion
         if (parts.length === 1 && !hasTrailingSpace) {
             const matches = AVAILABLE_COMMANDS.filter((c) => c.startsWith(input.toLowerCase()));
+            
+            // Asynchronously fetch all open tabs to suggest any open domains
+            chrome.tabs.query({}, (tabs) => {
+                const openDomains = new Set();
+                const activeDomain = ContextManager.getDomain();
+                if (activeDomain) openDomains.add(activeDomain);
 
-            if (matches.length === 1) {
-                InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, matches[0] + " ");
-            } else if (matches.length > 1) {
-                const prefix = getLongestCommonPrefix(matches);
-
-                if (prefix.length > input.length) {
-                    InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, prefix);
-                } else {
-                    InputEvents.emit("EV_PRINT_OPTIONS", matches);
-                    tabCycleMatches = matches.map(m => m + " ");
-                    tabCycleIndex = -1;
+                if (tabs) {
+                    tabs.forEach(tab => {
+                        if (tab.url && tab.url.startsWith("http")) {
+                            try {
+                                const url = new URL(tab.url);
+                                openDomains.add(url.hostname.replace(/^www\./, ""));
+                            } catch(e) {}
+                        }
+                    });
                 }
-            }
+
+                openDomains.forEach(domain => {
+                    if (domain.toLowerCase().startsWith(input.toLowerCase()) && !matches.includes(domain)) {
+                        matches.push(domain);
+                    }
+                });
+
+                if (matches.length === 1) {
+                    InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, matches[0] + " ");
+                } else if (matches.length > 1) {
+                    const prefix = getLongestCommonPrefix(matches);
+
+                    if (prefix.length > input.length) {
+                        InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, prefix);
+                    } else {
+                        InputEvents.emit("EV_PRINT_OPTIONS", matches);
+                        tabCycleMatches = matches.map(m => m + " ");
+                        tabCycleIndex = -1;
+                    }
+                }
+            });
+            return;
         }
     });
 
