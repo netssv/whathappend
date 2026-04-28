@@ -91,7 +91,7 @@ Control the terminal environment itself.
 |---------|-------------|---------|
 | `start` | Analyzes the active tab (implicitly runs with `-go` flag). | `run`, `go`, `begin` |
 | `target` | Sets the target domain silently. | - |
-| `tabs` | List, close (with confirmation), or inspect tabs + JS heap. | `tab`, `list`, `close`, `info` |
+| `tabs` | List, close, sleep, or inspect tabs. `diag` scans for health issues. | `tab`, `close`, `info`, `diag`, `sleep` |
 | `config` | View or change user preferences (`config timeout 5000`). | `settings`, `set` |
 | `export` | Saves the entire session output as a JSON file. | `dump`, `save` |
 | `flush` | Clears cookies and cache for a specific domain. | `clearcache` |

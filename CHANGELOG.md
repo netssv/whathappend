@@ -2,6 +2,26 @@
 
 All the latest updates and improvements to the WhatHappened terminal.
 
+## [2.4.1] - 2026-04-28
+**The "Tab Superpowers" Update**
+
+### What's New?
+- **Unified Tab Management**: Commands `tab` and `tabs` are now one. Manage everything without switching context.
+- **`tabs diag`**: A new way to scan live tabs! Injects a diagnostic script to find broken images, mixed content (HTTP on HTTPS), slow resources, and DOM bloat.
+- **`tabs sleep`**: Save RAM with a single command. "Discard" any background tab to free up memory without closing it.
+- **`tabs focus`**: Jump directly to any open tab in your browser by its short index.
+- **`tabs info`**: Get a deep dive into a tab's health, including real-time JavaScript heap memory usage and asset count.
+
+### UX & Polish
+- **Short Indexes**: No more typing 10-digit Chrome IDs. Use simple numbers like `#1`, `#2`... to close or inspect tabs.
+- **Tab Legend**: A new icon system (● Active, Z Idle, z Sleep, ♪ Audio, ◌ Loading) with a handy legend at the bottom.
+- **Safety First**: Closing a tab now requires a confirmation (`tabs close <#> yes`) to prevent accidental clicks.
+- **Clean Grouping**: The tab list is now organized by website, making it easier to manage multiple tabs from the same domain.
+
+### Architecture
+- **Atomic Refactor**: Split the massive tabs logic into specialized modules (`tabs-info.js`, `tabs-diag.js`) to keep the codebase fast and maintainable.
+
+
 ## [2.4.0] - 2026-04-27
 **The "UX & Professional Audit" Update**
 
