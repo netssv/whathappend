@@ -92,6 +92,7 @@ Control the terminal environment itself.
 | `start` | Analyzes the active tab (implicitly runs with `-go` flag). | `run`, `go`, `begin` |
 | `target` | Sets the target domain silently. | - |
 | `switch` | Switches the terminal focus to your currently active Chrome tab. | `sw`, `tab` |
+| `tabs` | List open tabs or close them (`tabs close 123`). | `close` |
 | `config` | View or change user preferences (`config timeout 5000`). | `settings`, `set` |
 | `export` | Saves the entire session output as a JSON file. | `dump`, `save` |
 | `flush` | Clears cookies and cache for a specific domain. | `clearcache` |
