@@ -13,10 +13,22 @@ export function initLogoMenu() {
     logo.addEventListener("click", (e) => {
         e.stopPropagation();
         menu.classList.toggle("open");
+        
+        // Remove animation hint on first click
+        const icon = document.getElementById("context-logo");
+        if (icon) icon.classList.remove("pulse-hint");
     });
 
     // Close menu on outside click
     document.addEventListener("click", () => menu.classList.remove("open"));
+
+    // ── Tabs ─────────────────────────────────────────────────
+    document.getElementById("menu-tabs")?.addEventListener("click", () => {
+        menu.classList.remove("open");
+        term.write("tabs\r\n");
+        InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, "tabs");
+        term.focus();
+    });
 
     // ── Clear Terminal ───────────────────────────────────────
     document.getElementById("menu-clear")?.addEventListener("click", () => {

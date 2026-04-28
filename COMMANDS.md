@@ -6,7 +6,7 @@ This is a comprehensive guide to all the commands available in the WhatHappened 
 
 ---
 
-## 🔎 Audits (The Heavy Hitters)
+## Audits (The Heavy Hitters)
 These commands bundle multiple checks together to give you a comprehensive overview of a specific area.
 
 | Command | Description | Aliases |
@@ -17,7 +17,7 @@ These commands bundle multiple checks together to give you a comprehensive overv
 
 ---
 
-## 🌐 DNS & Network
+## DNS & Network
 Native DNS queries using Google's DNS-over-HTTPS.
 
 | Command | Description | Aliases |
@@ -37,7 +37,7 @@ Type these directly to get specific records:
 
 ---
 
-## 🖥️ Web & Infrastructure
+## ️ Web & Infrastructure
 Dig into the architecture, hosting, and performance of a site.
 
 | Command | Description | Aliases |
@@ -56,7 +56,7 @@ Dig into the architecture, hosting, and performance of a site.
 
 ---
 
-## 🕵️ OSINT & Content
+## ️ OSINT & Content
 Gather public intelligence and historical data.
 
 | Command | Description | Aliases |
@@ -72,7 +72,7 @@ Gather public intelligence and historical data.
 
 ---
 
-## 🔗 External Tools
+## External Tools
 Generates safe, clickable links to industry-standard diagnostic tools. We never send your data to them directly.
 
 | Command | Description | Aliases |
@@ -84,7 +84,7 @@ Generates safe, clickable links to industry-standard diagnostic tools. We never 
 
 ---
 
-## ⚙️ Terminal Utilities
+## ️ Terminal Utilities
 Control the terminal environment itself.
 
 | Command | Description | Aliases |

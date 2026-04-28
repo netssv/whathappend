@@ -1,4 +1,4 @@
-# What’s Been Happening? (Changelog) 📅
+# What’s Been Happening? (Changelog) 
 
 All the latest updates and improvements to the WhatHappened terminal.
 
@@ -14,7 +14,7 @@ All the latest updates and improvements to the WhatHappened terminal.
 
 ### UX & Polish
 - **Short Indexes**: No more typing 10-digit Chrome IDs. Use simple numbers like `#1`, `#2`... to close or inspect tabs.
-- **Tab Legend**: A new icon system (● Active, Z Idle, z Sleep, ♪ Audio, ◌ Loading) with a handy legend at the bottom.
+- **Tab Legend**: A new icon system (● Active, Z Idle, z Sleep, Audio, ◌ Loading) with a handy legend at the bottom.
 - **Safety First**: Closing a tab now requires a confirmation (`tabs close <#> yes`) to prevent accidental clicks.
 - **Clean Grouping**: The tab list is now organized by website, making it easier to manage multiple tabs from the same domain.
 

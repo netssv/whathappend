@@ -1,4 +1,4 @@
-# WhatHappened 🕵️‍♂️
+# WhatHappened ️‍️
 
 **The terminal you always wanted in your browser side panel.**
 
@@ -13,26 +13,26 @@ It’s a simple, powerful terminal that lives right in your Chrome side panel. I
 - **Privacy First**: Everything runs locally in your browser. No servers, no databases, no tracking. Your data stays yours.
 - **Real-Time Data**: We don't use stale static databases. We query live infrastructure (DNS, RDAP) in real-time to give you the most accurate "ground truth."
 
-## Quick Start 🚀
+## Quick Start 
 
 The fastest way to get an answer is to open the side panel and:
 
-1.  **Press Enter** — The terminal automatically detects the site you're on and runs a quick check on the Registrar, NameServers, and Web Host.
-2.  **Type `go`** — Same as above, but for when you want to be explicit.
-3.  **Type `google.com`** — To set a new target. It will load the header info silently in the background while you keep working.
+1. **Press Enter** — The terminal automatically detects the site you're on and runs a quick check on the Registrar, NameServers, and Web Host.
+2. **Type `go`** — Same as above, but for when you want to be explicit.
+3. **Type `google.com`** — To set a new target. It will load the header info silently in the background while you keep working.
 
 ### Try these commands:
 ```text
-❯ email google.com        # Is their email security (SPF, DMARC, DKIM) set up right?
-❯ sec github.com          # Check SSL health and those pesky security headers.
-❯ hosting example.com     # Who is actually running this site?
-❯ vitals                  # How's the performance? (LCP, CLS, INP)
-❯ help                    # See the full list of what you can do.
+ email google.com # Is their email security (SPF, DMARC, DKIM) set up right?
+ sec github.com # Check SSL health and those pesky security headers.
+ hosting example.com # Who is actually running this site?
+ vitals # How's the performance? (LCP, CLS, INP)
+ help # See the full list of what you can do.
 ```
 
 ---
 
-## What’s New in v2.4.0? 🎁
+## What’s New in v2.4.0? 
 
 We’ve been busy making the terminal smarter and easier to use:
 
@@ -44,7 +44,7 @@ We’ve been busy making the terminal smarter and easier to use:
 
 ---
 
-## Our Privacy Promise 🛡️
+## Our Privacy Promise ️
 
 We take your privacy seriously because we’re users too.
 
@@ -52,7 +52,7 @@ We take your privacy seriously because we’re users too.
 - **No Third-Party Tracking**: We use standard public infrastructure like Google's DNS or the RDAP registry. We never send your cookies or identifying data to them.
 - **Bundled & Secure**: We don't load scripts from CDNs. Everything is self-contained inside the extension for maximum security.
 
-## Under the Hood 🛠️
+## Under the Hood ️
 
 WhatHappened is a strict **Manifest V3** extension built for performance and reliability:
 - **xterm.js**: For that authentic, high-performance terminal feel.

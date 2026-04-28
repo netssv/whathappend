@@ -12,6 +12,16 @@
 #logo-wrapper:hover #context-logo { transform: scale(1.1); }
 #logo-wrapper:active #context-logo { transform: scale(0.95); }
 
+/* Animation to suggest clicking the logo */
+.pulse-hint {
+    animation: logoGlowSpin 3s infinite ease-in-out;
+}
+
+@keyframes logoGlowSpin {
+    0%, 100% { filter: drop-shadow(0 0 2px var(--accent-green, #00ff88)); transform: rotate(0deg); }
+    50% { filter: drop-shadow(0 0 8px var(--accent-green, #00ff88)); transform: rotate(10deg) scale(1.05); }
+}
+
 /* --- Dropdown ------------------------------------------------------------ */
 
 .logo-menu {

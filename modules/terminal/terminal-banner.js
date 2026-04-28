@@ -22,7 +22,7 @@ export function showBanner(term) {
         term.writeln("");
         term.writeln("  \x1b[33mDisclaimer:\x1b[0m \x1b[90mFast, preliminary triage data.");
         term.writeln("  \x1b[90mBrowser APIs only — verify per internal policies.\x1b[0m");
-        term.writeln("  \x1b[90m(If on a blank page: navigate to a website and press Enter)\x1b[0m");
+        term.writeln("  \x1b[90m(Hint: Click the \x1b[35m↖ Logo\x1b[90m for menu)\x1b[0m");
         term.writeln("  \x1b[90m(Or manually type a domain, e.g. google.com)\x1b[0m");
     } else if (cols >= 45) {
         // MEDIUM SCREEN
