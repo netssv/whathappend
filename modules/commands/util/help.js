@@ -133,6 +133,7 @@ export function cmdHelp() {
     }
 
     o += `\n${ANSI.dim}  Add ${ANSI.white}?${ANSI.dim} for details: ${ANSI.white}email?${ANSI.dim}  ${ANSI.white}mx?${ANSI.reset}\n`;
+    o += `${ANSI.dim}  Full Docs: ${ANSI.cyan}\x1b[4mhttps://github.com/netssv/whathappend/blob/main/COMMANDS.md\x1b[0m\n`;
     o += `${ANSI.dim}  Omit domain = active tab | Ctrl+C cancel${ANSI.reset}\n`;
     return o;
 }
