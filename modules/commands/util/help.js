@@ -73,7 +73,7 @@ export const HELP_SECTIONS = [
         ["export", "Save report", "dump save"],
         ["target", "Set target domain", ""],
         ["switch", "Switch to active tab", "sw tab"],
-        ["tabs", "Manage open tabs", "close"],
+        ["tabs", "List / close / inspect tabs", "info close"],
         ["config", "User preferences", "settings set"],
         ["about", "Philosophy & identity", ""],
         ["info", "System diagnostics", "telemetry status"],
