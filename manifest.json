@@ -11,7 +11,8 @@
         "scripting",
         "cookies",
         "clipboardRead",
-        "browsingData"
+        "browsingData",
+        "contentSettings"
     ],
     "host_permissions": [
         "https://dns.google/*",

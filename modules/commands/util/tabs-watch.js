@@ -32,7 +32,7 @@ export function createTabWatcher(tabId, label) {
     let prevBytes = 0;
     let prevResCount = 0;
     let tick = 0;
-    const LINES = 16; // how many lines the dashboard takes (for cursor rewind)
+    const LINES = 17; // how many lines the dashboard takes (for cursor rewind)
 
     async function poll(term) {
         try {
@@ -48,9 +48,23 @@ export function createTabWatcher(tabId, label) {
                     }
 
                     const nav = (performance.getEntriesByType("navigation") || [])[0] || {};
-
-                    // navigator.connection (Network Information API)
                     const conn = navigator.connection || navigator.mozConnection || {};
+
+                    // Page anatomy
+                    const scripts = document.querySelectorAll("script[src]").length;
+                    const iframes = document.querySelectorAll("iframe").length;
+                    const media = document.querySelectorAll("video, audio");
+                    let mediaPlaying = 0;
+                    media.forEach(el => { if (!el.paused) mediaPlaying++; });
+
+                    // Storage
+                    let storageKB = 0;
+                    try { storageKB = Math.round(JSON.stringify(localStorage).length / 1024); } catch {}
+                    let sessionKB = 0;
+                    try { sessionKB = Math.round(JSON.stringify(sessionStorage).length / 1024); } catch {}
+
+                    // Cookies
+                    const cookies = document.cookie ? document.cookie.split(";").length : 0;
 
                     return {
                         usedHeap: m.usedJSHeapSize || 0,
@@ -59,11 +73,13 @@ export function createTabWatcher(tabId, label) {
                         resCount: res.length,
                         netBytes: totalBytes,
                         fullLoad: nav.loadEventEnd || 0,
-                        // Network context
-                        downlink: conn.downlink || 0,       // Mbps
-                        rtt: conn.rtt || 0,                 // ms
-                        connType: conn.effectiveType || "",  // 4g, 3g, etc.
-                        saveData: conn.saveData || false,
+                        downlink: conn.downlink || 0,
+                        rtt: conn.rtt || 0,
+                        connType: conn.effectiveType || "",
+                        scripts, iframes,
+                        mediaTotal: media.length,
+                        mediaPlaying,
+                        storageKB, sessionKB, cookies,
                     };
                 },
             });
@@ -77,50 +93,58 @@ export function createTabWatcher(tabId, label) {
             prevResCount = d.resCount;
 
             const heapPct = d.heapLimit > 0 ? ((d.usedHeap / d.heapLimit) * 100) : 0;
-            const domColor = d.domNodes > 3000 ? ANSI.red : d.domNodes > 1500 ? ANSI.yellow : ANSI.green;
+            const domC = d.domNodes > 3000 ? ANSI.red : d.domNodes > 1500 ? ANSI.yellow : ANSI.green;
 
-            if (tick > 0) {
-                term.write(`\x1b[${LINES}A`);
-            }
+            if (tick > 0) term.write(`\x1b[${LINES}A`);
 
             const elapsed = tick * 2;
             const mins = Math.floor(elapsed / 60);
             const secs = elapsed % 60;
-            const timeStr = mins > 0 ? `${mins}m${secs}s` : `${secs}s`;
+            const uptime = mins > 0 ? `${mins}m${secs}s` : `${secs}s`;
 
             let host = "";
             try { host = new URL(tab.url).hostname; } catch { host = ""; }
 
             const w = term.cols || 40;
-            const sep = `${ANSI.dim}  ${"━".repeat(Math.min(34, w - 4))}${ANSI.reset}`;
+            const sw = Math.min(30, w - 4);
+            const sep = `${ANSI.dim}  ${"━".repeat(sw)}${ANSI.reset}`;
             const pad = (s) => {
                 const raw = s.replace(/\x1b\[[0-9;]*m/g, "");
                 return s + " ".repeat(Math.max(0, w - raw.length - 1));
             };
 
-            // Connection badge
-            let connStr = `${ANSI.dim}--${ANSI.reset}`;
+            // Connection
+            let linkStr = `${ANSI.dim}--${ANSI.reset}`;
             if (d.downlink > 0) {
-                const dlColor = d.downlink >= 10 ? ANSI.green : d.downlink >= 2 ? ANSI.yellow : ANSI.red;
-                connStr = `${dlColor}${d.downlink} Mbps${ANSI.reset}`;
-                if (d.connType) connStr += ` ${ANSI.dim}(${d.connType})${ANSI.reset}`;
+                const c = d.downlink >= 10 ? ANSI.green : d.downlink >= 2 ? ANSI.yellow : ANSI.red;
+                linkStr = `${c}${d.downlink}${ANSI.reset}${ANSI.dim}Mbps${ANSI.reset}`;
+                if (d.connType) linkStr += ` ${ANSI.dim}${d.connType}${ANSI.reset}`;
+            }
+
+            // Media badge
+            let mediaStr = `${ANSI.dim}--${ANSI.reset}`;
+            if (d.mediaTotal > 0) {
+                mediaStr = d.mediaPlaying > 0
+                    ? `${ANSI.green}▶ ${d.mediaPlaying}${ANSI.reset}${ANSI.dim}/${d.mediaTotal}${ANSI.reset}`
+                    : `${ANSI.dim}⏸ ${d.mediaTotal}${ANSI.reset}`;
             }
 
             const lines = [
                 `${ANSI.cyan}${ANSI.bold}  ⟳ Watch #${label}${ANSI.reset} ${ANSI.dim}${host}${ANSI.reset}`,
                 sep,
-                `  ${ANSI.white}Heap${ANSI.reset}    ${bar(heapPct)} ${heapPct.toFixed(1)}%`,
-                `          ${ANSI.dim}${fmt(d.usedHeap)} / ${fmt(d.heapLimit)}${ANSI.reset}`,
-                `  ${ANSI.white}DOM${ANSI.reset}     ${domColor}${d.domNodes.toLocaleString()}${ANSI.reset} nodes`,
-                `  ${ANSI.white}Assets${ANSI.reset}  ${d.resCount}${newRes > 0 ? ` ${ANSI.green}+${newRes}${ANSI.reset}` : ""}`,
+                `  ${ANSI.white}Heap${ANSI.reset}     ${bar(heapPct)} ${heapPct.toFixed(1)}%`,
+                `           ${ANSI.dim}${fmt(d.usedHeap)} / ${fmt(d.heapLimit)}${ANSI.reset}`,
+                `  ${ANSI.white}DOM${ANSI.reset}      ${domC}${d.domNodes.toLocaleString()}${ANSI.reset}  ${ANSI.dim}scripts${ANSI.reset} ${d.scripts}  ${ANSI.dim}iframes${ANSI.reset} ${d.iframes}`,
+                `  ${ANSI.white}Assets${ANSI.reset}   ${d.resCount}${newRes > 0 ? ` ${ANSI.green}+${newRes}${ANSI.reset}` : ""}`,
                 sep,
-                `  ${ANSI.white}Net Σ${ANSI.reset}   ${d.netBytes > 0 ? fmt(d.netBytes) : `${ANSI.dim}CORS blocked${ANSI.reset}`}`,
-                `  ${ANSI.white}Δ/2s${ANSI.reset}    ${byteDelta > 0 ? `${ANSI.yellow}+${fmt(byteDelta)}${ANSI.reset}` : `${ANSI.dim}--${ANSI.reset}`}`,
-                `  ${ANSI.white}Link${ANSI.reset}    ${connStr}`,
-                `  ${ANSI.white}RTT${ANSI.reset}     ${d.rtt > 0 ? `${d.rtt}ms` : `${ANSI.dim}--${ANSI.reset}`}`,
+                `  ${ANSI.white}Net Σ${ANSI.reset}    ${d.netBytes > 0 ? fmt(d.netBytes) : `${ANSI.dim}CORS${ANSI.reset}`}  ${ANSI.white}Δ${ANSI.reset} ${byteDelta > 0 ? `${ANSI.yellow}+${fmt(byteDelta)}${ANSI.reset}` : `${ANSI.dim}--${ANSI.reset}`}`,
+                `  ${ANSI.white}Link${ANSI.reset}     ${linkStr}  ${ANSI.white}RTT${ANSI.reset} ${d.rtt > 0 ? `${d.rtt}ms` : `${ANSI.dim}--${ANSI.reset}`}`,
                 sep,
-                `  ${ANSI.white}Load${ANSI.reset}    ${d.fullLoad > 0 ? `${(d.fullLoad / 1000).toFixed(2)}s` : `${ANSI.dim}N/A${ANSI.reset}`}`,
-                `  ${ANSI.white}Up${ANSI.reset}      ${ANSI.dim}${timeStr}${ANSI.reset}`,
+                `  ${ANSI.white}Media${ANSI.reset}    ${mediaStr}`,
+                `  ${ANSI.white}Storage${ANSI.reset}  ${ANSI.dim}local${ANSI.reset} ${d.storageKB}KB  ${ANSI.dim}session${ANSI.reset} ${d.sessionKB}KB`,
+                `  ${ANSI.white}Cookies${ANSI.reset}  ${d.cookies}`,
+                sep,
+                `  ${ANSI.white}Load${ANSI.reset}     ${d.fullLoad > 0 ? `${(d.fullLoad / 1000).toFixed(2)}s` : `${ANSI.dim}N/A${ANSI.reset}`}  ${ANSI.white}Up${ANSI.reset} ${ANSI.dim}${uptime}${ANSI.reset}`,
                 ``,
                 `${ANSI.dim}  Ctrl+C to stop${ANSI.reset}`,
             ];
