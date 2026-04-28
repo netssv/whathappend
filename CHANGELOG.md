@@ -9,6 +9,7 @@ All the latest updates and improvements to the WhatHappened terminal.
 - **Command `ip`**: Now has a dual-mode! Type it alone to see your own public IP and ISP, or type `ip google.com` to see exactly where a site is hosted.
 - **Command `security-txt`**: Easily find out how to contact a site's security team.
 - **Command `vitals`**: Added a scorecard for Core Web Vitals (LCP, CLS, INP) so you can see how fast a site really is.
+- **Command `tabs`**: View a list of all your open browser tabs and close them directly from the terminal (`tabs close <id>`).
 - **Command `flush`**: Need a clean slate? Now you can clear cookies and cache for a specific domain right from the terminal.
 - **Command `notes`**: Added a way to take notes during your audit. They stick around for the session and even show up in your JSON exports.
 - **Silent Mode**: Domain entry is now much cleaner. It sets the target and fills the header quietly without blocking your screen.
