@@ -1,4 +1,5 @@
 import { ANSI } from "../../formatter.js";
+import { tabInfo } from "./tabs-info.js";
 
 // ===================================================================
 //  tabs — Manage open browser tabs
@@ -10,14 +11,6 @@ import { ANSI } from "../../formatter.js";
 // ===================================================================
 
 let _indexMap = [];  // Maps short index → real chrome tab ID
-
-function formatBytes(bytes) {
-    if (!bytes || bytes <= 0) return "N/A";
-    const u = ["B", "KB", "MB", "GB"];
-    let i = 0;
-    while (bytes >= 1024 && i < u.length - 1) { bytes /= 1024; i++; }
-    return `${bytes.toFixed(1)} ${u[i]}`;
-}
 
 function icon(tab) {
     if (tab.active) return `${ANSI.green}●${ANSI.reset}`;
@@ -77,7 +70,7 @@ export async function cmdTabs(args) {
                 }
 
                 o += `\n${ANSI.dim}  ${ANSI.green}●${ANSI.dim}active ${ANSI.reset}${ANSI.dim}Z${ANSI.dim}idle ${ANSI.yellow}z${ANSI.dim}sleep ${ANSI.green}♪${ANSI.dim}audio ${ANSI.cyan}◌${ANSI.dim}loading${ANSI.reset}\n`;
-                o += `${ANSI.dim}  tabs close <#> · tabs info <#>${ANSI.reset}\n`;
+                o += `${ANSI.dim}  close · info · sleep · focus${ANSI.reset}\n`;
                 resolve(o);
             });
         });
@@ -123,52 +116,47 @@ export async function cmdTabs(args) {
         if (args.length < 2) return `${ANSI.red}Usage: tabs info <#>${ANSI.reset}`;
         const tabId = resolveTabId(args[1]);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
+        return await tabInfo(tabId, args[1]);
+    }
+
+    // ── SLEEP (discard tab to free memory) ───────────────────────
+    if (sub === "sleep" || sub === "discard") {
+        if (args.length < 2) return `${ANSI.red}Usage: tabs sleep <#>${ANSI.reset}`;
+        const tabId = resolveTabId(args[1]);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
 
         try {
             const tab = await chrome.tabs.get(tabId);
-            const sep = `${ANSI.dim}${"━".repeat(34)}${ANSI.reset}`;
-            let o = `\n${ANSI.cyan}${ANSI.bold}  Tab #${args[1]}${ANSI.reset}\n  ${sep}\n`;
-            o += `  ${ANSI.white}Title${ANSI.reset}     ${tab.title || "N/A"}\n`;
-            o += `  ${ANSI.white}URL${ANSI.reset}       ${tab.url || "N/A"}\n`;
-            o += `  ${ANSI.white}Status${ANSI.reset}    ${icon(tab)} ${tab.status}\n`;
-            o += `  ${ANSI.white}Pinned${ANSI.reset}    ${tab.pinned ? "Yes" : "No"}\n`;
+            if (tab.active) return `${ANSI.yellow}[WARN]${ANSI.reset} Cannot sleep the active tab.`;
+            if (tab.discarded) return `${ANSI.dim}Tab is already sleeping.${ANSI.reset}`;
 
-            if (tab.url?.startsWith("http")) {
-                try {
-                    const r = await chrome.scripting.executeScript({
-                        target: { tabId },
-                        func: () => {
-                            const m = performance.memory || {};
-                            return {
-                                used: m.usedJSHeapSize || 0,
-                                total: m.totalJSHeapSize || 0,
-                                limit: m.jsHeapSizeLimit || 0,
-                                res: performance.getEntriesByType("resource").length,
-                            };
-                        },
-                    });
-                    const d = r?.[0]?.result;
-                    if (d?.limit > 0) {
-                        const pct = ((d.used / d.limit) * 100).toFixed(1);
-                        const c = pct > 75 ? ANSI.red : pct > 50 ? ANSI.yellow : ANSI.green;
-                        o += `\n  ${ANSI.cyan}JS Heap${ANSI.reset}\n  ${sep}\n`;
-                        o += `  ${ANSI.white}Used${ANSI.reset}      ${formatBytes(d.used)}\n`;
-                        o += `  ${ANSI.white}Alloc${ANSI.reset}     ${formatBytes(d.total)}\n`;
-                        o += `  ${ANSI.white}Limit${ANSI.reset}     ${formatBytes(d.limit)}\n`;
-                        o += `  ${ANSI.white}Usage${ANSI.reset}     ${c}${pct}%${ANSI.reset}\n`;
-                        o += `  ${ANSI.white}Assets${ANSI.reset}    ${d.res} loaded\n`;
-                    }
-                } catch {
-                    o += `\n  ${ANSI.dim}Cannot read memory (restricted).${ANSI.reset}\n`;
-                }
-            }
-            o += `\n  ${ANSI.dim}CPU not available to extensions.${ANSI.reset}\n`;
-            return o;
+            await chrome.tabs.discard(tabId);
+            let title = tab.title || "Untitled";
+            if (title.length > 30) title = title.substring(0, 29) + "…";
+            return `${ANSI.green}[OK]${ANSI.reset} ${title} ${ANSI.dim}→ sleeping${ANSI.reset}`;
         } catch (err) {
             return `${ANSI.red}[ERROR] ${err.message}${ANSI.reset}`;
         }
     }
 
-    return `${ANSI.red}Try: tabs · tabs close <#> · tabs info <#>${ANSI.reset}`;
-}
+    // ── FOCUS (switch browser to this tab) ───────────────────────
+    if (sub === "focus" || sub === "goto" || sub === "switch") {
+        if (args.length < 2) return `${ANSI.red}Usage: tabs focus <#>${ANSI.reset}`;
+        const tabId = resolveTabId(args[1]);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
 
+        try {
+            const tab = await chrome.tabs.get(tabId);
+            await chrome.tabs.update(tabId, { active: true });
+            await chrome.windows.update(tab.windowId, { focused: true });
+
+            let title = tab.title || "Untitled";
+            if (title.length > 30) title = title.substring(0, 29) + "…";
+            return `${ANSI.green}[OK]${ANSI.reset} Focused: ${title}`;
+        } catch (err) {
+            return `${ANSI.red}[ERROR] ${err.message}${ANSI.reset}`;
+        }
+    }
+
+    return `${ANSI.red}Try: tabs · close · info · sleep · focus${ANSI.reset}`;
+}
