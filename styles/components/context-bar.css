@@ -24,7 +24,7 @@
     height: 28px;
     padding: 4px 8px;
     white-space: nowrap;
-    overflow: hidden;
+    overflow: visible;
 }
 
 #context-bar.active {

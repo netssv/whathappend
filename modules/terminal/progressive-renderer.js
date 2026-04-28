@@ -94,7 +94,15 @@ export class ProgressiveRenderer {
         const unique = [...new Set(providers.filter(Boolean))];
         if (unique.length === 0) return;
 
-        const summaryLine = `       ${ANSI.green}↳ [INFO] Managed by ${unique.join(', ')}${ANSI.reset}`;
+        const text = `↳ [INFO] Managed by ${unique.join(', ')}`;
+        const cols = this._term.cols || 80;
+        const maxLen = cols - 9; // 7 spaces indent + 2 padding
+        let finalStr = text;
+        if (finalStr.length > maxLen && maxLen > 15) {
+            finalStr = finalStr.substring(0, maxLen - 3) + "...";
+        }
+
+        const summaryLine = `       ${ANSI.green}${finalStr}${ANSI.reset}`;
 
         const delta = SUMMARY_OFFSET + this._extraLines;
         this._rq.writeNow(delta, summaryLine);
@@ -117,6 +125,17 @@ export class ProgressiveRenderer {
     // -----------------------------------------------------------------
 
     _formatRow(key, value) {
-        return `       ${ROW_LABELS[key]} ━ ${value}`;
+        const prefix = `       ${ROW_LABELS[key]} ━ `;
+        const cols = this._term.cols || 80;
+        const visiblePrefixLen = 7 + 10 + 3; // 7 spaces + label max 10 + " ━ " (3) = 20 chars
+        const maxValLen = cols - visiblePrefixLen - 1;
+
+        let strVal = String(value);
+        if (strVal.length > maxValLen && maxValLen > 5) {
+            // keep the ANSI color codes if any, this might break if value has ANSI but values are usually plain text
+            strVal = strVal.substring(0, maxValLen - 3) + "...";
+        }
+
+        return `${prefix}${strVal}`;
     }
 }
