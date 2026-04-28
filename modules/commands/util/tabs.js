@@ -22,9 +22,18 @@ function icon(tab) {
     return `${ANSI.dim}Z${ANSI.reset}`;
 }
 
-function resolveTabId(input) {
+async function buildIndexMap() {
+    const tabs = await chrome.tabs.query({});
+    _indexMap = [];
+    let idx = 1;
+    for (const tab of tabs) { _indexMap[idx++] = tab.id; }
+}
+
+async function resolveTabId(input) {
     const n = parseInt(input, 10);
     if (isNaN(n)) return null;
+    // Auto-build map if not populated yet
+    if (_indexMap.length === 0) await buildIndexMap();
     // If it looks like a short index (1-999), resolve from cache
     if (n < 1000 && _indexMap[n] !== undefined) return _indexMap[n];
     // Otherwise treat as raw Chrome tab ID
@@ -81,7 +90,7 @@ export async function cmdTabs(args) {
     // ── CLOSE ────────────────────────────────────────────────────
     if (sub === "close") {
         if (args.length < 2) return `${ANSI.red}Usage: tabs close <#>${ANSI.reset}`;
-        const tabId = resolveTabId(args[1]);
+        const tabId = await resolveTabId(args[1]);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
 
         const confirmed = args[2]?.toLowerCase() === "yes";
@@ -116,7 +125,7 @@ export async function cmdTabs(args) {
     // ── INFO ─────────────────────────────────────────────────────
     if (sub === "info") {
         if (args.length < 2) return `${ANSI.red}Usage: tabs info <#>${ANSI.reset}`;
-        const tabId = resolveTabId(args[1]);
+        const tabId = await resolveTabId(args[1]);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
         return await tabInfo(tabId, args[1]);
     }
@@ -124,7 +133,7 @@ export async function cmdTabs(args) {
     // ── SLEEP (discard tab to free memory) ───────────────────────
     if (sub === "sleep" || sub === "discard") {
         if (args.length < 2) return `${ANSI.red}Usage: tabs sleep <#>${ANSI.reset}`;
-        const tabId = resolveTabId(args[1]);
+        const tabId = await resolveTabId(args[1]);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
 
         try {
@@ -144,7 +153,7 @@ export async function cmdTabs(args) {
     // ── FOCUS (switch browser to this tab) ───────────────────────
     if (sub === "focus" || sub === "goto" || sub === "switch") {
         if (args.length < 2) return `${ANSI.red}Usage: tabs focus <#>${ANSI.reset}`;
-        const tabId = resolveTabId(args[1]);
+        const tabId = await resolveTabId(args[1]);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
 
         try {
@@ -163,7 +172,7 @@ export async function cmdTabs(args) {
     // ── DIAG (inject health-check into the tab) ─────────────────
     if (sub === "diag" || sub === "health" || sub === "check") {
         if (args.length < 2) return `${ANSI.red}Usage: tabs diag <#>${ANSI.reset}`;
-        const tabId = resolveTabId(args[1]);
+        const tabId = await resolveTabId(args[1]);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
         return await tabDiag(tabId, args[1]);
     }
@@ -171,7 +180,7 @@ export async function cmdTabs(args) {
     // ── WATCH (live monitor) ─────────────────────────────────────
     if (sub === "watch" || sub === "monitor" || sub === "top") {
         if (args.length < 2) return `${ANSI.red}Usage: tabs watch <#>${ANSI.reset}`;
-        const tabId = resolveTabId(args[1]);
+        const tabId = await resolveTabId(args[1]);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
 
         try {
