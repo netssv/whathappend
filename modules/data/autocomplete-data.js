@@ -28,6 +28,7 @@ export const AVAILABLE_COMMANDS = [
     "switch", "sw", "tab",
     "start", "run", "go", "begin", "analyze",
     "config", "settings", "set", "prefs",
+    "tabs", "tablist", "close",
     "isup", "upcheck", "down", "downcheck", "status",
     "speed", "jitter", "latency-test",
     "speedtest", "bandwidth", "nettest",

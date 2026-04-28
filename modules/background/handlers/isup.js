@@ -1,3 +1,4 @@
+
 import { createAbort, completeAbort, getNextAbortSeq } from "../abort.js";
 
 // ===================================================================
@@ -91,7 +92,7 @@ export async function handleIsUpGlobal({ domain }) {
         }
 
         const data = await resp.json();
-        
+
         // Status 0 is NOERROR. Status 3 is NXDOMAIN (doesn't exist).
         // If we get an Answer array, it resolves globally.
         const isDown = data.Status !== 0 || !data.Answer;

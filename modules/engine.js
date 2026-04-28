@@ -23,7 +23,7 @@ import { cmdSecurityTxt } from "./commands/web/security-txt.js";
 import { cmdVitals } from "./commands/web/vitals.js";
 import { cmdFlush } from "./commands/web/flush.js";
 import { cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "./commands/native/index.js";
-import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig, cmdNotes } from "./commands/util/index.js";
+import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig, cmdNotes, cmdTabs } from "./commands/util/index.js";
 import { cmdStack } from "./commands/stack/index.js";
 
 // ---------------------------------------------------------------------------
@@ -125,6 +125,7 @@ export async function executeCommand(input) {
                     break;
                 }
                 case "config": output = await cmdConfig(args); break;
+                case "tabs": output = await cmdTabs(args); break;
                 case "clear": return "__CLEAR__";
                 default:
                     // If not a known command, check if it's an auto-target domain/IP
