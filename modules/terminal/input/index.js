@@ -12,6 +12,7 @@ import { term, writePrompt, showBanner, writeOutput, showSpinner, stopSpinner } 
 
 let isProcessing = false;
 let currentAbortId = null;
+let activeWatcher = null;  // live monitor (tabs watch)
 
 export function initInputManager() {
     // 1. Initialize Sub-Modules
@@ -32,6 +33,16 @@ export function initInputManager() {
     });
 
     InputEvents.on(InputEvents.EV_INTERRUPT, () => {
+        // Stop any active live watcher first
+        if (activeWatcher) {
+            activeWatcher.stop();
+            activeWatcher = null;
+            isProcessing = false;
+            setKeyboardLock(false);
+            term.write("\r\n\x1b[33m^C [Stopped]\x1b[0m\r\n");
+            writePrompt();
+            return;
+        }
         if (isProcessing) {
             // Send abort signal to background worker
             if (currentAbortId) {
@@ -147,6 +158,11 @@ async function processCommand(rawInput) {
             if (output === "__CLEAR__") {
                 term.clear();
                 showBanner();
+            } else if (output && typeof output === "object" && output.__watch) {
+                // Live watcher mode — keep keyboard locked, start polling
+                activeWatcher = output.watcher;
+                activeWatcher.start(term);
+                return; // Don't release lock or write prompt
             } else if (output) {
                 // Don't ghost "Command cancelled." as a standalone output line
                 const clean = output.replace(/\x1b\[[0-9;]*m/g, "").trim();
