@@ -4,25 +4,36 @@ import { ANSI } from "../../formatter.js";
 //  tabs — Manage open browser tabs
 //
 //  Subcommands:
-//    tabs / tabs list  — Show all open tabs with status indicators
-//    tabs close <ID>   — Close a specific tab by its ID
-//    tabs info <ID>    — Show tab details + JS heap memory snapshot
+//    tabs / tabs list  — Compact grouped listing
+//    tabs close <#>    — Close a tab by its short index
+//    tabs info <#>     — Tab details + JS heap memory snapshot
 // ===================================================================
+
+let _indexMap = [];  // Maps short index → real chrome tab ID
 
 function formatBytes(bytes) {
     if (!bytes || bytes <= 0) return "N/A";
-    const units = ["B", "KB", "MB", "GB"];
+    const u = ["B", "KB", "MB", "GB"];
     let i = 0;
-    while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
-    return `${bytes.toFixed(1)} ${units[i]}`;
+    while (bytes >= 1024 && i < u.length - 1) { bytes /= 1024; i++; }
+    return `${bytes.toFixed(1)} ${u[i]}`;
 }
 
-function statusBadge(tab) {
-    if (tab.discarded) return `${ANSI.yellow}💤 Discarded${ANSI.reset}`;
-    if (tab.status === "loading") return `${ANSI.cyan}⏳ Loading${ANSI.reset}`;
-    if (tab.audible) return `${ANSI.green}🔊 Audio${ANSI.reset}`;
-    if (tab.active) return `${ANSI.green}● Active${ANSI.reset}`;
-    return `${ANSI.dim}○ Idle${ANSI.reset}`;
+function icon(tab) {
+    if (tab.active) return `${ANSI.green}●${ANSI.reset}`;
+    if (tab.discarded) return `${ANSI.yellow}z${ANSI.reset}`;
+    if (tab.audible) return `${ANSI.green}♪${ANSI.reset}`;
+    if (tab.status === "loading") return `${ANSI.cyan}◌${ANSI.reset}`;
+    return `${ANSI.dim}○${ANSI.reset}`;
+}
+
+function resolveTabId(input) {
+    const n = parseInt(input, 10);
+    if (isNaN(n)) return null;
+    // If it looks like a short index (1-999), resolve from cache
+    if (n < 1000 && _indexMap[n] !== undefined) return _indexMap[n];
+    // Otherwise treat as raw Chrome tab ID
+    return n;
 }
 
 export async function cmdTabs(args) {
@@ -32,43 +43,40 @@ export async function cmdTabs(args) {
     if (!sub || sub === "list") {
         return new Promise((resolve) => {
             chrome.tabs.query({}, (tabs) => {
-                if (!tabs || tabs.length === 0) {
-                    resolve(`${ANSI.red}[ERROR] Could not retrieve tabs.${ANSI.reset}`);
+                if (!tabs?.length) {
+                    resolve(`${ANSI.red}[ERROR] No tabs found.${ANSI.reset}`);
                     return;
                 }
 
-                // Group tabs by hostname
+                // Build index map and group by host
+                _indexMap = [];
                 const groups = new Map();
+                let idx = 1;
+
                 for (const tab of tabs) {
+                    _indexMap[idx] = tab.id;
+                    tab._idx = idx++;
                     let host = "";
-                    try { host = new URL(tab.url).hostname.replace(/^www\./, ""); } catch { host = "chrome://internal"; }
+                    try { host = new URL(tab.url).hostname.replace(/^www\./, ""); } catch { host = "internal"; }
                     if (!groups.has(host)) groups.set(host, []);
                     groups.get(host).push(tab);
                 }
 
-                let o = `\n${ANSI.cyan}${ANSI.bold}  Open Tabs ${ANSI.reset}${ANSI.dim}(${tabs.length} tabs, ${groups.size} sites)${ANSI.reset}\n`;
-                const maxTitle = 32;
+                let o = `\n${ANSI.cyan}${ANSI.bold}  Tabs${ANSI.reset} ${ANSI.dim}${tabs.length} open · ${groups.size} sites${ANSI.reset}\n`;
 
                 for (const [host, hostTabs] of groups) {
-                    o += `\n  ${ANSI.cyan}${host}${ANSI.reset}\n`;
+                    const count = hostTabs.length > 1 ? ` ${ANSI.dim}(${hostTabs.length})${ANSI.reset}` : "";
+                    o += `\n  ${ANSI.cyan}${host}${ANSI.reset}${count}\n`;
 
                     for (const tab of hostTabs) {
-                        const icon = tab.active ? `${ANSI.green}●${ANSI.reset}` :
-                                     tab.discarded ? `${ANSI.yellow}💤${ANSI.reset}` :
-                                     tab.audible ? `${ANSI.green}🔊${ANSI.reset}` :
-                                     tab.status === "loading" ? `${ANSI.cyan}⏳${ANSI.reset}` :
-                                     `${ANSI.dim}○${ANSI.reset}`;
-
+                        const num = `${ANSI.dim}${String(tab._idx).padStart(2)}${ANSI.reset}`;
                         let title = tab.title || "Untitled";
-                        if (title.length > maxTitle) title = title.substring(0, maxTitle - 1) + "…";
-
-                        const idStr = `${ANSI.dim}#${tab.id}${ANSI.reset}`;
-                        o += `    ${icon} ${ANSI.white}${title}${ANSI.reset}  ${idStr}\n`;
+                        if (title.length > 28) title = title.substring(0, 27) + "…";
+                        o += `  ${num} ${icon(tab)} ${title}\n`;
                     }
                 }
 
-                o += `\n${ANSI.dim}  ● active  ○ idle  💤 discarded  🔊 audio  ⏳ loading${ANSI.reset}`;
-                o += `\n${ANSI.dim}  ${ANSI.white}tabs close <ID>${ANSI.dim} │ ${ANSI.white}tabs info <ID>${ANSI.reset}\n`;
+                o += `\n${ANSI.dim}  tabs close <#> · tabs info <#>${ANSI.reset}\n`;
                 resolve(o);
             });
         });
@@ -76,92 +84,72 @@ export async function cmdTabs(args) {
 
     // ── CLOSE ────────────────────────────────────────────────────
     if (sub === "close") {
-        if (args.length < 2) {
-            return `${ANSI.red}[ERROR] Missing Tab ID. Usage: tabs close <ID>${ANSI.reset}`;
-        }
-        const tabId = parseInt(args[1], 10);
-        if (isNaN(tabId)) {
-            return `${ANSI.red}[ERROR] Invalid Tab ID: ${args[1]}${ANSI.reset}`;
-        }
+        if (args.length < 2) return `${ANSI.red}Usage: tabs close <#>${ANSI.reset}`;
+        const tabId = resolveTabId(args[1]);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
 
         return new Promise((resolve) => {
             chrome.tabs.remove(tabId, () => {
                 if (chrome.runtime.lastError) {
                     resolve(`${ANSI.red}[ERROR] ${chrome.runtime.lastError.message}${ANSI.reset}`);
                 } else {
-                    resolve(`${ANSI.green}[OK] Tab ${tabId} closed.${ANSI.reset}`);
+                    resolve(`${ANSI.green}[OK]${ANSI.reset} Tab closed.`);
                 }
             });
         });
     }
 
-    // ── INFO (JS Heap Memory Snapshot) ───────────────────────────
+    // ── INFO ─────────────────────────────────────────────────────
     if (sub === "info") {
-        if (args.length < 2) {
-            return `${ANSI.red}[ERROR] Missing Tab ID. Usage: tabs info <ID>${ANSI.reset}`;
-        }
-        const tabId = parseInt(args[1], 10);
-        if (isNaN(tabId)) {
-            return `${ANSI.red}[ERROR] Invalid Tab ID: ${args[1]}${ANSI.reset}`;
-        }
+        if (args.length < 2) return `${ANSI.red}Usage: tabs info <#>${ANSI.reset}`;
+        const tabId = resolveTabId(args[1]);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
 
         try {
             const tab = await chrome.tabs.get(tabId);
-            let o = `\n${ANSI.cyan}${ANSI.bold}  Tab Report [ID: ${tabId}]${ANSI.reset}\n`;
-            o += `  ${ANSI.dim}${"━".repeat(38)}${ANSI.reset}\n`;
-            o += `  ${ANSI.white}Title${ANSI.reset}      ${tab.title || "N/A"}\n`;
-            o += `  ${ANSI.white}URL${ANSI.reset}        ${tab.url || "N/A"}\n`;
-            o += `  ${ANSI.white}Status${ANSI.reset}     ${statusBadge(tab)}\n`;
-            o += `  ${ANSI.white}Pinned${ANSI.reset}     ${tab.pinned ? "Yes" : "No"}\n`;
-            o += `  ${ANSI.white}Muted${ANSI.reset}      ${tab.mutedInfo?.muted ? "Yes" : "No"}\n`;
-            o += `  ${ANSI.white}Incognito${ANSI.reset}  ${tab.incognito ? "Yes" : "No"}\n`;
+            const sep = `${ANSI.dim}${"━".repeat(34)}${ANSI.reset}`;
+            let o = `\n${ANSI.cyan}${ANSI.bold}  Tab #${args[1]}${ANSI.reset}\n  ${sep}\n`;
+            o += `  ${ANSI.white}Title${ANSI.reset}     ${tab.title || "N/A"}\n`;
+            o += `  ${ANSI.white}URL${ANSI.reset}       ${tab.url || "N/A"}\n`;
+            o += `  ${ANSI.white}Status${ANSI.reset}    ${icon(tab)} ${tab.status}\n`;
+            o += `  ${ANSI.white}Pinned${ANSI.reset}    ${tab.pinned ? "Yes" : "No"}\n`;
 
-            // Inject script to read JS heap (static snapshot)
-            if (tab.url && tab.url.startsWith("http")) {
+            if (tab.url?.startsWith("http")) {
                 try {
-                    const results = await chrome.scripting.executeScript({
+                    const r = await chrome.scripting.executeScript({
                         target: { tabId },
                         func: () => {
-                            const mem = performance.memory || {};
-                            const entries = performance.getEntriesByType("resource");
+                            const m = performance.memory || {};
                             return {
-                                usedHeap: mem.usedJSHeapSize || 0,
-                                totalHeap: mem.totalJSHeapSize || 0,
-                                heapLimit: mem.jsHeapSizeLimit || 0,
-                                resourceCount: entries.length,
+                                used: m.usedJSHeapSize || 0,
+                                total: m.totalJSHeapSize || 0,
+                                limit: m.jsHeapSizeLimit || 0,
+                                res: performance.getEntriesByType("resource").length,
                             };
                         },
                     });
-
-                    const data = results?.[0]?.result;
-                    if (data && data.heapLimit > 0) {
-                        const pct = ((data.usedHeap / data.heapLimit) * 100).toFixed(1);
-                        const bar = pct > 75 ? ANSI.red : pct > 50 ? ANSI.yellow : ANSI.green;
-
-                        o += `\n  ${ANSI.cyan}${ANSI.bold}  JS Heap Memory (Snapshot)${ANSI.reset}\n`;
-                        o += `  ${ANSI.dim}${"━".repeat(38)}${ANSI.reset}\n`;
-                        o += `  ${ANSI.white}Used${ANSI.reset}       ${formatBytes(data.usedHeap)}\n`;
-                        o += `  ${ANSI.white}Allocated${ANSI.reset}  ${formatBytes(data.totalHeap)}\n`;
-                        o += `  ${ANSI.white}Limit${ANSI.reset}      ${formatBytes(data.heapLimit)}\n`;
-                        o += `  ${ANSI.white}Usage${ANSI.reset}      ${bar}${pct}%${ANSI.reset}\n`;
-                        o += `  ${ANSI.white}Resources${ANSI.reset}  ${data.resourceCount} loaded\n`;
-                    } else {
-                        o += `\n  ${ANSI.dim}[INFO] JS heap data not available for this page.${ANSI.reset}\n`;
+                    const d = r?.[0]?.result;
+                    if (d?.limit > 0) {
+                        const pct = ((d.used / d.limit) * 100).toFixed(1);
+                        const c = pct > 75 ? ANSI.red : pct > 50 ? ANSI.yellow : ANSI.green;
+                        o += `\n  ${ANSI.cyan}JS Heap${ANSI.reset}\n  ${sep}\n`;
+                        o += `  ${ANSI.white}Used${ANSI.reset}      ${formatBytes(d.used)}\n`;
+                        o += `  ${ANSI.white}Alloc${ANSI.reset}     ${formatBytes(d.total)}\n`;
+                        o += `  ${ANSI.white}Limit${ANSI.reset}     ${formatBytes(d.limit)}\n`;
+                        o += `  ${ANSI.white}Usage${ANSI.reset}     ${c}${pct}%${ANSI.reset}\n`;
+                        o += `  ${ANSI.white}Assets${ANSI.reset}    ${d.res} loaded\n`;
                     }
                 } catch {
-                    o += `\n  ${ANSI.dim}[INFO] Cannot inject into this tab (restricted page).${ANSI.reset}\n`;
+                    o += `\n  ${ANSI.dim}Cannot read memory (restricted).${ANSI.reset}\n`;
                 }
-            } else {
-                o += `\n  ${ANSI.dim}[INFO] Memory profiling requires an HTTP/HTTPS page.${ANSI.reset}\n`;
             }
-
-            o += `\n  ${ANSI.dim}[NOTE] CPU usage is not available to Chrome extensions.${ANSI.reset}`;
-            o += `\n  ${ANSI.dim}       Use chrome://discards for full process telemetry.${ANSI.reset}\n`;
+            o += `\n  ${ANSI.dim}CPU not available to extensions.${ANSI.reset}\n`;
             return o;
         } catch (err) {
-            return `${ANSI.red}[ERROR] ${err.message || "Tab not found."}${ANSI.reset}`;
+            return `${ANSI.red}[ERROR] ${err.message}${ANSI.reset}`;
         }
     }
 
-    return `${ANSI.red}[ERROR] Unknown: '${sub}'. Try: ${ANSI.white}tabs${ANSI.dim}, ${ANSI.white}tabs close <ID>${ANSI.dim}, ${ANSI.white}tabs info <ID>${ANSI.reset}`;
+    return `${ANSI.red}Try: tabs · tabs close <#> · tabs info <#>${ANSI.reset}`;
 }
+
