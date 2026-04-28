@@ -42,7 +42,7 @@ export async function cmdHistory(args) {
             ins.push({ level: "INFO", text: `First infrastructure footprint detected: ${oldestDate}` });
         }
         ins.push({ level: "INFO", text: `View full history: https://crt.sh/?q=${t}` });
-        ins.push({ level: "INFO", text: `External Check: https://web.archive.org/web/*/${domain}` });
+        ins.push({ level: "INFO", text: `External Check: https://web.archive.org/web/*/${t}` });
         return o + insights(ins);
     } catch (e) {
         return o + formatError("FETCH_FAILED", e.message, "Both crt.sh and fallback APIs are unreachable.");

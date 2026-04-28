@@ -50,6 +50,8 @@ export const HELP_SECTIONS = [
         ["cookies", "Privacy cookies audit", ""],
         ["pixels", "Ad/tracking pixels", "tracking ads"],
         ["stack", "Tech stack detect", "tech cms"],
+        ["vitals", "Core Web Vitals", "cwv web-vitals"],
+        ["security-txt", "Security contact (RFC 9116)", "sec-txt"],
     ]},
     { title: "NETWORK", cmds: [
         ["isup", "Local vs global parity", "upcheck down"],
@@ -58,6 +60,7 @@ export const HELP_SECTIONS = [
         ["rev-dns", "Reverse DNS (PTR)", "rdns ptr"],
         ["port-scan", "Port scanner", "ports nmap"],
         ["ftp-check", "FTP banner grab", "ftp"],
+        ["ip", "Public IP / domain IP", "myip public-ip"],
     ]},
     { title: "EXTERNAL", subtitle: "(opens link)", cmds: [
         ["blacklist", "Blacklist lookup", "bl rbl"],
@@ -75,6 +78,8 @@ export const HELP_SECTIONS = [
         ["info", "System diagnostics", "telemetry status"],
         ["errors", "Error & insight guide", "error"],
         ["clear", "Clear terminal", "cls reset"],
+        ["flush", "Clear cookies+cache", "clearcache"],
+        ["notes", "Session annotations", "note memo"],
         ["exit", "End session & clear", "quit"],
         ["help", "Show this menu", "? ls man"],
     ]},

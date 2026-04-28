@@ -73,6 +73,16 @@ export const CMD_ALIASES = {
     "jitter": "speed", "latency-test": "speed",
     // speedtest
     "bandwidth": "speedtest", "nettest": "speedtest",
+    // ip
+    "myip": "ip", "public-ip": "ip",
+    // security-txt
+    "sec-txt": "security-txt", "securitytxt": "security-txt",
+    // vitals
+    "cwv": "vitals", "web-vitals": "vitals", "core-vitals": "vitals",
+    // flush
+    "clearcache": "flush", "clear-cache": "flush",
+    // notes
+    "note": "notes", "memo": "notes", "annotation": "notes",
 };
 
 export const ALL_KNOWN_CMDS = [
@@ -86,4 +96,5 @@ export const ALL_KNOWN_CMDS = [
     "errors", "pixels", "stack", "load",
     "registrar", "hosting", "exit", "switch",
     "start", "config", "isup", "speed", "speedtest",
+    "ip", "security-txt", "vitals", "flush", "notes",
 ].filter(c => /^[a-z]/i.test(c));

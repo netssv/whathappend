@@ -1,13 +1,11 @@
 import { ANSI } from "../formatter.js";
 import { ROW_KEYS, ROW_LABELS } from "./progressive-renderer.js";
-import { classifyInfrastructure } from "../data/infrastructure-map.js";
 
 // ===================================================================
 // Triage History — Static string builder for export
 //
 // Decoupled from ProgressiveRenderer. Receives resolved data
 // and builds a plain-text representation for command history.
-// Uses classifyInfrastructure() for consistent corporate correlation.
 // ===================================================================
 
 /**
@@ -26,13 +24,10 @@ export function buildTriageHistory(resolved, providers) {
         lines.push(`       ${ROW_LABELS[key]} ━ ${val}`);
     }
 
-    if (providers && providers.length >= 2) {
-        const { consolidated, groupId } = classifyInfrastructure(providers);
-        if (consolidated) {
-            const label = groupId || providers[0];
-            lines.push(`       ${ANSI.green}↳ Consolidated Stack (${label})${ANSI.reset}`);
-        } else {
-            lines.push(`       ${ANSI.yellow}↳ Distributed Stack${ANSI.reset}`);
+    if (providers && providers.length > 0) {
+        const unique = [...new Set(providers.filter(Boolean))];
+        if (unique.length > 0) {
+            lines.push(`       ${ANSI.green}↳ [INFO] Managed by ${unique.join(', ')}${ANSI.reset}`);
         }
     }
 

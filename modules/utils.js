@@ -56,3 +56,16 @@ export async function resolveProvider(target) {
     return null;
 }
 
+/**
+ * Extract the root domain provider from a CNAME record.
+ */
+export function getProviderFromCNAME(target) {
+    if (!target) return null;
+    const parts = target.replace(/\.$/, "").split(".");
+    if (parts.length >= 2) {
+        const root = parts.slice(-2).join(".");
+        return root.charAt(0).toUpperCase() + root.slice(1);
+    }
+    return target;
+}
+

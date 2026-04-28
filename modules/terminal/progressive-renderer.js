@@ -1,5 +1,4 @@
 import { ANSI } from "../formatter.js";
-import { classifyInfrastructure } from "../data/infrastructure-map.js";
 import { RenderQueue } from "./render-queue.js";
 
 // ===================================================================
@@ -63,6 +62,7 @@ export class ProgressiveRenderer {
         this._resolved[rowKey] = value || null;
         const delta = BASE_OFFSET[rowKey] + this._extraLines;
         this._rq.enqueue(delta, this._formatRow(rowKey, value || NA));
+        this._term.scrollToBottom();
     }
 
     getConfirmedCount() {
@@ -89,15 +89,16 @@ export class ProgressiveRenderer {
             }
         }
 
-        if (!providers || providers.length < 2) return;
+        if (!providers || providers.length === 0) return;
 
-        const { consolidated, groupId } = classifyInfrastructure(providers);
-        const summaryLine = consolidated
-            ? `       ${ANSI.green}↳ Consolidated Stack (${groupId || providers[0]})${ANSI.reset}`
-            : `       ${ANSI.yellow}↳ Distributed Stack${ANSI.reset}`;
+        const unique = [...new Set(providers.filter(Boolean))];
+        if (unique.length === 0) return;
+
+        const summaryLine = `       ${ANSI.green}↳ [INFO] Managed by ${unique.join(', ')}${ANSI.reset}`;
 
         const delta = SUMMARY_OFFSET + this._extraLines;
         this._rq.writeNow(delta, summaryLine);
+        this._term.scrollToBottom();
     }
 
     // -----------------------------------------------------------------

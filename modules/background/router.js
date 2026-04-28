@@ -14,6 +14,8 @@ import { handleExportHistory } from "./handlers/export.js";
 import { handleIsUpLocal, handleIsUpGlobal } from "./handlers/isup.js";
 import { handleSpeed } from "./handlers/speed.js";
 import { handleSpeedtest } from "./handlers/speedtest.js";
+import { handleGetPublicIP } from "./handlers/ip.js";
+import { handleGetWebVitals } from "./handlers/vitals.js";
 
 // ===================================================================
 // Message Router
@@ -97,6 +99,12 @@ export function setupRouter() {
                 break;
             case "speedtest":
                 handleSpeedtest(payload || {}).then(sendResponse);
+                break;
+            case "get-public-ip":
+                handleGetPublicIP().then(sendResponse);
+                break;
+            case "get-web-vitals":
+                handleGetWebVitals().then(sendResponse);
                 break;
 
             default:

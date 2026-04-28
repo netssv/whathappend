@@ -18,9 +18,12 @@ import { handleAutoTarget } from "./core/fallback.js";
 // Command modules
 import { cmdDig, cmdHost, cmdNslookup, cmdTTL, cmdDnssec } from "./commands/dns/index.js";
 import { cmdEmail, cmdSPF, cmdDMARC, cmdDKIM } from "./commands/email/index.js";
-import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdRegistrar, cmdHosting, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdIsUp, cmdSpeed, cmdSpeedtest } from "./commands/web/index.js";
+import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdRegistrar, cmdHosting, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdIsUp, cmdSpeed, cmdSpeedtest, cmdIP } from "./commands/web/index.js";
+import { cmdSecurityTxt } from "./commands/web/security-txt.js";
+import { cmdVitals } from "./commands/web/vitals.js";
+import { cmdFlush } from "./commands/web/flush.js";
 import { cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "./commands/native/index.js";
-import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig } from "./commands/util/index.js";
+import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig, cmdNotes } from "./commands/util/index.js";
 import { cmdStack } from "./commands/stack/index.js";
 
 // ---------------------------------------------------------------------------
@@ -85,6 +88,11 @@ export async function executeCommand(input) {
                 case "speed": output = await cmdSpeed(args); break;
                 case "speedtest": output = await cmdSpeedtest(args); break;
                 case "stack": output = await cmdStack(args); break;
+                case "ip": output = await cmdIP(args); break;
+                case "security-txt": output = await cmdSecurityTxt(args); break;
+                case "vitals": output = await cmdVitals(args); break;
+                case "flush": output = await cmdFlush(args); break;
+                case "notes": output = await cmdNotes(args); break;
                 case "rev-dns": output = await cmdRevDNS(args); break;
                 case "port-scan": output = await cmdPortScan(args); break;
                 case "ftp-check": output = await cmdFTPCheck(args); break;

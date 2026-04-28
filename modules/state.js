@@ -11,6 +11,7 @@
 let commandOutputHistory = [];
 let _lastTarget = null;
 let _triad = { registrar: null, ns: null, host: null };
+let _notes = [];
 
 // ---------------------------------------------------------------------------
 // History
@@ -26,6 +27,16 @@ export function pushHistory(entry) {
 
 export function getHistory() {
     return commandOutputHistory;
+}
+
+export function pushNote(text) {
+    _notes.push({ text, time: new Date().toISOString() });
+    if (_notes.length > 100) _notes = _notes.slice(-100);
+    _persistSession();
+}
+
+export function getNotes() {
+    return _notes;
 }
 
 // ---------------------------------------------------------------------------
@@ -54,13 +65,14 @@ function _persistSession() {
             wh_history: commandOutputHistory,
             wh_target: _lastTarget,
             wh_triad: _triad,
+            wh_notes: _notes,
         });
     } catch (_) {}
 }
 
 export async function restoreSession() {
     try {
-        const data = await chrome.storage.session.get(["wh_history", "wh_target", "wh_triad"]);
+        const data = await chrome.storage.session.get(["wh_history", "wh_target", "wh_triad", "wh_notes"]);
         if (data.wh_history?.length) {
             commandOutputHistory = data.wh_history;
         }
@@ -69,6 +81,9 @@ export async function restoreSession() {
         }
         if (data.wh_triad) {
             _triad = { ..._triad, ...data.wh_triad };
+        }
+        if (data.wh_notes?.length) {
+            _notes = data.wh_notes;
         }
         return { history: commandOutputHistory, target: _lastTarget, triad: _triad };
     } catch (_) {
@@ -80,8 +95,9 @@ export async function clearSession() {
     commandOutputHistory = [];
     _lastTarget = null;
     _triad = { registrar: null, ns: null, host: null };
+    _notes = [];
     try {
-        await chrome.storage.session.remove(["wh_history", "wh_target", "wh_triad"]);
+        await chrome.storage.session.remove(["wh_history", "wh_target", "wh_triad", "wh_notes"]);
     } catch (_) {}
 }
 

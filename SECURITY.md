@@ -49,6 +49,7 @@ The extension makes network requests **only** to the following public infrastruc
 | `crt.sh` / `certspotter.com` | Certificate Transparency Logs | The domain you are querying |
 | `archive.org` | Wayback Machine API | The domain you are querying |
 | `api.thegreenwebfoundation.org` | Environmental hosting check | The domain you are querying |
+| `api.ipify.org` | Public IP lookup | Used by the `ip` command (no arguments) |
 | `ip-api.com` | Geolocation and routing data | The IP address you are querying |
 | User-specified URLs | HTTP header inspection, ping, trace | The URL you typed into the terminal |
 | `chrome.scripting` (local) | Live DOM scan, Performance API | No data sent — reads from the active tab locally |
@@ -91,13 +92,13 @@ DNS record lookups (A, AAAA, MX, NS, TXT, CNAME, SOA) are performed through Chro
 - **Does not perform** cross-domain inference — each lookup is independent and scoped to the user's explicit target.
 - DNS data is used solely for display in the terminal output and is discarded when the side panel closes.
 
-## Heuristic Infrastructure Mapping
+## Dynamic Infrastructure Mapping
 
-The `infrastructure-map.js` module contains a static corporate affiliation database (e.g., "Cloudflare" → cloudflare group, "Incapsula" → imperva group). This data is:
+WhatHappened does not use any static provider databases, corporate affiliation maps, or hardcoded vendor lists.
 
-- **Embedded locally** in the extension source code — no external API is queried.
-- **Read-only** — the map is never modified at runtime.
-- **Non-identifying** — it maps provider names to corporate groups, not user data to providers. No personally identifiable information is processed or correlated.
+- **Heuristic CNAME Parsing**: Provider identification is performed purely heuristically by extracting root domains from live CNAME records.
+- **Zero Hardcoded Providers**: There is no static array of providers (e.g., Carrierzone, Hostopia, Cloudflare). All corporate affiliation maps have been removed.
+- **100% Dynamic**: The output `[INFO] Managed by [Provider Domain]` is derived in real-time from the DNS responses, ensuring complete neutrality and removing any implicit vendor bias.
 
 ## Local Telemetry & Diagnostics
 
@@ -138,7 +139,8 @@ The purpose of `isup` is to differentiate between "my network can't reach it" an
 | `activeTab` + `tabs` | To detect the domain of the website you are currently viewing, so the terminal can auto-target it. |
 | `sidePanel` | The terminal UI lives in Chrome's Side Panel. |
 | `storage` | To persist your terminal command history and font preferences locally. |
-| `scripting` | To execute read-only scripts on the active tab for Live DOM scanning (`pixels`) and Performance API timing (`load`). No data is modified or transmitted. |
+| `scripting` | To execute read-only scripts on the active tab for Live DOM scanning (`pixels`) and Performance/Core Web Vitals timing (`load`, `vitals`). No data is modified or transmitted. |
+| `browsingData` | Used exclusively by the `flush` command to clear cookies/cache for a specific target domain. |
 | `clipboardRead` | To support pasting text into the terminal. |
 | `host_permissions` | To fetch HTTP headers, DNS data, and WHOIS information from the domains you are auditing. |
 

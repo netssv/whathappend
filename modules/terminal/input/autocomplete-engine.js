@@ -42,6 +42,11 @@ const AVAILABLE_COMMANDS = [
     "isup", "upcheck", "down", "downcheck", "status",
     "speed", "jitter", "latency-test",
     "speedtest", "bandwidth", "nettest",
+    "ip", "myip", "public-ip",
+    "security-txt", "sec-txt", "securitytxt",
+    "vitals", "cwv", "web-vitals", "core-vitals",
+    "flush", "clearcache", "clear-cache",
+    "notes", "note", "memo", "annotation",
 ];
 
 // Commands that accept a domain parameter (for auto-filling)
@@ -68,6 +73,10 @@ const DOMAIN_COMMANDS = [
     "isup", "upcheck", "down", "downcheck", "status",
     "speed", "jitter", "latency-test",
     "speedtest", "bandwidth", "nettest",
+    "ip", "myip", "public-ip",
+    "security-txt", "sec-txt", "securitytxt",
+    "vitals", "cwv", "web-vitals", "core-vitals",
+    "flush", "clearcache", "clear-cache",
 ];
 
 // Raw Bash Educational Snippets
@@ -76,7 +85,7 @@ const RAW_SNIPPETS = [
     "curl -w \"\\nTTFB: %{time_starttransfer}s\\nTotal: %{time_total}s\\n\" -o /dev/null -s https://",
     "curl -s https://api.thegreenwebfoundation.org/greencheck/",
     "curl -s \"https://crt.sh/?q=",
-    "curl -o /dev/null http://speedtest.tele2.net/10MB.zip",
+    "curl -o /dev/null https://speed.cloudflare.com/__down?bytes=10485760",
     "curl -I -s https://", // cookies prefix
     "ping -c 10 ",
     "ping -c 4 ",

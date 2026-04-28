@@ -64,21 +64,20 @@ Type `help` for the full command list, or append `?` to any command (e.g., `star
 
 - **Cursor Positioning Fix**: Replaced `buf.cursorY + buf.baseY` absolute positioning (stale due to xterm.js async write batching) with a **relative offset counter** that tracks skeleton geometry deterministically. Rows now overwrite in-place reliably regardless of terminal scroll state.
 - **Per-Row Isolation**: Each delegation row (Registrar, NameSrvs, Web Host) resolves in its own `async` function with a dedicated `try/catch` and 3.5-second timeout. A timeout or error in one row transitions it to `[N/A]` independently — the other rows continue resolving.
-- **Insights Gatekeeper**: The `↳ Distributed Stack` / `↳ Consolidated Stack` summary only renders when **≥2 rows have confirmed values**. No more premature "Distributed Stack" appearing while rows are still loading.
+- **Insights Gatekeeper**: The `↳ Managed by` provider summary only renders when **≥2 rows have confirmed values**. No more premature summaries appearing while rows are still loading.
 - **DNS Exception for Subdomains**: WHOIS queries use the apex domain (`www.facebook.com` → `facebook.com`), but A/NS record lookups preserve the original subdomain since IP resolution may differ between `www.` and the apex.
 
 ## What's new in v2.2.2: Fixed ANSI Overwrite Ghosting & Infrastructure Correlation
 
 - **Render Queue**: Row updates are now batched via `setTimeout(0)` and flushed as a single atomic terminal write. Multiple `.then()` callbacks firing in rapid succession are deduplicated by delta, eliminating duplicate "ghost" lines.
-- **Infrastructure Correlation**: The `↳ Consolidated Stack` / `↳ Distributed Stack` insight now uses a **corporate affiliation map** (`infrastructure-map.js`) that knows parent/subsidiary relationships (e.g., Hostopia + Internet Names For Business → both Deluxe Corporation → Consolidated). Exact string matching is used as fallback for unlisted providers.
+- **Infrastructure Correlation**: The `↳ Managed by` insight now uses dynamic heuristic resolution — provider identity is extracted from live CNAME records and RDAP responses at runtime, with no static vendor databases.
 - **Aggressive Domain Sanitization**: A new `sanitizeDomain()` function normalizes raw user input before the triage engine — stripping whitespace, trailing slashes, protocols, paths, and lowercasing. Domains like `samanthadean.com` no longer fail NS lookups.
 - **Resilient NS Parser**: The nameserver response parser now accepts bare hostnames (without trailing `.`), preventing false negatives when DNS-over-HTTPS responses omit the trailing dot.
 
 ## What's new in v2.3.0: Heuristic Infrastructure Mapping (Release 3)
 
 - **ANSI Row-Lock & Clear**: Reversed the clear sequence to `\x1b[2K\r` (erase-then-position) instead of `\r\x1b[2K` (position-then-erase). This eliminates "ghost" remnants on high-latency RDAP responses (e.g., Pinterest, elsalvador.com) where the old `⏳ loading...` text was briefly visible below the resolved value.
-- **Expanded Infrastructure Map**: Added 15 new corporate groups including Cloudflare (NS + CDN + DNS), Incapsula/Imperva (WAF + reverse proxy), StackPath/MaxCDN, AWS CloudFront/EC2/S3, and major managed WordPress hosts (WP Engine, Kinsta, Flywheel). The map now covers 35+ corporate families with 100+ keyword matches.
-- **Cloudflare/Incapsula Consolidation**: If NameSrvs is Cloudflare and Web Host is Cloudflare, the result is now correctly `↳ Consolidated Stack (cloudflare)`. Previously reported as Distributed. Same fix for Incapsula/Imperva security stacks.
+- **Dynamic Provider Resolution**: Provider identification is now 100% heuristic — extracted from live CNAME records and RDAP responses at runtime with no static vendor databases.
 - **RFC-Aware CNAME Insights**: When `cname` or `ttl` is run on an apex domain and returns no CNAME record, the insight now explains: `[INFO] Apex domains usually lack CNAMEs per RFC 1034 standards` — preventing user confusion about "missing" records.
 
 ## What's new in v2.3.1: System Diagnostics & Identity
@@ -92,6 +91,30 @@ Type `help` for the full command list, or append `?` to any command (e.g., `star
 We've introduced two complementary commands for historical investigation:
 - **`history` (Network Infrastructure)**: Uses Certificate Transparency (CT) logs to trace the lifecycle of a domain's SSL certificates. It identifies the first and last infrastructure footprints to show when a domain actually became active.
 - **`wayback` (Content Visibility)**: Uses the Archive.org API to find the last time the domain's *content* was publicly accessible. This is invaluable for Junior Analysts when triaging a site that currently resolves to an error page or a parked domain. If `wayback` shows the site was online 2 days ago, it often indicates a recent DNS migration, expired hosting, or WAF block rather than a permanently dead domain.
+
+## What's new in v2.4.0: Professional Audit & New Command Suite
+
+### New Commands
+
+- **`ip`** (Dual Mode): Without arguments, shows your public IP and ISP via ipify.org + RDAP. With a domain argument, resolves the A record and identifies the hosting provider. Aliases: `myip`, `public-ip`.
+- **`security-txt`**: Fetches and parses `/.well-known/security.txt` (RFC 9116) from the target domain. Displays Contact, Policy, Encryption, and Acknowledgments fields. Falls back to legacy `/security.txt` path. Aliases: `sec-txt`.
+- **`vitals`**: Core Web Vitals scorecard — extracts LCP, CLS, and INP from the active tab via the Performance API. Each metric is graded against Google's thresholds (Good / Needs Improvement / Poor). Aliases: `cwv`, `web-vitals`.
+- **`flush`**: Clears cookies and cache for a specific domain using `chrome.browsingData`. Requires explicit domain argument (no auto-target) as a safety mechanism. Aliases: `clearcache`.
+- **`notes`**: Add analyst annotations to the current session. Notes persist via `chrome.storage.session` and are included in the JSON export. Aliases: `note`, `memo`.
+
+### Refactors
+
+- **Speedtest Fix**: Max payload capped at 90MB (was 100MB) to avoid Cloudflare 403 rate-limiting on large downloads.
+- **History Bug Fix**: Fixed undefined variable reference (`${domain}` → `${t}`) in the certificate transparency insights.
+- **Windows Display**: Viewport padding increased to 40px for maximum prompt visibility.
+
+## What's new in v2.3.3: Windows Display Optimization & Dynamic Infrastructure Mapping
+
+- **Windows Display Optimization**: Implemented a dynamic viewport padding system (`padding-bottom: 2rem`) to ensure the terminal prompt never clips or touches the bottom edge on Windows.
+- **Auto-Scroll Integrity**: The progressive triage engine now forces an automatic scroll-to-bottom upon resolving every data row, guaranteeing visual continuity.
+- **Dynamic Infrastructure Mapping**: Completely removed all static provider lists and corporate affiliation databases. The terminal now uses a 100% heuristic approach, extracting provider identity directly from live CNAME records (`[INFO] Managed by [Provider Domain]`) to maintain absolute vendor neutrality.
+- **ITIL Status Announcements**: The `speedtest` command now points to a high-availability neutral endpoint and gracefully maps HTTP error codes to professional ITIL status announcements (e.g., `[NOTICE] Resource Limit: The test server is rate-limiting large requests (403)`).
+
 ## What's new in v2.3.2: Network Parity & User Preferences
 
 ### Network Parity

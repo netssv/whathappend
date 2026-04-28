@@ -18,3 +18,4 @@ export { cmdCookies } from "./cookies.js";
 export { cmdIsUp } from "./isup.js";
 export { cmdSpeed } from "./speed.js";
 export { cmdSpeedtest } from "./speedtest.js";
+export { cmdIP } from "./ip.js";

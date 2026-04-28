@@ -1,6 +1,7 @@
 import { ANSI, insights, resolveBaseDomain } from "../../formatter.js";
 import { getPossibleSelectors } from "./dkim-discovery.js";
 import { normTxt } from "./utils.js";
+import { getProviderFromCNAME } from "../../utils.js";
 
 // ===================================================================
 //  dkim
@@ -63,7 +64,7 @@ export async function checkSel(sel, base) {
             // Guard: empty or self-referencing CNAME — bail out
             if (!target || target === curr) return prov ? { sel, domain, prov } : null;
             curr = target;
-            prov = depth > 0 ? `CNAME ➝ ${curr} (depth: ${depth + 1})` : `CNAME ➝ ${curr}`;
+            prov = `[INFO] Managed by ${getProviderFromCNAME(curr)}`;
         } else {
             return { sel, domain, prov };
         }

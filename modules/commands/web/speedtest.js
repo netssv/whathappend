@@ -11,19 +11,24 @@ export async function cmdSpeedtest(args) {
     let mb = 10;
     if (args.length > 0) {
         const parsed = parseInt(args[0], 10);
-        if (!isNaN(parsed) && parsed > 0 && parsed <= 100) {
+        if (!isNaN(parsed) && parsed > 0 && parsed <= 90) {
             mb = Math.floor(parsed);
         } else {
-            return cmdUsage("speedtest", "[size_mb] (1-100)");
+            return cmdUsage("speedtest", "[size_mb] (1-90)");
         }
     }
 
-    let o = `> curl -o /dev/null http://speedtest.tele2.net/${args.length > 0 ? mb : 10}MB.zip\n`;
+    let o = `> curl -o /dev/null https://speed.cloudflare.com/__down?bytes=${mb * 1024 * 1024}\n`;
     o += `${ANSI.dim}Running local bandwidth test (downloading ${mb}MB payload)...${ANSI.reset}\n\n`;
 
     const resp = await chrome.runtime.sendMessage({ command: "speedtest", payload: { mb } });
     if (!resp) return o + workerError();
-    if (resp.error) return o + cmdError(resp.error);
+    if (resp.error) {
+        if (resp.error.includes("403")) {
+            return o + `  ${ANSI.yellow}[NOTICE] Resource Limit: The test server is rate-limiting large requests (403). Try a smaller size (e.g. speedtest 10).${ANSI.reset}\n`;
+        }
+        return o + `  ${ANSI.red}[ERROR] ITIL Incident: ${resp.error}${ANSI.reset}\n`;
+    }
 
     const { mbps, durationMs, location, ip } = resp.data;
 

@@ -8,3 +8,4 @@ export { cmdExit } from "./exit.js";
 export { cmdSwitch } from "./switch.js";
 export { cmdStart } from "./start.js";
 export { cmdConfig } from "./config.js";
+export { cmdNotes } from "./notes.js";

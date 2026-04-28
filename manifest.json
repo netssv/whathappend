@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "WhatHappened Terminal",
-    "version": "2.3.2",
+    "name": "WhatHappened",
+    "version": "2.4.0",
     "description": "An educational side panel terminal. Learn how to diagnose DNS, SSL, and email infrastructure using simple, guided commands.",
     "permissions": [
         "activeTab",
@@ -10,7 +10,8 @@
         "storage",
         "scripting",
         "cookies",
-        "clipboardRead"
+        "clipboardRead",
+        "browsingData"
     ],
     "host_permissions": [
         "https://dns.google/*",
