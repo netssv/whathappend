@@ -1,5 +1,6 @@
 import { ANSI } from "../../formatter.js";
 import { tabInfo } from "./tabs-info.js";
+import { tabDiag } from "./tabs-diag.js";
 
 // ===================================================================
 //  tabs — Manage open browser tabs
@@ -70,7 +71,7 @@ export async function cmdTabs(args) {
                 }
 
                 o += `\n${ANSI.dim}  ${ANSI.green}●${ANSI.dim}active ${ANSI.reset}${ANSI.dim}Z${ANSI.dim}idle ${ANSI.yellow}z${ANSI.dim}sleep ${ANSI.green}♪${ANSI.dim}audio ${ANSI.cyan}◌${ANSI.dim}loading${ANSI.reset}\n`;
-                o += `${ANSI.dim}  close · info · sleep · focus${ANSI.reset}\n`;
+                o += `${ANSI.dim}  close · info · diag · sleep · focus${ANSI.reset}\n`;
                 resolve(o);
             });
         });
@@ -158,5 +159,13 @@ export async function cmdTabs(args) {
         }
     }
 
-    return `${ANSI.red}Try: tabs · close · info · sleep · focus${ANSI.reset}`;
+    // ── DIAG (inject health-check into the tab) ─────────────────
+    if (sub === "diag" || sub === "health" || sub === "check") {
+        if (args.length < 2) return `${ANSI.red}Usage: tabs diag <#>${ANSI.reset}`;
+        const tabId = resolveTabId(args[1]);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
+        return await tabDiag(tabId, args[1]);
+    }
+
+    return `${ANSI.red}Try: tabs · close · info · diag · sleep · focus${ANSI.reset}`;
 }
