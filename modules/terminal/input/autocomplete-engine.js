@@ -65,9 +65,10 @@ export function initAutocompleteEngine() {
                     if (prefix.length > partial.length) {
                         InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, `${parts[0]} ${prefix}`);
                     } else {
-                        InputEvents.emit("EV_PRINT_OPTIONS", matches);
+                        // Dynamic inline autocomplete (CachyOS style)
                         tabCycleMatches = matches.map(m => `${parts[0]} ${m} `);
-                        tabCycleIndex = -1;
+                        tabCycleIndex = 0;
+                        InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, tabCycleMatches[tabCycleIndex]);
                     }
                     return;
                 }
@@ -90,9 +91,10 @@ export function initAutocompleteEngine() {
                 if (prefix.length > partial.length) {
                     InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, `${baseCmd} ${prefix}`);
                 } else {
-                    InputEvents.emit("EV_PRINT_OPTIONS", matches);
+                    // Dynamic inline autocomplete (CachyOS style)
                     tabCycleMatches = matches.map(m => `${baseCmd} ${m} `);
-                    tabCycleIndex = -1;
+                    tabCycleIndex = 0;
+                    InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, tabCycleMatches[tabCycleIndex]);
                 }
             }
             return;
@@ -109,9 +111,10 @@ export function initAutocompleteEngine() {
                 if (prefix.length > input.length) {
                     InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, prefix);
                 } else {
-                    InputEvents.emit("EV_PRINT_OPTIONS", snippetMatches);
+                    // Dynamic inline autocomplete (CachyOS style)
                     tabCycleMatches = snippetMatches;
-                    tabCycleIndex = -1;
+                    tabCycleIndex = 0;
+                    InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, tabCycleMatches[tabCycleIndex]);
                 }
                 return;
             }
@@ -152,9 +155,10 @@ export function initAutocompleteEngine() {
                     if (prefix.length > input.length) {
                         InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, prefix);
                     } else {
-                        InputEvents.emit("EV_PRINT_OPTIONS", matches);
+                        // Dynamic inline autocomplete (CachyOS style)
                         tabCycleMatches = matches.map(m => m + " ");
-                        tabCycleIndex = -1;
+                        tabCycleIndex = 0;
+                        InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, tabCycleMatches[tabCycleIndex]);
                     }
                 }
             });

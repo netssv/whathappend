@@ -13,7 +13,7 @@ export async function cmdStart(args) {
     if (args.length > 0) {
         const domain = args[0];
         ContextManager.setManualTarget(domain);
-        return { __switch: true, domain };
+        return { __switch: true, domain: domain + " -go" };
     }
 
     // No args — query the active tab
@@ -25,7 +25,7 @@ export async function cmdStart(args) {
 
         const domain = resp.domain;
         ContextManager.setManualTarget(domain);
-        return { __switch: true, domain };
+        return { __switch: true, domain: domain + " -go" };
     } catch (err) {
         return `${ANSI.red}[ERROR] ${err.message || "Failed to query active tab."}${ANSI.reset}`;
     }

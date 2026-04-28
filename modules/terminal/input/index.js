@@ -47,13 +47,6 @@ export function initInputManager() {
             writePrompt();
         }
     });
-
-    // When the autocomplete engine wants to show multiple options
-    InputEvents.on("EV_PRINT_OPTIONS", (matches) => {
-        term.write("\r\n");
-        term.writeln("\x1b[90m" + matches.join("  ") + "\x1b[0m");
-        writePrompt();
-    });
 }
 
 // ---------------------------------------------------------------------------
