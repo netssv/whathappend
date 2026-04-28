@@ -37,24 +37,38 @@ export async function cmdTabs(args) {
                     return;
                 }
 
-                let o = `\n${ANSI.cyan}${ANSI.bold}  Open Tabs (${tabs.length}):${ANSI.reset}\n`;
-                const maxLen = 40;
-
-                tabs.forEach((tab) => {
-                    const badge = statusBadge(tab);
-                    const id = tab.id.toString().padStart(5, " ");
-                    let title = tab.title || "Untitled";
-                    if (title.length > maxLen) title = title.substring(0, maxLen - 1) + "…";
-
+                // Group tabs by hostname
+                const groups = new Map();
+                for (const tab of tabs) {
                     let host = "";
-                    try { host = new URL(tab.url).hostname; } catch { host = tab.url?.substring(0, 30) || ""; }
+                    try { host = new URL(tab.url).hostname.replace(/^www\./, ""); } catch { host = "chrome://internal"; }
+                    if (!groups.has(host)) groups.set(host, []);
+                    groups.get(host).push(tab);
+                }
 
-                    o += `\n  ${ANSI.dim}${id}${ANSI.reset}  ${badge}\n`;
-                    o += `        ${ANSI.white}${title}${ANSI.reset}\n`;
-                    o += `        ${ANSI.dim}${host}${ANSI.reset}\n`;
-                });
+                let o = `\n${ANSI.cyan}${ANSI.bold}  Open Tabs ${ANSI.reset}${ANSI.dim}(${tabs.length} tabs, ${groups.size} sites)${ANSI.reset}\n`;
+                const maxTitle = 32;
 
-                o += `\n${ANSI.dim}  Usage: ${ANSI.white}tabs close <ID>${ANSI.dim} │ ${ANSI.white}tabs info <ID>${ANSI.reset}\n`;
+                for (const [host, hostTabs] of groups) {
+                    o += `\n  ${ANSI.cyan}${host}${ANSI.reset}\n`;
+
+                    for (const tab of hostTabs) {
+                        const icon = tab.active ? `${ANSI.green}●${ANSI.reset}` :
+                                     tab.discarded ? `${ANSI.yellow}💤${ANSI.reset}` :
+                                     tab.audible ? `${ANSI.green}🔊${ANSI.reset}` :
+                                     tab.status === "loading" ? `${ANSI.cyan}⏳${ANSI.reset}` :
+                                     `${ANSI.dim}○${ANSI.reset}`;
+
+                        let title = tab.title || "Untitled";
+                        if (title.length > maxTitle) title = title.substring(0, maxTitle - 1) + "…";
+
+                        const idStr = `${ANSI.dim}#${tab.id}${ANSI.reset}`;
+                        o += `    ${icon} ${ANSI.white}${title}${ANSI.reset}  ${idStr}\n`;
+                    }
+                }
+
+                o += `\n${ANSI.dim}  ● active  ○ idle  💤 discarded  🔊 audio  ⏳ loading${ANSI.reset}`;
+                o += `\n${ANSI.dim}  ${ANSI.white}tabs close <ID>${ANSI.dim} │ ${ANSI.white}tabs info <ID>${ANSI.reset}\n`;
                 resolve(o);
             });
         });
