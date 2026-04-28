@@ -21,10 +21,10 @@ function formatBytes(bytes) {
 
 function icon(tab) {
     if (tab.active) return `${ANSI.green}●${ANSI.reset}`;
-    if (tab.discarded) return `${ANSI.yellow}z${ANSI.reset}`;
     if (tab.audible) return `${ANSI.green}♪${ANSI.reset}`;
     if (tab.status === "loading") return `${ANSI.cyan}◌${ANSI.reset}`;
-    return `${ANSI.dim}○${ANSI.reset}`;
+    if (tab.discarded) return `${ANSI.yellow}z${ANSI.reset}`;
+    return `${ANSI.dim}Z${ANSI.reset}`;
 }
 
 function resolveTabId(input) {
@@ -76,7 +76,8 @@ export async function cmdTabs(args) {
                     }
                 }
 
-                o += `\n${ANSI.dim}  tabs close <#> · tabs info <#>${ANSI.reset}\n`;
+                o += `\n${ANSI.dim}  ${ANSI.green}●${ANSI.dim}active ${ANSI.reset}${ANSI.dim}Z${ANSI.dim}idle ${ANSI.yellow}z${ANSI.dim}sleep ${ANSI.green}♪${ANSI.dim}audio ${ANSI.cyan}◌${ANSI.dim}loading${ANSI.reset}\n`;
+                o += `${ANSI.dim}  tabs close <#> · tabs info <#>${ANSI.reset}\n`;
                 resolve(o);
             });
         });
