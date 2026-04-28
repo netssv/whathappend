@@ -20,7 +20,28 @@
     <!-- Active tab context display with logo -->
     <div id="context-bar">
         <div class="context-row context-top">
-            <img id="context-logo" src="icons/icon.svg" alt="WH" width="16" height="16" />
+            <div id="logo-wrapper">
+                <img id="context-logo" src="icons/icon.svg" alt="WH" width="16" height="16" />
+                <!-- Logo dropdown menu -->
+                <div id="logo-menu" class="logo-menu">
+                    <button class="logo-menu-item" id="menu-clear" title="Clear terminal screen">
+                        <span>⌧</span> Clear
+                    </button>
+                    <button class="logo-menu-item" id="menu-toggle-header" title="Show/hide header panels">
+                        <span>◫</span> Toggle Header
+                    </button>
+                    <button class="logo-menu-item" id="menu-reload-tab" title="Reload the active tab">
+                        <span>↻</span> Reload Tab
+                    </button>
+                    <button class="logo-menu-item" id="menu-reload-ext" title="Reload this extension">
+                        <span>⟳</span> Reload Extension
+                    </button>
+                    <div class="logo-menu-sep"></div>
+                    <button class="logo-menu-item" id="menu-about" title="About WhatHappened">
+                        <span>ℹ</span> About
+                    </button>
+                </div>
+            </div>
             <input id="context-domain" type="text" value="No active target" readonly spellcheck="false" autocomplete="off" />
             <div id="font-controls">
                 <button id="font-decrease" title="Decrease font size (min 10px)">−</button>
@@ -60,6 +81,7 @@
                 <input type="checkbox" id="block-popups" />
                 <span class="block-label">Popups</span>
             </label>
+            <button id="block-reload" class="block-reload-btn" title="Reload tab to apply">↻</button>
             <span id="block-status" class="block-status"></span>
         </div>
     </div>

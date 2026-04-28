@@ -1,0 +1,80 @@
+/* -------------------------------------------------------------------------
+ * Logo Menu — Dropdown utility menu from the favicon/logo
+ * ------------------------------------------------------------------------- */
+
+#logo-wrapper {
+    position: relative; flex-shrink: 0;
+    display: flex; align-items: center;
+    cursor: pointer;
+}
+
+#context-logo { transition: opacity 0.4s ease, filter 0.4s ease, transform 0.15s ease; }
+#logo-wrapper:hover #context-logo { transform: scale(1.1); }
+#logo-wrapper:active #context-logo { transform: scale(0.95); }
+
+/* --- Dropdown ------------------------------------------------------------ */
+
+.logo-menu {
+    display: none;
+    position: absolute; top: 100%; left: 0;
+    margin-top: 4px; z-index: 100;
+    min-width: 150px;
+    background: var(--bg-panel, #111);
+    border: 1px solid var(--bg-active-border, #1a3a28);
+    border-radius: 6px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    padding: 4px 0;
+    overflow: hidden;
+}
+
+.logo-menu.open { display: block; animation: menuFadeIn 0.15s ease-out; }
+
+@keyframes menuFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.logo-menu-item {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 6px 12px;
+    background: transparent; border: none;
+    color: var(--text-dim, #999);
+    font-family: inherit; font-size: 11px;
+    cursor: pointer; text-align: left;
+    transition: background 0.1s ease, color 0.1s ease;
+    white-space: nowrap;
+}
+
+.logo-menu-item:hover {
+    background: rgba(0, 255, 136, 0.08);
+    color: var(--text-bright, #fff);
+}
+
+.logo-menu-item:active { background: rgba(0, 255, 136, 0.15); }
+
+.logo-menu-item span:first-child {
+    font-size: 12px; width: 16px; text-align: center; flex-shrink: 0;
+}
+
+.logo-menu-sep {
+    height: 1px; margin: 3px 8px;
+    background: var(--bg-scrollbar-thumb, #333);
+}
+
+/* --- Block Panel Reload Button ------------------------------------------- */
+
+.block-reload-btn {
+    display: none;
+    width: 22px; height: 18px;
+    border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 4px;
+    background: rgba(0, 255, 136, 0.1);
+    color: var(--accent-green, #00ff88);
+    font-size: 13px; line-height: 1;
+    cursor: pointer;
+    align-items: center; justify-content: center;
+    transition: all 0.15s ease; flex-shrink: 0;
+}
+
+.block-reload-btn.show { display: flex; }
+.block-reload-btn:hover { background: rgba(0, 255, 136, 0.2); transform: rotate(180deg); }
+.block-reload-btn:active { transform: rotate(360deg) scale(0.9); }

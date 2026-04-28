@@ -2,7 +2,7 @@ import { ContextManager } from "./modules/context.js";
 import { isIPAddress, toApex } from "./modules/formatter.js";
 import { pushHistory, restoreSession, setSessionTarget } from "./modules/state.js";
 import { initTerminalUI, showBanner, writePrompt, term } from "./modules/terminal/terminal-ui.js";
-import { initHeaderController, updateWhoisFields, updateNSField, updateHostField, clearWhoisFields, showTabSwitch, hideTabSwitch, initBlockPanel, updateBlockState } from "./modules/terminal/header-controller.js";
+import { initHeaderController, updateWhoisFields, updateNSField, updateHostField, clearWhoisFields, showTabSwitch, hideTabSwitch, initBlockPanel, updateBlockState, initLogoMenu } from "./modules/terminal/header-controller.js";
 import { initInputManager } from "./modules/terminal/input/index.js";
 import { InputEvents } from "./modules/terminal/input/events.js";
 import { setKeyboardLock } from "./modules/terminal/input/keyboard-events.js";
@@ -18,6 +18,7 @@ async function bootstrap() {
     // 2. Setup the header logic
     initHeaderController(term);
     initBlockPanel();
+    initLogoMenu();
 
     // 3. Setup the input manager (keyboard, paste, execution)
     initInputManager();

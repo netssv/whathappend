@@ -3,3 +3,4 @@ export { initDomainInput as initHeaderController, isHeaderFocused } from "./head
 export { updateWhoisFields, updateNSField, updateHostField, markFieldRetryable, clearWhoisFields } from "./header/header-triad.js";
 export { showTabSwitch, hideTabSwitch } from "./header/header-tab-switch.js";
 export { initBlockPanel, updateBlockState } from "./header/header-block.js";
+export { initLogoMenu } from "./header/header-logo-menu.js";
