@@ -26,7 +26,10 @@
                 <button id="font-decrease" title="Decrease font size (min 10px)">−</button>
                 <button id="font-increase" title="Increase font size (max 20px)">+</button>
             </div>
-            <span id="context-version">v2.3.2</span>
+            <span id="context-version">v2.4.1</span>
+            <button id="shield-btn" class="shield-btn" title="Content Blocking">
+                <span id="shield-icon">🛡</span>
+            </button>
         </div>
         <div id="context-triad">
             <div class="triad-col" title="Domain Registrar">
@@ -41,6 +44,23 @@
                 <span class="triad-label">HOST</span>
                 <span id="context-host" class="triad-value"></span>
             </div>
+        </div>
+
+        <!-- Content Block Panel (collapsible) -->
+        <div id="block-panel">
+            <label class="block-toggle">
+                <input type="checkbox" id="block-js" />
+                <span class="block-label">JavaScript</span>
+            </label>
+            <label class="block-toggle">
+                <input type="checkbox" id="block-images" />
+                <span class="block-label">Images</span>
+            </label>
+            <label class="block-toggle">
+                <input type="checkbox" id="block-popups" />
+                <span class="block-label">Popups</span>
+            </label>
+            <span id="block-status" class="block-status"></span>
         </div>
     </div>
 

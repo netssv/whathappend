@@ -8,5 +8,6 @@
 @import url('styles/base.css');
 @import url('styles/components/context-bar.css');
 @import url('styles/components/tab-switch.css');
+@import url('styles/components/block-panel.css');
 @import url('styles/components/terminal.css');
 @import url('styles/components/scrollbar.css');

@@ -1,0 +1,109 @@
+/* -------------------------------------------------------------------------
+ * Content Block Panel — Shield indicator + toggle switches
+ * Slides down from the context bar when shield is clicked
+ * ------------------------------------------------------------------------- */
+
+/* --- Shield Button ------------------------------------------------------- */
+
+.shield-btn {
+    width: 22px; height: 22px;
+    border: 1px solid transparent; border-radius: 4px;
+    background: transparent; color: var(--text-dark);
+    font-size: 13px; line-height: 1;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease; padding: 0; flex-shrink: 0;
+    opacity: 0.4;
+}
+
+.shield-btn:hover {
+    opacity: 0.8;
+    border-color: var(--bg-scrollbar-thumb);
+    background: var(--bg-btn);
+}
+
+.shield-btn.active {
+    opacity: 1;
+    color: var(--accent-red, #ff6b6b);
+    border-color: rgba(255, 107, 107, 0.3);
+    background: rgba(255, 107, 107, 0.08);
+    animation: shieldPulse 2s ease-in-out infinite;
+}
+
+@keyframes shieldPulse {
+    0%, 100% { box-shadow: none; }
+    50% { box-shadow: 0 0 6px rgba(255, 107, 107, 0.25); }
+}
+
+/* --- Block Panel --------------------------------------------------------- */
+
+#block-panel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 0; overflow: hidden; opacity: 0;
+    padding: 0 10px;
+    border-top: 1px solid transparent;
+    transition: height 0.25s ease, opacity 0.2s ease, padding 0.25s ease, border-color 0.25s ease;
+    background: linear-gradient(to right, rgba(255, 107, 107, 0.04), transparent);
+}
+
+#block-panel.visible {
+    height: 30px; opacity: 1;
+    padding: 5px 10px;
+    border-top-color: rgba(255, 107, 107, 0.15);
+}
+
+/* --- Toggle Switch Labels ------------------------------------------------ */
+
+.block-toggle {
+    display: flex; align-items: center; gap: 5px;
+    cursor: pointer; user-select: none;
+    font-size: 11px; color: var(--text-dim);
+    transition: color 0.15s ease;
+    white-space: nowrap;
+}
+
+.block-toggle:hover { color: var(--text-light); }
+
+/* Custom checkbox → toggle pill */
+.block-toggle input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none;
+    width: 28px; height: 14px;
+    background: var(--bg-scrollbar-track, #1a1a2e);
+    border: 1px solid var(--bg-scrollbar-thumb, #333);
+    border-radius: 7px;
+    position: relative; cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.block-toggle input[type="checkbox"]::after {
+    content: "";
+    position: absolute; top: 1px; left: 1px;
+    width: 10px; height: 10px;
+    background: var(--text-dim, #737373);
+    border-radius: 50%;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.block-toggle input[type="checkbox"]:checked {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: rgba(255, 107, 107, 0.4);
+}
+
+.block-toggle input[type="checkbox"]:checked::after {
+    transform: translateX(14px);
+    background: #ff6b6b;
+}
+
+.block-label { font-size: 10px; letter-spacing: 0.3px; }
+
+/* --- Status badge -------------------------------------------------------- */
+
+.block-status {
+    font-size: 9px; color: var(--text-dark);
+    margin-left: auto; flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.block-status.saving { color: var(--accent-yellow, #ffd866); }

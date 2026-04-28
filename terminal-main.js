@@ -2,7 +2,7 @@ import { ContextManager } from "./modules/context.js";
 import { isIPAddress, toApex } from "./modules/formatter.js";
 import { pushHistory, restoreSession, setSessionTarget } from "./modules/state.js";
 import { initTerminalUI, showBanner, writePrompt, term } from "./modules/terminal/terminal-ui.js";
-import { initHeaderController, updateWhoisFields, updateNSField, updateHostField, clearWhoisFields, showTabSwitch, hideTabSwitch } from "./modules/terminal/header-controller.js";
+import { initHeaderController, updateWhoisFields, updateNSField, updateHostField, clearWhoisFields, showTabSwitch, hideTabSwitch, initBlockPanel, updateBlockState } from "./modules/terminal/header-controller.js";
 import { initInputManager } from "./modules/terminal/input/index.js";
 import { InputEvents } from "./modules/terminal/input/events.js";
 import { setKeyboardLock } from "./modules/terminal/input/keyboard-events.js";
@@ -17,6 +17,7 @@ async function bootstrap() {
 
     // 2. Setup the header logic
     initHeaderController(term);
+    initBlockPanel();
 
     // 3. Setup the input manager (keyboard, paste, execution)
     initInputManager();
@@ -113,7 +114,7 @@ bootstrap();
 // Async Header: When a manual target is set, clear stale header badges.
 // The progressive triage resolvers in triage-resolvers.js will populate
 // the header triad as each row resolves — single source of truth.
-ContextManager.onTargetChanged((domain) => {
+ContextManager.onTargetChanged(async (domain) => {
     if (!domain || isIPAddress(domain)) return;
 
     // Hide any pending tab-switch notification (user already switched)
@@ -131,6 +132,10 @@ ContextManager.onTargetChanged((domain) => {
 
     // Clear stale badges immediately — triage resolvers will repopulate
     clearWhoisFields();
+
+    // Sync content-block shield state for new domain
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tabs[0]?.url) updateBlockState(tabs[0].url);
 });
 
 // Tab-change notification: Show interactive bar so user can choose to switch
