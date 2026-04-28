@@ -88,15 +88,33 @@ export async function cmdTabs(args) {
         const tabId = resolveTabId(args[1]);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
 
-        return new Promise((resolve) => {
-            chrome.tabs.remove(tabId, () => {
-                if (chrome.runtime.lastError) {
-                    resolve(`${ANSI.red}[ERROR] ${chrome.runtime.lastError.message}${ANSI.reset}`);
-                } else {
-                    resolve(`${ANSI.green}[OK]${ANSI.reset} Tab closed.`);
-                }
+        const confirmed = args[2]?.toLowerCase() === "yes";
+
+        try {
+            const tab = await chrome.tabs.get(tabId);
+            let title = tab.title || "Untitled";
+            if (title.length > 30) title = title.substring(0, 29) + "…";
+
+            if (!confirmed) {
+                let o = `\n${ANSI.yellow}[CONFIRM]${ANSI.reset} Close this tab?\n`;
+                o += `  ${ANSI.white}${title}${ANSI.reset}\n`;
+                o += `  ${ANSI.dim}${tab.url}${ANSI.reset}\n`;
+                o += `\n${ANSI.dim}Run ${ANSI.white}tabs close ${args[1]} yes${ANSI.dim} to confirm.${ANSI.reset}`;
+                return o;
+            }
+
+            return new Promise((resolve) => {
+                chrome.tabs.remove(tabId, () => {
+                    if (chrome.runtime.lastError) {
+                        resolve(`${ANSI.red}[ERROR] ${chrome.runtime.lastError.message}${ANSI.reset}`);
+                    } else {
+                        resolve(`${ANSI.green}[OK]${ANSI.reset} Closed: ${title}`);
+                    }
+                });
             });
-        });
+        } catch (err) {
+            return `${ANSI.red}[ERROR] ${err.message}${ANSI.reset}`;
+        }
     }
 
     // ── INFO ─────────────────────────────────────────────────────
