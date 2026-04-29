@@ -50,5 +50,17 @@ export async function checkTargetGuards(resolved, targetArg, targetIsIP) {
         return errOutput;
     }
 
+    // Chrome Web Store / Internal Pages Guard
+    const chromeRestricted = ["chrome.google.com", "chromewebstore.google.com"];
+    const httpCommands = ["curl", "sec", "pixels", "load", "links", "vitals", "speed", "stack", "cookies", "isup"];
+    if (!targetIsIP && chromeRestricted.includes(targetArg?.toLowerCase()) && httpCommands.includes(resolved)) {
+        return `${ANSI.red}[BLOCKED]${ANSI.reset} Chrome Security Policy Violation.\n` +
+               `${ANSI.dim}Google Chrome strictly prevents extensions from inspecting, fetching, or executing scripts on its Web Store and internal pages.\n` +
+               `The command '${resolved}' requires HTTP/DOM access, which is blocked here.${ANSI.reset}\n\n` +
+               `${ANSI.yellow}DNS and WHOIS commands will still work:${ANSI.reset}\n` +
+               `  ${ANSI.cyan}whois ${targetArg}${ANSI.reset}\n` +
+               `  ${ANSI.cyan}dig ${targetArg}${ANSI.reset}`;
+    }
+
     return null; // No guard violation
 }
