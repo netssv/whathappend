@@ -1,4 +1,4 @@
-import { ANSI, insights, resolveTargetDomain, cmdUsage, formatError, workerError } from "../../formatter.js";
+import { ANSI, insights, resolveTargetDomain, cmdUsage, formatError, workerError, toApex } from "../../formatter.js";
 
 // ===================================================================
 //  cookies — Privacy Audit
@@ -17,7 +17,7 @@ export async function cmdCookies(args) {
     try {
         const resp = await chrome.runtime.sendMessage({
             command: "get-cookies",
-            payload: { domain: t }
+            payload: { domain: toApex(t) || t }
         });
         
         if (!resp) return o + workerError();
