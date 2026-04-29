@@ -90,6 +90,7 @@ Control the terminal environment itself.
 | Command | Description | Aliases |
 |---------|-------------|---------|
 | `start` | Analyzes the active tab (implicitly runs with `-go` flag). | `run`, `go`, `begin` |
+| `switch` | Switches target to the active browser tab. | `actual`, `current`, `here`, `sw` |
 | `target` | Sets the target domain silently. | - |
 | `tabs` | List, close, sleep, or inspect tabs. `diag` scans for health issues. | `tab`, `close`, `info`, `diag`, `sleep` |
 | `config` | View or change user preferences (`config timeout 5000`). | `settings`, `set` |

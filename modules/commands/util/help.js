@@ -70,6 +70,7 @@ export const HELP_SECTIONS = [
     ]},
     { title: "UTIL", cmds: [
         ["start", "Analyze active tab", "run go begin"],
+        ["switch", "Switch to active tab", "actual current here"],
         ["export", "Save report", "dump save"],
         ["target", "Set target domain", ""],
         ["tabs", "List / close / inspect tabs", "tab list close info"],
