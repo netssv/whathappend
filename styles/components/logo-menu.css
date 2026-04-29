@@ -48,7 +48,7 @@
     display: flex; align-items: center; gap: 8px;
     width: 100%; padding: 6px 12px;
     background: transparent; border: none;
-    color: var(--text-dim, #999);
+    color: var(--text-bright, #ccc);
     font-family: inherit; font-size: 11px;
     cursor: pointer; text-align: left;
     transition: background 0.1s ease, color 0.1s ease;
