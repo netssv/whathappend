@@ -10,8 +10,21 @@ export function initLogoMenu() {
     if (!logo || !menu) return;
 
     // Toggle menu on click
-    logo.addEventListener("click", (e) => {
+    logo.addEventListener("click", async (e) => {
         e.stopPropagation();
+        
+        // Update Auto-Hide text based on config before opening
+        try {
+            const data = await chrome.storage.local.get("wh_config");
+            const config = data["wh_config"] || {};
+            const isAutoHidden = config["auto-hide"] !== undefined ? config["auto-hide"] : true;
+            
+            const btn = document.getElementById("menu-toggle-header");
+            if (btn) {
+                btn.innerHTML = `<span>◫</span> Auto-Hide: ${isAutoHidden ? "ON" : "OFF"}`;
+            }
+        } catch {}
+
         menu.classList.toggle("open");
         
         // Remove animation hint on first click
