@@ -62,7 +62,7 @@ export const CMD_ALIASES = {
     // exit
     "quit": "exit",
     // switch
-    "sw": "switch",
+    "sw": "switch", "actual": "switch", "current": "switch", "here": "switch",
     // tabs
     "tab": "tabs",
     // start
@@ -98,5 +98,5 @@ export const ALL_KNOWN_CMDS = [
     "errors", "pixels", "stack", "load",
     "registrar", "hosting", "exit", "switch",
     "start", "config", "isup", "speed", "speedtest",
-    "ip", "security-txt", "vitals", "flush", "notes", "tabs",
+    "ip", "security-txt", "vitals", "flush", "notes", "tabs", "actual", "current", "here",
 ].filter(c => /^[a-z]/i.test(c));
