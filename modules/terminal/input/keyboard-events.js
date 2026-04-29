@@ -110,8 +110,8 @@ function setupTerminalListener() {
         }
         
         const currentLine = getCurrentLine();
-        if (keyCode === 38) return InputEvents.emit(InputEvents.EV_HISTORY_NAVIGATE, "UP");
-        if (keyCode === 40) return InputEvents.emit(InputEvents.EV_HISTORY_NAVIGATE, "DOWN");
+        if (keyCode === 38) { domEvent.preventDefault(); return InputEvents.emit(InputEvents.EV_HISTORY_NAVIGATE, "UP"); }
+        if (keyCode === 40) { domEvent.preventDefault(); return InputEvents.emit(InputEvents.EV_HISTORY_NAVIGATE, "DOWN"); }
         if (keyCode === 9)  { domEvent.preventDefault(); return InputEvents.emit(InputEvents.EV_TAB_PRESSED, currentLine); }
 
         const cursorPosition = getCursorPosition();
