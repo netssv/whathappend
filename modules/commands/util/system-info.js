@@ -50,13 +50,37 @@ export async function cmdInfo() {
         // Extension background context error (e.g. extension reloaded)
     }
 
+    let tabCount = "Unknown";
+    try {
+        const tabs = await chrome.tabs.query({});
+        tabCount = tabs.length;
+    } catch (e) {}
+
+    let memoryUsed = "Unknown";
+    if (performance && performance.memory) {
+        memoryUsed = (performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1) + " MB (JS Heap)";
+    }
+
+    let connectionInfo = "Unknown";
+    if (navigator.connection) {
+        let type = navigator.connection.type ? navigator.connection.type.toUpperCase() : "BROADBAND";
+        if (type === "UNKNOWN") type = "BROADBAND";
+        connectionInfo = `${type} (~${navigator.connection.downlink} Mbps, ${navigator.connection.rtt}ms RTT)`;
+    }
+
+    const extId = chrome.runtime.id;
+
     return `
 > info (System Diagnostics)
 
   ${ANSI.dim}Manifest Version:${ANSI.reset} v${version}
+  ${ANSI.dim}Extension ID:${ANSI.reset}     ${extId}
   ${ANSI.dim}Public IP:${ANSI.reset}        ${ANSI.cyan}${publicIp}${ANSI.reset}
+  ${ANSI.dim}Network Link:${ANSI.reset}     ${connectionInfo}
   ${ANSI.dim}Native Host:${ANSI.reset}      ${nativeHostStatus}
   ${ANSI.dim}Storage Cache:${ANSI.reset}    ${storageUsed}
+  ${ANSI.dim}Memory Usage:${ANSI.reset}     ${memoryUsed}
+  ${ANSI.dim}Open Tabs:${ANSI.reset}        ${tabCount}
   ${ANSI.dim}Hardware:${ANSI.reset}         ${cores} Cores / ~${ram} RAM
   ${ANSI.dim}Browser Engine:${ANSI.reset}   ${ua}
   ${ANSI.dim}Session Stats:${ANSI.reset}    ${stats} commands executed

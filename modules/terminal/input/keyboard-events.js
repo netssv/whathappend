@@ -63,7 +63,8 @@ function setupTerminalListener() {
             InputEvents.emit("EV_TRIGGER_MANUAL_PASTE", null);
             return;
         }
-        if (keyCode !== 9) InputEvents.emit(InputEvents.EV_KEY_TYPED, keyCode);
+        const isNavKey = keyCode >= 35 && keyCode <= 40;
+        if (keyCode !== 9 && !isNavKey) InputEvents.emit(InputEvents.EV_KEY_TYPED, keyCode);
         if (isKeyboardLocked()) return;
 
         // ── Editing shortcuts ──

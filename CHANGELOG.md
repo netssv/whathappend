@@ -2,6 +2,11 @@
 
 All the latest updates and improvements to the WhatHappened terminal.
 
+## [2.4.2] - 2026-04-28
+**The "Release 2.4.2" Update**
+- Verified version references across files.
+- Prepared new branch for 2.4.2 deployment.
+
 ## [2.4.1] - 2026-04-28
 **The "Tab Superpowers" Update**
 

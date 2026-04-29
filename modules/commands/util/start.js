@@ -16,7 +16,13 @@ export async function cmdStart(args) {
         return { __switch: true, domain: domain + " -go" };
     }
 
-    // No args — query the active tab
+    // 2. If no args, check if we already have an active target set in the terminal
+    const currentTarget = ContextManager.getDomain();
+    if (currentTarget) {
+        return { __switch: true, domain: currentTarget + " -go" };
+    }
+
+    // 3. Fallback: query the active tab if no target is currently set
     try {
         const resp = await chrome.runtime.sendMessage({ command: "get-active-domain" });
         if (!resp?.domain) {

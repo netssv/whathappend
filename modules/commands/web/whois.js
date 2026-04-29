@@ -1,5 +1,6 @@
 import { ANSI, insights, resolveTargetDomain, toRegisteredDomain, isIPAddress, cmdUsage, workerError, cmdError } from "../../formatter.js";
 import { extractRegistrar, extractExpiry } from "./whois-parser.js";
+import { getConfig } from "../util/config.js";
 
 // ===================================================================
 // whois — Terminal command (client layer)
@@ -24,6 +25,11 @@ export async function cmdWhois(args, flags = []) {
     const resp = await chrome.runtime.sendMessage({ command: "whois", payload: { domain } });
     if (!resp) return workerError();
     if (resp.error) return handleWhoisError(resp.error, domain, isShort);
+
+    const isExpert = await getConfig("expert-mode");
+    if (isExpert && !isShort) {
+        return `> whois ${domain}\n${ANSI.dim}${JSON.stringify(resp.data, null, 2)}${ANSI.reset}\n`;
+    }
 
     return isShort
         ? formatShort(resp.data, domain)

@@ -38,21 +38,22 @@ export function initLogoMenu() {
         term.focus();
     });
 
-    // ── Toggle Header ────────────────────────────────────────
-    document.getElementById("menu-toggle-header")?.addEventListener("click", () => {
+    // ── Toggle Auto-Hide ────────────────────────────────────────
+    document.getElementById("menu-toggle-header")?.addEventListener("click", async () => {
         menu.classList.remove("open");
-        const triad = document.getElementById("context-triad");
-        const blockPanel = document.getElementById("block-panel");
-
-        if (_headerHidden) {
-            triad?.classList.add("visible");
-            _headerHidden = false;
-        } else {
-            triad?.classList.remove("visible");
-            blockPanel?.classList.remove("visible");
-            _headerHidden = true;
-        }
-        setTimeout(() => refitTerminal(), 300);
+        try {
+            const data = await chrome.storage.local.get("wh_config");
+            const config = data["wh_config"] || {};
+            const current = config["auto-hide"] !== undefined ? config["auto-hide"] : true;
+            const newVal = !current;
+            term.write(`config auto-hide ${newVal}\r\n`);
+            InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `config auto-hide ${newVal}`);
+            
+            // Re-evaluate triad visibility after brief delay to allow config to save
+            setTimeout(() => {
+                import("./header-triad.js").then(m => m.refreshTriadVisibility());
+            }, 100);
+        } catch {}
         term.focus();
     });
 

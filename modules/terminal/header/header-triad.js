@@ -20,16 +20,38 @@ const contextTriad = document.getElementById("context-triad");
 // Visibility + value management
 // ---------------------------------------------------------------------------
 
+let hideTimeout = null;
+let currentVisibilityCheck = 0;
+
 function refreshTriadVisibility() {
     if (!contextTriad) return;
     const hasAny = contextRegistrar?.textContent || contextNS?.textContent || contextHost?.textContent
         || contextRegistrar?.classList.contains("retryable")
         || contextNS?.classList.contains("retryable")
         || contextHost?.classList.contains("retryable");
+
+    const handle = document.getElementById("triad-handle");
+
     if (hasAny) {
         contextTriad.classList.add("visible");
+        if (handle) handle.classList.add("visible");
+        if (hideTimeout) clearTimeout(hideTimeout);
+        
+        const checkId = ++currentVisibilityCheck;
+        chrome.storage.local.get("wh_config").then(data => {
+            if (checkId !== currentVisibilityCheck) return;
+            const config = data["wh_config"] || {};
+            const autoHide = config["auto-hide"] !== undefined ? config["auto-hide"] : true;
+            if (autoHide && contextTriad.classList.contains("visible")) {
+                hideTimeout = setTimeout(() => {
+                    contextTriad.classList.remove("visible");
+                    setTimeout(() => refitTerminal(), 350);
+                }, 4000); // 4 seconds after data loads
+            }
+        });
     } else {
         contextTriad.classList.remove("visible");
+        if (handle) handle.classList.remove("visible");
     }
     // Re-fit terminal after CSS transition completes
     setTimeout(() => refitTerminal(), 350);
@@ -96,6 +118,39 @@ if (contextTriad) {
         }
     });
 }
+
+const triadHandle = document.getElementById("triad-handle");
+if (triadHandle && contextTriad) {
+    triadHandle.addEventListener("click", () => {
+        if (hideTimeout) clearTimeout(hideTimeout);
+        currentVisibilityCheck++; // Cancel any pending auto-hide
+        contextTriad.classList.toggle("visible");
+        setTimeout(() => refitTerminal(), 350);
+    });
+}
+
+chrome.tabs?.onActivated?.addListener(() => {
+    if (contextTriad && contextTriad.classList.contains("visible")) {
+        chrome.storage.local.get("wh_config").then(data => {
+            const config = data["wh_config"] || {};
+            const autoHide = config["auto-hide"] !== undefined ? config["auto-hide"] : true;
+            if (autoHide) {
+                if (hideTimeout) clearTimeout(hideTimeout);
+                currentVisibilityCheck++;
+                hideTimeout = setTimeout(() => {
+                    contextTriad.classList.remove("visible");
+                    setTimeout(() => refitTerminal(), 350);
+                }, 1500); // 1.5s delay to hide on tab change
+            }
+        });
+    }
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes["wh_config"]) {
+        refreshTriadVisibility();
+    }
+});
 
 // ---------------------------------------------------------------------------
 // Public update functions

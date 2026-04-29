@@ -40,6 +40,11 @@ const CONFIG_SCHEMA = {
         type: "boolean",
         desc: "Show tab-switch notification bar",
     },
+    "auto-hide": {
+        default: true,
+        type: "boolean",
+        desc: "Auto-hide header panels when data loaded",
+    },
     "expert-mode": {
         default: false,
         type: "boolean",
@@ -65,7 +70,7 @@ async function loadConfig() {
 async function saveConfig(config) {
     try {
         await chrome.storage.local.set({ [STORAGE_KEY]: config });
-    } catch (_) {}
+    } catch (_) { }
 }
 
 function resolveValue(key, stored) {
@@ -115,7 +120,7 @@ export async function cmdConfig(args) {
     // config (no args) or config list — show all settings
     if (args.length === 0 || args[0] === "list") {
         let out = `\n${ANSI.white}${ANSI.bold}  Configuration${ANSI.reset}\n`;
-        out += `  ${ANSI.dim}${"━".repeat(42)}${ANSI.reset}\n`;
+        out += `  ${ANSI.dim}${"━".repeat(28)}${ANSI.reset}\n`;
 
         for (const [key, schema] of Object.entries(CONFIG_SCHEMA)) {
             const val = resolveValue(key, stored);
@@ -143,9 +148,12 @@ export async function cmdConfig(args) {
             return `${ANSI.red}Unknown key: '${key}'${ANSI.reset}\n${ANSI.dim}Available: ${available}${ANSI.reset}`;
         }
         const val = resolveValue(key, stored);
+        const isCustom = stored[key] !== undefined;
+        const valColor = isCustom ? ANSI.yellow : ANSI.green;
+        const tag = isCustom ? ` ${ANSI.dim}[custom]${ANSI.reset}` : "";
         const schema = CONFIG_SCHEMA[key];
         const unit = schema.unit || "";
-        return `${ANSI.cyan}${key}${ANSI.reset} = ${ANSI.yellow}${val}${unit}${ANSI.reset} ${ANSI.dim}(${schema.desc})${ANSI.reset}`;
+        return `${ANSI.cyan}${key}${ANSI.reset} = ${valColor}${val}${unit}${ANSI.reset}${tag} ${ANSI.dim}(${schema.desc})${ANSI.reset}`;
     }
 
     // config <key> <value> — set value

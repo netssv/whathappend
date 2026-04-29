@@ -96,6 +96,13 @@ export function initBlockPanel() {
             const tab = await chrome.tabs.get(activeInfo.tabId);
             _currentUrl = tab.url;
             await syncState();
+
+            // Auto hide block panel on tab switch
+            const panel = document.getElementById("block-panel");
+            if (panel && panel.classList.contains("visible")) {
+                panel.classList.remove("visible");
+                setTimeout(() => refitTerminal(), 280);
+            }
         } catch {}
     });
 

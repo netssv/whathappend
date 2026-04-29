@@ -6,6 +6,8 @@ import { initHeaderController, updateWhoisFields, updateNSField, updateHostField
 import { initInputManager } from "./modules/terminal/input/index.js";
 import { InputEvents } from "./modules/terminal/input/events.js";
 import { setKeyboardLock } from "./modules/terminal/input/keyboard-events.js";
+import { getConfig } from "./modules/commands/util/config.js";
+import { retryEmptyHeaderFields } from "./modules/core/triage-retries.js";
 
 // ---------------------------------------------------------------------------
 // Bootstrapping
@@ -94,9 +96,14 @@ async function bootstrap() {
             });
         }
     } else if (initialDomain) {
-        // Test de inicio eliminado (no auto-start).
-        // Solo mostramos el prompt, el header mostrará el dominio activo.
+        // Test de inicio eliminado (no auto-start terminal output).
+        // Pero sí disparamos la recolección de triada silenciosa si auto-triage está activo.
         writePrompt();
+        
+        const autoTriage = await getConfig("auto-triage");
+        if (autoTriage) {
+            ContextManager.setManualTarget(initialDomain);
+        }
     } else {
         writePrompt();
     }
@@ -133,6 +140,12 @@ ContextManager.onTargetChanged(async (domain) => {
 
     // Clear stale badges immediately — triage resolvers will repopulate
     clearWhoisFields();
+
+    // Trigger silent background triage if auto-triage is enabled
+    const autoTriage = await getConfig("auto-triage");
+    if (autoTriage) {
+        retryEmptyHeaderFields(domain, toApex(domain), { registrar: null, ns: null, webhost: null });
+    }
 
     // Sync content-block shield state for new domain
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });

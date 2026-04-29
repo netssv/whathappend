@@ -102,7 +102,7 @@ export async function executeCommand(input) {
                 case "whois-ext": output = cmdWhoisExt(args); break;
                 case "export": output = await cmdExport(args); break;
                 case "target": output = cmdTarget(args); break;
-                case "help": output = cmdHelp(); break;
+                case "help": output = cmdHelp(args); break;
                 case "errors": output = cmdErrors(); break;
                 case "about": output = await cmdAbout(); break;
                 case "info": output = await cmdInfo(); break;

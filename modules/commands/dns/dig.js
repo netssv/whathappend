@@ -1,6 +1,7 @@
 import {ANSI, insights, resolveTargetDomain, toRegisteredDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { DNS_TYPES, DNS_NUM } from "../../data/aliases.js";
 import { digInsights } from "./dig-insights.js";
+import { getConfig } from "../util/config.js";
 
 // ===================================================================
 //  dig — Full DNS lookup via Google DoH
@@ -44,6 +45,11 @@ export async function cmdDig(args, options = {}) {
     const isServfail = resp.retried && resp.error;
     const data = resp.data;
     let o = "";
+
+    const isExpert = await getConfig("expert-mode");
+    if (isExpert && !isRawShort) {
+        return `> dig ${domain} ${recordType.toLowerCase()}\n${ANSI.dim}${JSON.stringify(data, null, 2)}${ANSI.reset}\n`;
+    }
 
     // +short flag: raw data only, no insights (copy-paste mode)
     if (isRawShort) {

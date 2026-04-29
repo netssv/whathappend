@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "WhatHappened",
-    "version": "2.4.1",
+    "version": "2.4.2",
     "description": "An educational side panel terminal. Learn how to diagnose DNS, SSL, and email infrastructure using simple, guided commands.",
     "permissions": [
         "activeTab",

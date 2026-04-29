@@ -24,9 +24,9 @@ export function initInputManager() {
 
     // 2. Orchestrate Sub-Module Events
     InputEvents.on(InputEvents.EV_COMMAND_SUBMIT, async (input) => {
-        if (!input) {
-            // Empty Enter → quick-start analysis of active tab
-            await processCommand("start");
+        if (!input || input.trim() === "") {
+            // Empty Enter → standard terminal behavior (new prompt)
+            writePrompt();
             return;
         }
         await processCommand(input);

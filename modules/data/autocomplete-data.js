@@ -87,7 +87,7 @@ export const RAW_SNIPPETS = [
 ];
 
 // Context-aware subcommand completion (keys scoped to their parent command only)
-export const CONFIG_KEYS = ["timeout", "retry-timeout", "auto-triage", "tab-notify", "expert-mode", "reset", "list"];
+export const CONFIG_KEYS = ["timeout", "retry-timeout", "auto-triage", "tab-notify", "auto-hide", "expert-mode", "reset", "list"];
 const TABS_KEYS = ["list", "close", "info", "diag", "watch", "block", "sleep", "focus"];
 export const SUBCOMMAND_MAP = {
     config:   CONFIG_KEYS,
