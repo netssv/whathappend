@@ -16,6 +16,7 @@ import { handleSpeed } from "./handlers/speed.js";
 import { handleSpeedtest } from "./handlers/speedtest.js";
 import { handleGetPublicIP } from "./handlers/ip.js";
 import { handleGetWebVitals } from "./handlers/vitals.js";
+import { withCache } from "./cache.js";
 
 // ===================================================================
 // Message Router
@@ -34,29 +35,32 @@ export function setupRouter() {
         }
 
         switch (command) {
+            // Cached Commands (Ephemeral 60s LRU)
             case "dns":
-                handleDNS(payload).then(sendResponse);
+                withCache(command, payload, () => handleDNS(payload)).then(sendResponse);
                 break;
             case "http-headers":
-                handleHTTPHeaders(payload).then(sendResponse);
+                withCache(command, payload, () => handleHTTPHeaders(payload)).then(sendResponse);
                 break;
             case "ssl":
-                handleSSL(payload).then(sendResponse);
+                withCache(command, payload, () => handleSSL(payload)).then(sendResponse);
                 break;
             case "whois":
-                handleWHOIS(payload).then(sendResponse);
+                withCache(command, payload, () => handleWHOIS(payload)).then(sendResponse);
                 break;
             case "ip-whois":
-                handleIPWhois(payload).then(sendResponse);
+                withCache(command, payload, () => handleIPWhois(payload)).then(sendResponse);
                 break;
+            case "fetch-text":
+                withCache(command, payload, () => handleFetchText(payload)).then(sendResponse);
+                break;
+            
+            // Uncached Commands (Dynamic/Metrics)
             case "ping":
                 handlePing(payload).then(sendResponse);
                 break;
             case "redirect-trace":
                 handleRedirectTrace(payload).then(sendResponse);
-                break;
-            case "fetch-text":
-                handleFetchText(payload).then(sendResponse);
                 break;
             case "get-page-html":
                 handleGetPageHTML(payload).then(sendResponse);
