@@ -148,7 +148,21 @@ chrome.tabs?.onActivated?.addListener(() => {
 
 chrome.storage.onChanged.addListener((changes, area) => {
     if (area === "local" && changes["wh_config"]) {
-        refreshTriadVisibility();
+        const oldAuto = changes["wh_config"].oldValue?.["auto-hide"];
+        const newAuto = changes["wh_config"].newValue?.["auto-hide"];
+        
+        // If user manually turned ON auto-hide, hide it immediately instead of waiting 4s
+        if (oldAuto === false && newAuto === true) {
+            if (contextTriad) {
+                contextTriad.classList.remove("visible");
+                const handle = document.getElementById("triad-handle");
+                if (handle) handle.classList.remove("visible");
+                if (hideTimeout) clearTimeout(hideTimeout);
+                setTimeout(() => refitTerminal(), 350);
+            }
+        } else {
+            refreshTriadVisibility();
+        }
     }
 });
 
