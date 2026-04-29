@@ -25,10 +25,10 @@ export const AVAILABLE_COMMANDS = [
     "load", "perf", "performance", "pagespeed", "timing",
     "reg", "lifecycle",
     "hoster", "provider", "webhost",
-    "switch", "sw", "tab",
+    "switch", "sw", "actual", "current", "here",
     "start", "run", "go", "begin", "analyze",
     "config", "settings", "set", "prefs",
-    "tabs", "tablist", "close",
+    "tabs", "tablist", "close", "tab",
     "isup", "upcheck", "down", "downcheck", "status",
     "speed", "jitter", "latency-test",
     "speedtest", "bandwidth", "nettest",
@@ -37,6 +37,8 @@ export const AVAILABLE_COMMANDS = [
     "vitals", "cwv", "web-vitals", "core-vitals",
     "flush", "clearcache", "clear-cache",
     "notes", "note", "memo", "annotation",
+    "clear", "errors", "error", "error-list", "quit",
+    "load",
 ];
 
 // Commands that accept a domain parameter (for auto-filling)
