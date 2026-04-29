@@ -56,7 +56,19 @@ export const ContextManager = {
                 return response.domain;
             }
         } catch (_err) {}
-        return null;
+        this._setInactive();
+        return "restricted";
+    },
+
+    _setInactive() {
+        this.currentTarget = "restricted";
+        if (this._domainEl) {
+            this._domainEl.value = "Local Page (Restricted)";
+        }
+        if (this._barEl) {
+            this._barEl.classList.remove("active", "manual", "pulse");
+            this._barEl.classList.add("inactive");
+        }
     },
 
     _updateDomain(domain) {
@@ -76,14 +88,18 @@ export const ContextManager = {
         const prev = this.currentTarget;
         this.currentTarget = domain;
 
-        if (this._domainEl) {
-            this._domainEl.value = domain;
-        }
-        if (this._barEl) {
-            this._barEl.classList.add("active");
-            this._barEl.classList.remove("manual", "pulse");
-            void this._barEl.offsetWidth;
-            this._barEl.classList.add("pulse");
+        if (domain === "restricted") {
+            this._setInactive();
+        } else {
+            if (this._domainEl) {
+                this._domainEl.value = domain;
+            }
+            if (this._barEl) {
+                this._barEl.classList.add("active");
+                this._barEl.classList.remove("manual", "pulse", "inactive");
+                void this._barEl.offsetWidth;
+                this._barEl.classList.add("pulse");
+            }
         }
 
         // Notify tab-change listener (discrete terminal notification)
@@ -96,14 +112,18 @@ export const ContextManager = {
         this._manualTarget = domain;
         this._isManual = true;
 
-        if (this._domainEl) {
-            this._domainEl.value = domain;
-        }
-        if (this._barEl) {
-            this._barEl.classList.add("active", "manual");
-            this._barEl.classList.remove("pulse");
-            void this._barEl.offsetWidth;
-            this._barEl.classList.add("pulse");
+        if (domain === "restricted") {
+            this._setInactive();
+        } else {
+            if (this._domainEl) {
+                this._domainEl.value = domain;
+            }
+            if (this._barEl) {
+                this._barEl.classList.add("active", "manual");
+                this._barEl.classList.remove("pulse", "inactive");
+                void this._barEl.offsetWidth;
+                this._barEl.classList.add("pulse");
+            }
         }
 
         // Notify listener (e.g. auto-whois in terminal.js)
@@ -116,7 +136,7 @@ export const ContextManager = {
         this._manualTarget = null;
         this._isManual = false;
         if (this._barEl) {
-            this._barEl.classList.remove("manual");
+            this._barEl.classList.remove("manual", "inactive");
         }
         this._requestDomain();
     },

@@ -44,6 +44,22 @@
         }
     }
 
+    &.inactive {
+        background: var(--bg-panel);
+        border-bottom-color: var(--bg-panel-border);
+        
+        #context-logo {
+            opacity: 0.3;
+            filter: grayscale(100%);
+            animation: none;
+        }
+
+        #context-domain {
+            color: var(--text-dark, #555);
+            font-style: italic;
+        }
+    }
+
     &.pulse {
         animation: contextPulse 0.6s ease-out;
     }
