@@ -32,10 +32,11 @@ The fastest way to get an answer is to open the side panel and:
 
 ---
 
-## What’s New in v2.4.0? 
+## What’s New in v2.4.2? 
 
 We’ve been busy making the terminal smarter and easier to use:
 
+- **Tab Superpowers**: Manage and diagnose your open tabs directly from the terminal with the new `tabs` commands.
 - **Silent Mode**: Setting a target is now "silent." It populates the top header quietly in the background, keeping the terminal clean for your next command.
 - **Command Chaining**: Save time by running a command at the same time you set a target. Try `google.com -vitals` or `example.com -whois`.
 - **Smart Autocomplete**: Press `Tab` after typing a domain to see available flags, or use it to quickly fill in domains from your other open tabs!
