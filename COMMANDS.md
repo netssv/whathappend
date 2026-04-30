@@ -56,7 +56,7 @@ Type these directly to get specific records:
 
 ---
 
-## ️ Web & Infrastructure
+## Web & Infrastructure
 
 Dig into the architecture, hosting, and performance of a site.
 
@@ -77,7 +77,7 @@ Dig into the architecture, hosting, and performance of a site.
 
 ---
 
-## ️ OSINT & Content
+## OSINT & Content
 
 Gather public intelligence and historical data.
 
@@ -113,7 +113,7 @@ Generates safe, clickable links to industry-standard diagnostic tools. We never 
 
 ---
 
-## ️ Terminal Utilities
+## Terminal Utilities
 
 Control the terminal environment itself.
 
