@@ -76,7 +76,7 @@ export function initLogoMenu() {
             
             // Re-evaluate triad visibility after brief delay to allow config to save
             setTimeout(() => {
-                import("./header-triad.js").then(m => m.refreshTriadVisibility());
+                import("./header-triad.js").then(m => m.pingTriadVisibility());
             }, 100);
         } catch {}
         term.focus();

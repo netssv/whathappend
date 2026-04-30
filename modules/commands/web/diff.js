@@ -4,7 +4,6 @@
  */
 
 import {ANSI, insights, formatError, cmdUsage} from "../../formatter.js";
-import { executeCommand } from "../../engine.js";
 
 export async function cmdDiff(args) {
     if (args.length < 2) return cmdUsage("diff", "<domain1> <domain2>");
