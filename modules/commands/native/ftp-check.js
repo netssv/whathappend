@@ -53,7 +53,7 @@ export async function cmdFTPCheck(args) {
 
         ins.push({ level: "INFO", text: `Test FTP: https://viewdns.info/portscan/?host=${encodeURIComponent(target)}` });
 
-        o += `\n${ANSI.dim}Executed: Browser fetch timing heuristic${ANSI.reset}`;
+        o += `\n${ANSI.dim}Executed: Browser fetch timing heuristic${ANSI.reset}\n\n`;
         o += insights(ins);
         return o;
     } catch (err) {
