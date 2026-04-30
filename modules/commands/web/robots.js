@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/web/robots.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError from '../../formatter.js'
+ * - Exports: cmdRobots
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import {ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
 
 // ===================================================================
@@ -97,6 +108,7 @@ export async function cmdRobots(args) {
         if (hasCrawlDelay) {
             ins.push({level:"INFO",text:"Crawl-delay present (ignored by Googlebot)."});
         }
+        ins.push({ level: "INFO", text: `External Check: https://technicalseo.com/tools/robots-txt/` });
 
         o += insights(ins);
     }

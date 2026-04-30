@@ -1,3 +1,13 @@
+/**
+ * @module modules/background/handlers/dom.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: handleGetPageHTML, handleDetectLivePixels, handleGetLinks
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 // ===================================================================
 // Get Page HTML — Live DOM from active tab via chrome.scripting
 // ===================================================================

@@ -1,3 +1,13 @@
+/**
+ * @module modules/commands/email/utils.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: normTxt
+ * - Layer: Command Layer (Email) - Audits SPF, DKIM, DMARC records.
+ */
+
 // ---------------------------------------------------------------------------
 // DKIM Utils
 // ---------------------------------------------------------------------------

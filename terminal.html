@@ -19,15 +19,85 @@
 <body style="display:flex;flex-direction:column;height:100%;">
     <!-- Active tab context display with logo -->
     <div id="context-bar">
-        <img id="context-logo" src="icons/icon.svg" alt="WH" width="16" height="16" />
-        <input id="context-domain" type="text" value="No active target" readonly spellcheck="false" autocomplete="off" />
-        <span id="context-registrar" class="context-meta"></span>
-        <span id="context-expiry" class="context-meta"></span>
-        <div id="font-controls">
-            <button id="font-decrease" title="Decrease font size (min 10px)">−</button>
-            <button id="font-increase" title="Increase font size (max 20px)">+</button>
+        <div class="context-row context-top">
+            <div id="logo-wrapper">
+                <img id="context-logo" class="pulse-hint" src="icons/icon.svg" alt="WH" width="16" height="16" />
+                <!-- Logo dropdown menu -->
+                <div id="logo-menu" class="logo-menu">
+                    <button class="logo-menu-item" id="menu-clear" title="Clear terminal screen">
+                        <span>⌧</span> Clear
+                    </button>
+                    <button class="logo-menu-item" id="menu-tabs" title="Manage tabs">
+                        <span>▤</span> Tabs
+                    </button>
+                    <button class="logo-menu-item" id="menu-toggle-header" title="Toggle Auto-Hide Behavior">
+                        <span>◫</span> Auto-Hide Header
+                    </button>
+                    <button class="logo-menu-item" id="menu-reload-tab" title="Reload the active tab">
+                        <span>↻</span> Reload Tab
+                    </button>
+                    <button class="logo-menu-item" id="menu-reload-ext" title="Reload this extension">
+                        <span>⟳</span> Reload Extension
+                    </button>
+                    <div class="logo-menu-sep"></div>
+                    <button class="logo-menu-item" id="menu-about" title="About WhatHappened">
+                        <span>ℹ</span> About
+                    </button>
+                </div>
+            </div>
+            <input id="context-domain" type="text" value="No active target" readonly spellcheck="false" autocomplete="off" />
+            <div id="font-controls">
+                <button id="font-decrease" title="Decrease font size (min 10px)">−</button>
+                <button id="font-increase" title="Increase font size (max 20px)">+</button>
+            </div>
+            <span id="context-version">v2.4.2</span>
+            <button id="shield-btn" class="shield-btn" title="Content Blocking">
+                <span id="shield-icon">🛡</span>
+            </button>
         </div>
-        <span id="context-version">v2.3.1</span>
+        <div id="context-triad">
+            <div class="triad-col" title="Domain Registrar">
+                <span class="triad-label">REG</span>
+                <span id="context-registrar" class="triad-value"></span>
+            </div>
+            <div class="triad-col" title="Nameserver Provider">
+                <span class="triad-label">NS</span>
+                <span id="context-ns" class="triad-value"></span>
+            </div>
+            <div class="triad-col" title="Web Hosting Provider">
+                <span class="triad-label">HOST</span>
+                <span id="context-host" class="triad-value"></span>
+            </div>
+        </div>
+        <!-- Handle to toggle triad -->
+        <div id="triad-handle" class="triad-handle" title="Toggle Infrastructure Data"><span></span></div>
+
+        <!-- Content Block Panel (collapsible) -->
+        <div id="block-panel">
+            <label class="block-toggle">
+                <input type="checkbox" id="block-js" />
+                <span class="block-label">JavaScript</span>
+            </label>
+            <label class="block-toggle">
+                <input type="checkbox" id="block-images" />
+                <span class="block-label">Images</span>
+            </label>
+            <label class="block-toggle">
+                <input type="checkbox" id="block-popups" />
+                <span class="block-label">Popups</span>
+            </label>
+            <button id="block-reload" class="block-reload-btn" title="Reload tab to apply">↻</button>
+            <span id="block-status" class="block-status"></span>
+        </div>
+    </div>
+
+    <!-- Tab-switch notification bar -->
+    <div id="tab-switch-bar">
+        <span id="tab-switch-icon">↗</span>
+        <span id="tab-switch-label">Tab changed →</span>
+        <span id="tab-switch-domain"></span>
+        <button id="tab-switch-btn" title="Switch target to this domain">Switch</button>
+        <button id="tab-switch-dismiss" title="Keep current target">✕</button>
     </div>
 
     <div id="terminal-container"></div>

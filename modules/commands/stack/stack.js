@@ -1,3 +1,16 @@
+/**
+ * @module modules/commands/stack/stack.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - detectTechnologies from './detector.js'
+ *     - formatStackOutput from './formatter.js'
+ * - Exports: cmdStack
+ * - Layer: Command Layer (Stack) - Tech stack identification.
+ */
+
 import {ANSI, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { detectTechnologies } from "./detector.js";
 import { formatStackOutput } from "./formatter.js";
@@ -11,7 +24,7 @@ export async function cmdStack(args) {
     const domain = resolveTargetDomain(args[0], info);
     if (!domain) return cmdUsage("stack", "<domain>");
 
-    let o = `> stack ${domain}\n`;
+    let o = `> curl -I -s https://${domain} && wappalyzer https://${domain}\n`;
     o += `${ANSI.dim}Detecting technology stack...${ANSI.reset}\n\n`;
 
     let html = "";

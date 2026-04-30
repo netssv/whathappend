@@ -1,3 +1,13 @@
+/**
+ * @module modules/commands/email/dkim-discovery.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: getPossibleSelectors
+ * - Layer: Command Layer (Email) - Audits SPF, DKIM, DMARC records.
+ */
+
 // ===================================================================
 // DKIM Discovery Engine — Dynamic MX-Inference
 //

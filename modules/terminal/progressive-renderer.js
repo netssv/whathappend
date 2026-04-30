@@ -1,13 +1,23 @@
+/**
+ * @module modules/terminal/progressive-renderer.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI from '../formatter.js'
+ *     - RenderQueue from './render-queue.js'
+ * - Exports: ProgressiveRenderer, ROW_KEYS, ROW_LABELS
+ * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
+ */
+
 import { ANSI } from "../formatter.js";
-import { acquireWriteLock, releaseWriteLock } from "./write-lock.js";
-import { classifyInfrastructure } from "../data/infrastructure-map.js";
+import { RenderQueue } from "./render-queue.js";
 
 // ===================================================================
 // Progressive Renderer — Live-updating triage skeleton
 //
 // Uses RELATIVE line counting for cursor positioning.
-// All row updates go through a renderQueue that batches writes
-// into atomic terminal operations via requestAnimationFrame.
+// Delegates all terminal writes to RenderQueue for atomic batching.
 // ===================================================================
 
 const ROW_KEYS = ["registrar", "ns", "webhost"];
@@ -21,92 +31,51 @@ const ROW_LABELS = {
 const LOADING = `${ANSI.dim}⏳ loading...${ANSI.reset}`;
 const NA      = `${ANSI.dim}N/A${ANSI.reset}`;
 
-export { ROW_KEYS, ROW_LABELS };
-
-/**
- * Skeleton geometry (lines after header):
- *
- *   [INFO] Domain Delegation:       ← header
- *   Registrar ━ ...                 ← offset 4 from cursor
- *   NameSrvs  ━ ...                 ← offset 3 from cursor
- *   Web Host  ━ ...                 ← offset 2 from cursor
- *   (blank — summary placeholder)   ← offset 1 from cursor
- *   [cursor here]                   ← offset 0
- */
-const BASE_OFFSET = {
-    registrar: 4,
-    ns:        3,
-    webhost:   2,
-};
+const BASE_OFFSET = { registrar: 4, ns: 3, webhost: 2 };
 const SUMMARY_OFFSET = 1;
 
+export { ROW_KEYS, ROW_LABELS };
+
 export class ProgressiveRenderer {
-    /**
-     * @param {Terminal} term — xterm.js terminal instance
-     */
     constructor(term) {
         this._term = term;
+        this._rq = new RenderQueue(term);
         this._cancelled = false;
-        this._resolved = {};     // Resolved values per row
+        this._resolved = {};
         this._finalized = false;
-        this._extraLines = 0;    // Lines written after skeleton
-        this._renderQueue = [];  // Pending overwrite operations
-        this._flushScheduled = false;
+        this._extraLines = 0;
     }
 
     // -----------------------------------------------------------------
-    // Render the initial skeleton
+    // Skeleton
     // -----------------------------------------------------------------
 
     renderSkeleton() {
         if (this._cancelled) return;
         const t = this._term;
-
         t.writeln(`\n${ANSI.cyan}${ANSI.bold}[INFO] Domain Delegation:${ANSI.reset}`);
-
         for (const key of ROW_KEYS) {
             t.writeln(this._formatRow(key, LOADING));
         }
-
-        // Summary placeholder
         t.writeln("");
         this._extraLines = 0;
     }
 
-    // -----------------------------------------------------------------
-    // Track external writes (banner, user output, etc.)
-    // -----------------------------------------------------------------
-
-    addExternalLines(count = 1) {
-        this._extraLines += count;
-    }
+    addExternalLines(count = 1) { this._extraLines += count; }
 
     // -----------------------------------------------------------------
-    // Update a single row — queues the write for batched flush
+    // Row update
     // -----------------------------------------------------------------
 
-    /**
-     * @param {"registrar"|"ns"|"webhost"} rowKey
-     * @param {string} value — formatted display value (may include ANSI)
-     */
     updateRow(rowKey, value) {
         if (this._cancelled || this._finalized) return;
         if (!ROW_KEYS.includes(rowKey)) return;
 
         this._resolved[rowKey] = value || null;
-        const display = value || NA;
         const delta = BASE_OFFSET[rowKey] + this._extraLines;
-
-        if (delta <= 0) return;
-
-        // Queue the overwrite and schedule a batched flush
-        this._renderQueue.push({ delta, content: this._formatRow(rowKey, display) });
-        this._scheduleFlush();
+        this._rq.enqueue(delta, this._formatRow(rowKey, value || NA));
+        this._term.scrollToBottom();
     }
-
-    // -----------------------------------------------------------------
-    // Confirmed count — non-null resolved values
-    // -----------------------------------------------------------------
 
     getConfirmedCount() {
         return Object.values(this._resolved).filter(v => v !== null).length;
@@ -116,46 +85,40 @@ export class ProgressiveRenderer {
     // Finalize — GATEKEEPER + Infrastructure Correlation
     // -----------------------------------------------------------------
 
-    /**
-     * @param {string[]} providers — array of resolved provider names
-     */
     finalize(providers) {
         if (this._cancelled || this._finalized) return;
         this._finalized = true;
 
-        // Flush any pending row updates first
-        this._flushQueue();
+        // Flush pending queue
+        this._rq._flush();
 
-        // Ensure any still-loading rows show N/A
+        // Fill any still-loading rows with N/A
         for (const key of ROW_KEYS) {
             if (!(key in this._resolved)) {
                 this._resolved[key] = null;
                 const delta = BASE_OFFSET[key] + this._extraLines;
-                if (delta > 0) {
-                    this._overwriteNow(delta, this._formatRow(key, NA));
-                }
+                this._rq.writeNow(delta, this._formatRow(key, NA));
             }
         }
 
-        // GATEKEEPER: require at least 2 confirmed providers
-        if (!providers || providers.length < 2) return;
+        if (!providers || providers.length === 0) return;
 
-        // ── Infrastructure Correlation ──────────────────────────
-        // Use corporate affiliation map to detect parent/sibling companies
-        const { consolidated, groupId } = classifyInfrastructure(providers);
+        const unique = [...new Set(providers.filter(Boolean))];
+        if (unique.length === 0) return;
 
-        let summaryLine;
-        if (consolidated) {
-            const label = groupId || providers[0];
-            summaryLine = `       ${ANSI.green}↳ Consolidated Stack (${label})${ANSI.reset}`;
-        } else {
-            summaryLine = `       ${ANSI.yellow}↳ Distributed Stack${ANSI.reset}`;
+        const text = `↳ [INFO] Managed by ${unique.join(', ')}`;
+        const cols = this._term.cols || 80;
+        const maxLen = cols - 9; // 7 spaces indent + 2 padding
+        let finalStr = text;
+        if (finalStr.length > maxLen && maxLen > 15) {
+            finalStr = finalStr.substring(0, maxLen - 3) + "...";
         }
+
+        const summaryLine = `       ${ANSI.green}${finalStr}${ANSI.reset}`;
 
         const delta = SUMMARY_OFFSET + this._extraLines;
-        if (delta > 0) {
-            this._overwriteNow(delta, summaryLine);
-        }
+        this._rq.writeNow(delta, summaryLine);
+        this._term.scrollToBottom();
     }
 
     // -----------------------------------------------------------------
@@ -164,90 +127,27 @@ export class ProgressiveRenderer {
 
     cancel() {
         this._cancelled = true;
-        this._renderQueue.length = 0;
+        this._rq.cancel();
     }
 
-    isCancelled() {
-        return this._cancelled;
-    }
-
-    // -----------------------------------------------------------------
-    // Render Queue — batched writes
-    // -----------------------------------------------------------------
-
-    /** Schedule a flush on the next animation frame (or microtask). */
-    _scheduleFlush() {
-        if (this._flushScheduled || this._cancelled) return;
-        this._flushScheduled = true;
-
-        // Use setTimeout(0) for Chrome extension compatibility
-        // (requestAnimationFrame may not fire in sidepanel)
-        setTimeout(() => {
-            this._flushScheduled = false;
-            if (!this._cancelled) {
-                this._flushQueue();
-            }
-        }, 0);
-    }
-
-    /** Flush all pending overwrites as a single atomic terminal operation. */
-    _flushQueue() {
-        if (this._renderQueue.length === 0) return;
-
-        // Deduplicate: keep only the LAST update per delta
-        const byDelta = new Map();
-        for (const op of this._renderQueue) {
-            byDelta.set(op.delta, op.content);
-        }
-        this._renderQueue.length = 0;
-
-        // Sort by delta descending (furthest rows first) for stable rendering
-        const ops = [...byDelta.entries()].sort((a, b) => b[0] - a[0]);
-
-        acquireWriteLock();
-        try {
-            for (const [delta, content] of ops) {
-                if (delta > 0 && !this._cancelled) {
-                    this._term.write(
-                        `\x1b[s` +           // Save cursor
-                        `\x1b[${delta}A` +   // Move up
-                        `\x1b[2K\r` +        // Clear ENTIRE line first, then col 0
-                        content +            // Write
-                        `\x1b[u`             // Restore cursor
-                    );
-                }
-            }
-        } finally {
-            releaseWriteLock();
-        }
-    }
-
-    // -----------------------------------------------------------------
-    // Direct overwrite (used by finalize, bypasses queue)
-    // -----------------------------------------------------------------
-
-    _overwriteNow(delta, content) {
-        if (this._cancelled || delta <= 0) return;
-
-        acquireWriteLock();
-        try {
-            this._term.write(
-                `\x1b[s` +
-                `\x1b[${delta}A` +
-                `\x1b[2K\r` +
-                content +
-                `\x1b[u`
-            );
-        } finally {
-            releaseWriteLock();
-        }
-    }
+    isCancelled() { return this._cancelled; }
 
     // -----------------------------------------------------------------
     // Format helper
     // -----------------------------------------------------------------
 
     _formatRow(key, value) {
-        return `       ${ROW_LABELS[key]} ━ ${value}`;
+        const prefix = `       ${ROW_LABELS[key]} ━ `;
+        const cols = this._term.cols || 80;
+        const visiblePrefixLen = 7 + 10 + 3; // 7 spaces + label max 10 + " ━ " (3) = 20 chars
+        const maxValLen = cols - visiblePrefixLen - 1;
+
+        let strVal = String(value);
+        if (strVal.length > maxValLen && maxValLen > 5) {
+            // keep the ANSI color codes if any, this might break if value has ANSI but values are usually plain text
+            strVal = strVal.substring(0, maxValLen - 3) + "...";
+        }
+
+        return `${prefix}${strVal}`;
     }
 }

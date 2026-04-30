@@ -1,3 +1,14 @@
+/**
+ * @module modules/terminal/input/command-history.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - InputEvents from './events.js'
+ * - Exports: initCommandHistory
+ * - Layer: Terminal Layer (Input) - Handles keyboard events, autocomplete, and history.
+ */
+
 import { InputEvents } from "./events.js";
 
 const HISTORY_KEY = "wh_cmd_history";

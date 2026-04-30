@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/native/ftp-check.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError from '../../formatter.js'
+ * - Exports: cmdFTPCheck
+ * - Layer: Command Layer (Native) - Native App messaging commands.
+ */
+
 import {ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError } from "../../formatter.js";
 
 // ===================================================================
@@ -9,7 +20,7 @@ export async function cmdFTPCheck(args) {
     const target = resolveTargetDomain(args[0], info);
     if (!target) return cmdUsage("ftp-check", "<domain>");
 
-    let o = `> ftp-check ${target} (port 21)\n`;
+    let o = `> nc -v -w5 ${target} 21\n`;
 
     try {
         const resp = await chrome.runtime.sendMessage({

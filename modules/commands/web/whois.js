@@ -1,5 +1,19 @@
+/**
+ * @module modules/commands/web/whois.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, toRegisteredDomain, isIPAddress, cmdUsage, workerError, cmdError from '../../formatter.js'
+ *     - extractRegistrar, extractExpiry from './whois-parser.js'
+ *     - getConfig from '../util/config.js'
+ * - Exports: cmdWhois
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import { ANSI, insights, resolveTargetDomain, toRegisteredDomain, isIPAddress, cmdUsage, workerError, cmdError } from "../../formatter.js";
 import { extractRegistrar, extractExpiry } from "./whois-parser.js";
+import { getConfig } from "../util/config.js";
 
 // ===================================================================
 // whois — Terminal command (client layer)
@@ -24,6 +38,11 @@ export async function cmdWhois(args, flags = []) {
     const resp = await chrome.runtime.sendMessage({ command: "whois", payload: { domain } });
     if (!resp) return workerError();
     if (resp.error) return handleWhoisError(resp.error, domain, isShort);
+
+    const isExpert = await getConfig("expert-mode");
+    if (isExpert && !isShort) {
+        return `> whois ${domain}\n${ANSI.dim}${JSON.stringify(resp.data, null, 2)}${ANSI.reset}\n`;
+    }
 
     return isShort
         ? formatShort(resp.data, domain)
@@ -154,7 +173,7 @@ function formatInsights(d, domain) {
         else ins.push({ level: "INFO", text: `Age: ${y}y (${dd}d). ${y >= 2 ? "Established." : "Building reputation."}` });
     }
 
-    ins.push({ level: "INFO", text: `Test WHOIS: https://www.whois.com/whois/${domain}` });
+    ins.push({ level: "INFO", text: `External Check: https://www.whois.com/whois/${domain}` });
     return insights(ins);
 }
 
@@ -176,7 +195,7 @@ async function ipWhois(ip, flags) {
     o += `${ANSI.white}Organization:${ANSI.reset} ${org}\n`;
     o += insights([
         { level: "INFO", text: `Owner: ${org}` },
-        { level: "INFO", text: `Test WHOIS: https://www.whois.com/whois/${ip}` },
+        { level: "INFO", text: `External Check: https://www.whois.com/whois/${ip}` },
     ]);
     return o;
 }

@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/web/load.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, cmdUsage, cmdError from '../../formatter.js'
+ * - Exports: cmdLoad
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import { ANSI, insights, resolveTargetDomain, cmdUsage, cmdError } from "../../formatter.js";
 
 // ===================================================================
@@ -10,7 +21,7 @@ export async function cmdLoad(args) {
     const domain = resolveTargetDomain(args[0], info);
     if (!domain) return cmdUsage("load", "<domain>");
 
-    let o = `> load ${domain}\n`;
+    let o = `> curl -w "\\nTTFB: %{time_starttransfer}s\\nTotal: %{time_total}s\\n" -o /dev/null -s https://${domain}\n`;
     o += `${ANSI.dim}Reading Performance API from active tab...${ANSI.reset}\n\n`;
 
     try {
@@ -98,7 +109,7 @@ export async function cmdLoad(args) {
         if (d.resourceCount > 100) ins.push({ level: "WARN", text: `${d.resourceCount} requests — consider bundling/lazy loading.` });
         if (d.transferSize > 5 * 1024 * 1024) ins.push({ level: "WARN", text: `${formatBytes(d.transferSize)} transferred — heavy page.` });
 
-        ins.push({ level: "INFO", text: `Test Performance: https://pagespeed.web.dev/analysis?url=https://${domain}` });
+        ins.push({ level: "INFO", text: `External Check: https://pagespeed.web.dev/analysis?url=https://${domain}` });
 
         o += insights(ins);
         return o;

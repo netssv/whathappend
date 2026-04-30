@@ -1,4 +1,14 @@
 /**
+ * @module modules/context.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: ContextManager
+ * - Layer: Shared Utility / Router - Common functions or central engine index used across the app.
+ */
+
+/**
  * WhatHappened — Context Manager
  *
  * Tracks the active tab's domain and manages manual target overrides.
@@ -9,6 +19,7 @@ export const ContextManager = {
     currentTarget: null,
     _manualTarget: null,
     _isManual: false,
+    _lastTabDomain: null,
     _barEl: null,
     _logoEl: null,
     _domainEl: null,
@@ -55,23 +66,50 @@ export const ContextManager = {
                 return response.domain;
             }
         } catch (_err) {}
-        return null;
+        this._setInactive();
+        return "restricted";
+    },
+
+    _setInactive() {
+        this.currentTarget = "restricted";
+        if (this._domainEl) {
+            this._domainEl.value = "Local Page (Restricted)";
+        }
+        if (this._barEl) {
+            this._barEl.classList.remove("active", "manual", "pulse");
+            this._barEl.classList.add("inactive");
+        }
     },
 
     _updateDomain(domain) {
-        if (this._isManual) return;
+        // Always track the real browser tab domain
+        const prevTab = this._lastTabDomain;
+        this._lastTabDomain = domain;
+
+        if (this._isManual) {
+            // In manual mode: don't auto-switch, but still notify about tab changes
+            if (domain !== prevTab && prevTab && typeof this._onTabChanged === "function") {
+                this._onTabChanged(domain, this.currentTarget);
+            }
+            return;
+        }
+
         if (domain === this.currentTarget) return;
         const prev = this.currentTarget;
         this.currentTarget = domain;
 
-        if (this._domainEl) {
-            this._domainEl.value = domain;
-        }
-        if (this._barEl) {
-            this._barEl.classList.add("active");
-            this._barEl.classList.remove("manual", "pulse");
-            void this._barEl.offsetWidth;
-            this._barEl.classList.add("pulse");
+        if (domain === "restricted") {
+            this._setInactive();
+        } else {
+            if (this._domainEl) {
+                this._domainEl.value = domain;
+            }
+            if (this._barEl) {
+                this._barEl.classList.add("active");
+                this._barEl.classList.remove("manual", "pulse", "inactive");
+                void this._barEl.offsetWidth;
+                this._barEl.classList.add("pulse");
+            }
         }
 
         // Notify tab-change listener (discrete terminal notification)
@@ -84,14 +122,18 @@ export const ContextManager = {
         this._manualTarget = domain;
         this._isManual = true;
 
-        if (this._domainEl) {
-            this._domainEl.value = domain;
-        }
-        if (this._barEl) {
-            this._barEl.classList.add("active", "manual");
-            this._barEl.classList.remove("pulse");
-            void this._barEl.offsetWidth;
-            this._barEl.classList.add("pulse");
+        if (domain === "restricted") {
+            this._setInactive();
+        } else {
+            if (this._domainEl) {
+                this._domainEl.value = domain;
+            }
+            if (this._barEl) {
+                this._barEl.classList.add("active", "manual");
+                this._barEl.classList.remove("pulse", "inactive");
+                void this._barEl.offsetWidth;
+                this._barEl.classList.add("pulse");
+            }
         }
 
         // Notify listener (e.g. auto-whois in terminal.js)
@@ -104,7 +146,7 @@ export const ContextManager = {
         this._manualTarget = null;
         this._isManual = false;
         if (this._barEl) {
-            this._barEl.classList.remove("manual");
+            this._barEl.classList.remove("manual", "inactive");
         }
         this._requestDomain();
     },

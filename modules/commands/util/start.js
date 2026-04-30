@@ -1,0 +1,50 @@
+/**
+ * @module modules/commands/util/start.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI from '../../formatter.js'
+ *     - ContextManager from '../../context.js'
+ * - Exports: cmdStart
+ * - Layer: Command Layer (Util) - Terminal utilities and internal tools.
+ */
+
+import { ANSI } from "../../formatter.js";
+import { ContextManager } from "../../context.js";
+
+// ===================================================================
+//  start / run — Quick-start analysis of the active tab
+//
+//  With no arguments: queries the active tab domain and triggers triage.
+//  With a domain arg: behaves like `target <domain>` + triage.
+// ===================================================================
+
+export async function cmdStart(args) {
+    // If a domain was provided, use it directly
+    if (args.length > 0) {
+        const domain = args[0];
+        ContextManager.setManualTarget(domain);
+        return { __switch: true, domain: domain + " -go" };
+    }
+
+    // 2. If no args, check if we already have an active target set in the terminal
+    const currentTarget = ContextManager.getDomain();
+    if (currentTarget) {
+        return { __switch: true, domain: currentTarget + " -go" };
+    }
+
+    // 3. Fallback: query the active tab if no target is currently set
+    try {
+        const resp = await chrome.runtime.sendMessage({ command: "get-active-domain" });
+        if (!resp?.domain) {
+            return `${ANSI.red}[ERROR] No active tab detected.${ANSI.reset}\n${ANSI.dim}Open a website in a browser tab first.${ANSI.reset}`;
+        }
+
+        const domain = resp.domain;
+        ContextManager.setManualTarget(domain);
+        return { __switch: true, domain: domain + " -go" };
+    } catch (err) {
+        return `${ANSI.red}[ERROR] ${err.message || "Failed to query active tab."}${ANSI.reset}`;
+    }
+}

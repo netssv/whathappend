@@ -1,3 +1,14 @@
+/**
+ * @module modules/background/handlers/port.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - createAbort, completeAbort, getNextAbortSeq from '../abort.js'
+ * - Exports: handlePortProbe
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 import { createAbort, completeAbort, getNextAbortSeq } from "../abort.js";
 
 // ===================================================================

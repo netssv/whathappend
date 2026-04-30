@@ -1,4 +1,17 @@
 /**
+ * @module modules/formatter.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ContextManager from './context.js'
+ *     - REGEX from './data/constants.js'
+ *     - getTermCols from './state.js'
+ * - Exports: ANSI, getSeparator, insights, formatError, cmdUsage, cmdError, workerError, resolveTargetDomain, toRegisteredDomain, toApex, resolveBaseDomain, isIPAddress, ipNotAllowedError, loadImpactData, generateImpactSection
+ * - Layer: Shared Utility / Router - Common functions or central engine index used across the app.
+ */
+
+/**
  * WhatHappened — Shared Formatter & Utilities
  *
  * ANSI color codes, insights renderer, IP detection,
@@ -7,6 +20,7 @@
 
 import { ContextManager } from "./context.js";
 import { REGEX } from "./data/constants.js";
+import { getTermCols } from "./state.js";
 
 // ---------------------------------------------------------------------------
 // ANSI Color Constants
@@ -23,7 +37,10 @@ export const ANSI = {
 // Insights Renderer — [PASS] [WARN] [CRIT] [INFO]
 // ---------------------------------------------------------------------------
 
-export function getSeparator(char = "━", len = 50) {
+export function getSeparator(char = "━", forcedLen = null) {
+    const cols = getTermCols();
+    // Adapt to terminal width dynamically
+    const len = forcedLen || Math.max(20, cols - 2);
     return `${ANSI.dim}${char.repeat(len)}${ANSI.reset}`;
 }
 
@@ -52,18 +69,18 @@ export function formatError(type, what, suggestion, link) {
 
     if (w.includes("Failed to fetch") || w.includes("ERR_CONNECTION_REFUSED")) {
         t = "OFFLINE";
-        w = "El servidor no responde al handshake de HTTPS.";
-        s = "Verifica si el servidor está caído o bloqueando conexiones.";
+        w = "The server is not responding to the HTTPS handshake.";
+        s = "Verify if the server is down or blocking connections.";
         l = "https://www.isitdownrightnow.com/";
     } else if (w.includes("ERR_NAME_NOT_RESOLVED") || w.includes("NXDOMAIN")) {
         t = "DNS_ERROR";
-        w = "El dominio no resuelve (NXDOMAIN).";
-        s = "Verifica la sintaxis del dominio o la propagación DNS.";
+        w = "The domain does not resolve (NXDOMAIN).";
+        s = "Verify the domain syntax or check DNS propagation.";
         l = "https://mxtoolbox.com/dnscheck.aspx";
     } else if (w.includes("Timeout") || w.includes("AbortError") || w.includes("cancelled")) {
         t = "TIMEOUT";
-        w = "La respuesta tardó más de 5 segundos.";
-        s = "Intenta nuevamente; la red puede estar saturada.";
+        w = "The response took longer than the 5-second timeout limit.";
+        s = "Try again; the network might be congested or the site is blocking requests.";
         l = "https://mxtoolbox.com/NetworkTools.aspx";
     }
 
@@ -75,7 +92,15 @@ export function formatError(type, what, suggestion, link) {
 }
 
 export function cmdUsage(cmd, syntax) {
-    return `${ANSI.red}Usage: ${cmd} ${syntax}${ANSI.reset}`;
+    let example = "google.com";
+    if (syntax.includes("<ip>") || syntax.includes("[ip]")) example = "8.8.8.8";
+    else if (cmd === "config" || cmd === "settings") example = "timeout 5000";
+    else if (cmd === "tabs" || cmd === "tab") example = "list";
+    else if (cmd === "notes" || cmd === "note") example = "Check this later";
+    else if (cmd === "export") example = "json";
+    else if (cmd === "target") example = "example.com";
+
+    return `${ANSI.red}Usage: ${cmd} ${syntax}${ANSI.reset}\n${ANSI.dim}Example: ${cmd} ${example}${ANSI.reset}`;
 }
 
 export function cmdError(message) {

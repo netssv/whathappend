@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/native/external.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, isIPAddress, cmdUsage, cmdError, workerError from '../../formatter.js'
+ * - Exports: cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt
+ * - Layer: Command Layer (Native) - Native App messaging commands.
+ */
+
 import {ANSI, insights, resolveTargetDomain, isIPAddress, cmdUsage, cmdError, workerError } from "../../formatter.js";
 
 // ===================================================================

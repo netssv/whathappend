@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/web/curl.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - getHTTPErrorInsight from '../../data/http-errors.js'
+ * - Exports: cmdCurl
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import {ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { getHTTPErrorInsight } from "../../data/http-errors.js";
 
@@ -26,11 +38,11 @@ export async function cmdCurl(args) {
     o += `${sc}HTTP/2 ${status} ${statusText}${ANSI.reset}\n`;
     for (const [k,v] of Object.entries(headers)) o += `${k}: ${v}\n`;
 
-    o += insights(curlInsights(status, headers));
+    o += insights(curlInsights(status, headers, url));
     return o;
 }
 
-function curlInsights(status, h) {
+function curlInsights(status, h, url) {
     const ins = [];
 
     // ITIL-style HTTP error mapping for status codes ≥ 400
@@ -55,5 +67,6 @@ function curlInsights(status, h) {
     if (!h["x-content-type-options"]) ins.push({level:"WARN",text:"No X-Content-Type-Options."});
     if (h["server"]) ins.push({level:"INFO",text:`Server: ${h["server"]}`});
     if (h["x-powered-by"]) ins.push({level:"WARN",text:`X-Powered-By exposed: ${h["x-powered-by"]}`});
+    ins.push({level:"INFO",text:`Test HTTP Headers: https://securityheaders.com/?q=${encodeURIComponent(url)}`});
     return ins;
 }

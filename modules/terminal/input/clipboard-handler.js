@@ -1,3 +1,15 @@
+/**
+ * @module modules/terminal/input/clipboard-handler.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - InputEvents from './events.js'
+ *     - isHeaderFocused from '../header-controller.js'
+ * - Exports: initClipboardHandler
+ * - Layer: Terminal Layer (Input) - Handles keyboard events, autocomplete, and history.
+ */
+
 import { InputEvents } from "./events.js";
 import { isHeaderFocused } from "../header-controller.js";
 

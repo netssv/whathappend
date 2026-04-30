@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/web/history.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, cmdUsage, formatError from '../../formatter.js'
+ * - Exports: cmdHistory
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import { ANSI, insights, resolveTargetDomain, cmdUsage, formatError } from "../../formatter.js";
 
 // ===================================================================
@@ -20,7 +31,7 @@ export async function cmdHistory(args) {
     const t = resolveTargetDomain(args[0]);
     if (!t) return cmdUsage("history", "<domain>");
     
-    let o = `> history ${t}\n`;
+    let o = `> curl -s "https://crt.sh/?q=${t}&output=json" | jq\n`;
     try {
         const { src, data } = await fetchCertHistory(t);
         o = `> history ${t} (${src})\n`;
@@ -42,7 +53,7 @@ export async function cmdHistory(args) {
             ins.push({ level: "INFO", text: `First infrastructure footprint detected: ${oldestDate}` });
         }
         ins.push({ level: "INFO", text: `View full history: https://crt.sh/?q=${t}` });
-        
+        ins.push({ level: "INFO", text: `External Check: https://web.archive.org/web/*/${t}` });
         return o + insights(ins);
     } catch (e) {
         return o + formatError("FETCH_FAILED", e.message, "Both crt.sh and fallback APIs are unreachable.");

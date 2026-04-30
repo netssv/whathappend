@@ -1,3 +1,16 @@
+/**
+ * @module modules/terminal/input/context-parser.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - InputEvents from './events.js'
+ *     - ContextManager from '../../context.js'
+ *     - isIPAddress from '../../formatter.js'
+ * - Exports: initContextParser
+ * - Layer: Terminal Layer (Input) - Handles keyboard events, autocomplete, and history.
+ */
+
 import { InputEvents } from "./events.js";
 import { ContextManager } from "../../context.js";
 import { isIPAddress } from "../../formatter.js";

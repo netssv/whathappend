@@ -1,7 +1,29 @@
+/**
+ * @module modules/utils.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - REGEX from './data/constants.js'
+ *     - isIPAddress from './formatter.js'
+ * - Exports: stripANSI, isRdapMaintainer, ensureProtocol, daysUntil, extractDomain, resolveProvider, getProviderFromCNAME
+ * - Layer: Shared Utility / Router - Common functions or central engine index used across the app.
+ */
+
 import { REGEX } from "./data/constants.js";
 import { isIPAddress } from "./formatter.js";
 
 export const stripANSI = (s) => s.replace(REGEX.ANSI_STRIP, "");
+
+/**
+ * Detect RDAP/RIPE maintainer entity names that aren't real provider names.
+ * Matches: MNT-LARSEN, AS8560-MNT, CLDIN-MNT, AS-12345, etc.
+ */
+export function isRdapMaintainer(name) {
+    if (!name) return false;
+    const u = name.toUpperCase();
+    return u.endsWith("-MNT") || u.startsWith("MNT-") || /^AS\d/.test(u);
+}
 
 export function ensureProtocol(url) {
     if (!url.startsWith("http://") && !url.startsWith("https://")) {
@@ -44,5 +66,18 @@ export async function resolveProvider(target) {
     }
     // For domains (e.g. NS hostnames): try static hostname map first
     return null;
+}
+
+/**
+ * Extract the root domain provider from a CNAME record.
+ */
+export function getProviderFromCNAME(target) {
+    if (!target) return null;
+    const parts = target.replace(/\.$/, "").split(".");
+    if (parts.length >= 2) {
+        const root = parts.slice(-2).join(".");
+        return root.charAt(0).toUpperCase() + root.slice(1);
+    }
+    return target;
 }
 

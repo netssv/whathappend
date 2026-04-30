@@ -39,6 +39,7 @@
 /* Prevent horizontal scroll; force soft-wrap for long DNS strings / TXT records */
 .xterm-viewport {
     overflow-x: hidden !important;
+    padding-bottom: 40px !important;
 }
 
 .xterm-screen {

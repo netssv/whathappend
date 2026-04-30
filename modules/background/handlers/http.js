@@ -1,3 +1,16 @@
+/**
+ * @module modules/background/handlers/http.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - createAbort, completeAbort, getNextAbortSeq from '../abort.js'
+ *     - ensureProtocol from '../../utils.js'
+ *     - CONFIG from '../../data/constants.js'
+ * - Exports: handleHTTPHeaders, handleFetchText, classifyFetchError
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 import { createAbort, completeAbort, getNextAbortSeq } from "../abort.js";
 import { ensureProtocol } from "../../utils.js";
 import { CONFIG } from "../../data/constants.js";

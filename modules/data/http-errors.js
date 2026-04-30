@@ -1,4 +1,14 @@
 /**
+ * @module modules/data/http-errors.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: HTTP_ERROR_MAP, getHTTPErrorInsight
+ * - Layer: Data Layer - Static constants, dictionaries, and autocomplete datasets.
+ */
+
+/**
  * WhatHappened — HTTP Error Mapping (ITIL-Style)
  *
  * Lookup table for common HTTP/Server status codes with

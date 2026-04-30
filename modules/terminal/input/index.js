@@ -1,16 +1,40 @@
+/**
+ * @module modules/terminal/input/index.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - InputEvents from './events.js'
+ *     - initKeyboardEvents, setKeyboardLock, setLine from './keyboard-events.js'
+ *     - initCommandHistory from './command-history.js'
+ *     - initAutocompleteEngine from './autocomplete-engine.js'
+ *     - initClipboardHandler from './clipboard-handler.js'
+ *     - initContextParser from './context-parser.js'
+ *     - translateRawCommand from './command-translator.js'
+ *     - executeCommand from '../../engine.js'
+ *     - pushHistory from '../../state.js'
+ *     - term, writePrompt, showBanner, writeOutput, showSpinner, stopSpinner from '../terminal-ui.js'
+ *     - pingTriadVisibility from '../header/header-triad.js'
+ * - Exports: initInputManager, isCommandProcessing
+ * - Layer: Terminal Layer (Input) - Handles keyboard events, autocomplete, and history.
+ */
+
 import { InputEvents } from "./events.js";
 import { initKeyboardEvents, setKeyboardLock, setLine } from "./keyboard-events.js";
 import { initCommandHistory } from "./command-history.js";
 import { initAutocompleteEngine } from "./autocomplete-engine.js";
 import { initClipboardHandler } from "./clipboard-handler.js";
 import { initContextParser } from "./context-parser.js";
+import { translateRawCommand } from "./command-translator.js";
 
 import { executeCommand } from "../../engine.js";
 import { pushHistory } from "../../state.js";
 import { term, writePrompt, showBanner, writeOutput, showSpinner, stopSpinner } from "../terminal-ui.js";
+import { pingTriadVisibility } from "../header/header-triad.js";
 
 let isProcessing = false;
 let currentAbortId = null;
+let activeWatcher = null;  // live monitor (tabs watch)
 
 export function initInputManager() {
     // 1. Initialize Sub-Modules
@@ -22,7 +46,9 @@ export function initInputManager() {
 
     // 2. Orchestrate Sub-Module Events
     InputEvents.on(InputEvents.EV_COMMAND_SUBMIT, async (input) => {
-        if (!input) {
+        pingTriadVisibility();
+        if (!input || input.trim() === "") {
+            // Empty Enter → standard terminal behavior (new prompt)
             writePrompt();
             return;
         }
@@ -30,6 +56,16 @@ export function initInputManager() {
     });
 
     InputEvents.on(InputEvents.EV_INTERRUPT, () => {
+        // Stop any active live watcher first
+        if (activeWatcher) {
+            activeWatcher.stop();
+            activeWatcher = null;
+            isProcessing = false;
+            setKeyboardLock(false);
+            term.write("\r\n\x1b[33m^C [Stopped]\x1b[0m\r\n");
+            writePrompt();
+            return;
+        }
         if (isProcessing) {
             // Send abort signal to background worker
             if (currentAbortId) {
@@ -46,13 +82,6 @@ export function initInputManager() {
             writePrompt();
         }
     });
-
-    // When the autocomplete engine wants to show multiple options
-    InputEvents.on("EV_PRINT_OPTIONS", (matches) => {
-        term.write("\r\n");
-        term.writeln("\x1b[90m" + matches.join("  ") + "\x1b[0m");
-        writePrompt();
-    });
 }
 
 // ---------------------------------------------------------------------------
@@ -60,7 +89,19 @@ export function initInputManager() {
 // ---------------------------------------------------------------------------
 
 async function processCommand(rawInput) {
-    const input = rawInput.trim().replace(/\\+$/, "").trim();
+    let input = rawInput.trim().replace(/\\+$/, "").trim();
+    if (input.startsWith("> ")) {
+        input = input.substring(2).trim();
+    }
+    
+    // ── Reverse Command Mapping (Educational Feedback Loop) ──
+    const mappedInput = translateRawCommand(input);
+
+    if (mappedInput !== input) {
+        term.writeln(`\r\x1b[90m> Translating raw command to: ${mappedInput}\x1b[0m`);
+        input = mappedInput;
+    }
+
     isProcessing = true;
     setKeyboardLock(true);
     
@@ -85,6 +126,12 @@ async function processCommand(rawInput) {
         // registrar + hosting
         "registrar", "reg", "lifecycle",
         "hosting", "hoster", "provider", "webhost",
+        // start / switch
+        "start", "run", "go", "begin", "analyze", "switch",
+        // network parity
+        "isup", "upcheck", "down", "downcheck", "status",
+        "speed", "jitter", "latency-test",
+        "speedtest", "bandwidth", "nettest",
     ];
     
     const cmd = input.split(/\s+/)[0]?.toLowerCase();
@@ -122,11 +169,23 @@ async function processCommand(rawInput) {
                     output: historyOutput,
                 });
             }
+            if (result.chainedCommand) {
+                // Ensure we release the lock so the new command can process immediately
+                isProcessing = false;
+                setKeyboardLock(false);
+                setTimeout(() => InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, result.chainedCommand), 50);
+                return; // Early return to prevent normal cleanup from locking it again
+            }
         } else {
             const output = result;
             if (output === "__CLEAR__") {
                 term.clear();
                 showBanner();
+            } else if (output && typeof output === "object" && output.__watch) {
+                // Live watcher mode — keep keyboard locked, start polling
+                activeWatcher = output.watcher;
+                activeWatcher.start(term);
+                return; // Don't release lock or write prompt
             } else if (output) {
                 // Don't ghost "Command cancelled." as a standalone output line
                 const clean = output.replace(/\x1b\[[0-9;]*m/g, "").trim();

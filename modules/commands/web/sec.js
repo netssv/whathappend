@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/web/sec.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError from '../../formatter.js'
+ * - Exports: cmdSec
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import {ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
 
 // ===================================================================
@@ -83,7 +94,7 @@ export async function cmdSec(args) {
         else ins.unshift({level:"CRIT",text:`${fail} security issues.`});
         ins.push({level:"INFO",text:`Deep header analysis: https://securityheaders.com/?q=${encodeURIComponent(domain)}&followRedirects=on`});
     }
-
+    ins.push({ level: "INFO", text: `External Check: https://wheregoes.com/trace/2026/?url=${domain}` });
     o += insights(ins);
     return o;
 }

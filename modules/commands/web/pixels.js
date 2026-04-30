@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/web/pixels.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError from '../../formatter.js'
+ * - Exports: PIXEL_SIGNATURES, cmdPixels
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import {ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError } from "../../formatter.js";
 
 // ===================================================================
@@ -51,7 +62,7 @@ export async function cmdPixels(args) {
     const domain = resolveTargetDomain(args[0], info);
     if (!domain) return cmdUsage("pixels", "<domain>");
 
-    let o = `> pixels ${domain}\n`;
+    let o = `> curl -s https://${domain} | grep -iE 'google-analytics|fbq|gtag'\n`;
     
     let html = "";
     let fetchMethod = "";
@@ -122,6 +133,10 @@ export async function cmdPixels(args) {
             if (found.some(s => s.isLiveOnly)) ins.push({level:"INFO", text:"Dynamic Pixel injection detected (GTM/Async)."});
         }
 
+        if (isStatic) {
+            ins.push({level:"INFO",text:"Tip: Run this command while the site is open in the active tab for deeper JS/DOM analysis."});
+        }
+
         // Category insights
         const hasMeta = found.some(s => s.id === "facebook-pixel");
         const hasGA = found.some(s => s.id === "google-analytics");
@@ -138,7 +153,7 @@ export async function cmdPixels(args) {
         }
         
         ins.push({level:"INFO",text:`Test Trackers: https://builtwith.com/${encodeURIComponent(domain)}`});
-
+        ins.push({ level: "INFO", text: `External Check: https://themarkup.org/blacklight?url=${domain}` });
         o += insights(ins);
         return o;
 

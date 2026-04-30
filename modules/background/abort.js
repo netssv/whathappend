@@ -1,3 +1,13 @@
+/**
+ * @module modules/background/abort.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: _abortSeq, getNextAbortSeq, createAbort, cancelAbort, completeAbort
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 // ===================================================================
 // Abort Controller Registry — Enables Ctrl+C cancellation
 // ===================================================================

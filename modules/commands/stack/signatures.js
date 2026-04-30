@@ -1,3 +1,13 @@
+/**
+ * @module modules/commands/stack/signatures.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: CMS_SIGNATURES, FRAMEWORK_SIGNATURES, SERVER_SIGNATURES
+ * - Layer: Command Layer (Stack) - Tech stack identification.
+ */
+
 // ===================================================================
 //  Signature Tables for Tech Stack Detection
 // ===================================================================

@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/dns/nslookup.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, resolveTargetDomain, cmdUsage, cmdError, workerError from '../../formatter.js'
+ * - Exports: cmdNslookup
+ * - Layer: Command Layer (DNS) - Executes DNS resolution and formatting.
+ */
+
 import {ANSI, resolveTargetDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
 
 // ===================================================================
@@ -50,5 +61,6 @@ export async function cmdNslookup(args) {
         } else o += `${ANSI.yellow}** No answer for ${domain}${ANSI.reset}\n`;
     }
 
+    o += insights([{level: "INFO", text: `External Check: https://mxtoolbox.com/SuperTool.aspx?action=a%3A${encodeURIComponent(domain)}`}]);
     return o;
 }

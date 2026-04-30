@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/util/errors.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI from '../../formatter.js'
+ *     - getTermCols from '../../state.js'
+ * - Exports: cmdErrors
+ * - Layer: Command Layer (Util) - Terminal utilities and internal tools.
+ */
+
 import { ANSI } from "../../formatter.js";
 import { getTermCols } from "../../state.js";
 

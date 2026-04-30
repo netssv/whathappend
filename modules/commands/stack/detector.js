@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/stack/detector.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - CMS_SIGNATURES, FRAMEWORK_SIGNATURES, SERVER_SIGNATURES from './signatures.js'
+ * - Exports: detectTechnologies
+ * - Layer: Command Layer (Stack) - Tech stack identification.
+ */
+
 import { CMS_SIGNATURES, FRAMEWORK_SIGNATURES, SERVER_SIGNATURES } from "./signatures.js";
 
 export function detectTechnologies(html, headers) {

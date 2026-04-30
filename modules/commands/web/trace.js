@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/web/trace.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - getHTTPErrorInsight from '../../data/http-errors.js'
+ * - Exports: cmdTrace
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import {ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { getHTTPErrorInsight } from "../../data/http-errors.js";
 
@@ -47,6 +59,7 @@ export async function cmdTrace(args) {
     }
 
     ins.push({level:"INFO",text:`Test Redirects: https://httpstatus.io/`});
+    ins.push({ level: "INFO", text: `External Check: https://wheregoes.com/trace/2026/?url=${url}` });
 
     o += insights(ins);
     return o;

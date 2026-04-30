@@ -1,4 +1,14 @@
 /**
+ * @module modules/data/constants.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: REGEX, CONFIG, PORT_SERVICES
+ * - Layer: Data Layer - Static constants, dictionaries, and autocomplete datasets.
+ */
+
+/**
  * WhatHappened — Centralized Constants & RegExp
  */
 

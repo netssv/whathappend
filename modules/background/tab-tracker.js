@@ -1,3 +1,14 @@
+/**
+ * @module modules/background/tab-tracker.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - extractDomain from '../utils.js'
+ * - Exports: getActiveDomain, setupTabTracker
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 // ===================================================================
 // Active Tab Tracking — Context Awareness
 // ===================================================================
@@ -6,12 +17,11 @@ import { extractDomain } from "../utils.js";
 
 async function broadcastDomain(urlString) {
     const domain = extractDomain(urlString);
-    if (!domain) return;
 
     try {
         await chrome.runtime.sendMessage({
             type: "domain-changed",
-            domain: domain,
+            domain: domain || "restricted",
         });
     } catch (_e) {
         // Side panel may not be open; silently ignore
@@ -26,11 +36,11 @@ export async function getActiveDomain() {
         });
         if (tab?.url) {
             const domain = extractDomain(tab.url);
-            return { domain };
+            return { domain: domain || "restricted" };
         }
-        return { domain: null };
+        return { domain: "restricted" };
     } catch (_e) {
-        return { domain: null };
+        return { domain: "restricted" };
     }
 }
 

@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/dns/dnssec.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, cmdUsage, formatError, workerError from '../../formatter.js'
+ * - Exports: cmdDnssec
+ * - Layer: Command Layer (DNS) - Executes DNS resolution and formatting.
+ */
+
 import { ANSI, insights, resolveTargetDomain, cmdUsage, formatError, workerError } from "../../formatter.js";
 
 // ===================================================================

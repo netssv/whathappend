@@ -1,4 +1,28 @@
 /**
+ * @module modules/engine.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, generateImpactSection, isIPAddress, resolveTargetDomain, cmdUsage, cmdError, workerError from './formatter.js'
+ *     - CMD_ALIASES, DNS_SHORTCUTS from './data/aliases.js'
+ *     - parseCommand, suggestCommand from './core/parser.js'
+ *     - checkTargetGuards from './core/guards.js'
+ *     - handleAutoTarget from './core/fallback.js'
+ *     - cmdDig, cmdHost, cmdNslookup, cmdTTL, cmdDnssec from './commands/dns/index.js'
+ *     - cmdEmail, cmdSPF, cmdDMARC, cmdDKIM from './commands/email/index.js'
+ *     - cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdRegistrar, cmdHosting, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdIsUp, cmdSpeed, cmdSpeedtest, cmdIP, cmdSocials, cmdRank, cmdSeo, cmdOg, cmdAlt, cmdCsp, cmdWaf, cmdHsts, cmdMinify, cmdSchema, cmdDiff, cmdHeadersCheck from './commands/web/index.js'
+ *     - cmdSecurityTxt from './commands/web/security-txt.js'
+ *     - cmdVitals from './commands/web/vitals.js'
+ *     - cmdFlush from './commands/web/flush.js'
+ *     - cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt from './commands/native/index.js'
+ *     - cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig, cmdNotes, cmdTabs, cmdReload from './commands/util/index.js'
+ *     - cmdStack from './commands/stack/index.js'
+ * - Exports: executeCommand
+ * - Layer: Shared Utility / Router - Common functions or central engine index used across the app.
+ */
+
+/**
  * WhatHappened — Command Engine (Router)
  *
  * Every command follows a strict 3-part output:
@@ -18,9 +42,12 @@ import { handleAutoTarget } from "./core/fallback.js";
 // Command modules
 import { cmdDig, cmdHost, cmdNslookup, cmdTTL, cmdDnssec } from "./commands/dns/index.js";
 import { cmdEmail, cmdSPF, cmdDMARC, cmdDKIM } from "./commands/email/index.js";
-import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdRegistrar, cmdHosting, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies } from "./commands/web/index.js";
+import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdRegistrar, cmdHosting, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdIsUp, cmdSpeed, cmdSpeedtest, cmdIP, cmdSocials, cmdRank, cmdSeo, cmdOg, cmdAlt, cmdCsp, cmdWaf, cmdHsts, cmdMinify, cmdSchema, cmdDiff, cmdHeadersCheck } from "./commands/web/index.js";
+import { cmdSecurityTxt } from "./commands/web/security-txt.js";
+import { cmdVitals } from "./commands/web/vitals.js";
+import { cmdFlush } from "./commands/web/flush.js";
 import { cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "./commands/native/index.js";
-import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo } from "./commands/util/index.js";
+import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig, cmdNotes, cmdTabs, cmdReload } from "./commands/util/index.js";
 import { cmdStack } from "./commands/stack/index.js";
 
 // ---------------------------------------------------------------------------
@@ -73,15 +100,35 @@ export async function executeCommand(input) {
                 case "robots": output = await cmdRobots(args); break;
                 case "sec": output = await cmdSec(args); break;
                 case "pixels": output = await cmdPixels(args); break;
+                case "socials": output = await cmdSocials(args); break;
                 case "links": output = await cmdLinks(args); break;
                 case "load": output = await cmdLoad(args); break;
                 case "registrar": output = await cmdRegistrar(args); break;
                 case "hosting": output = await cmdHosting(args); break;
                 case "history": output = await cmdHistory(args); break;
+                case "rank": output = await cmdRank(args); break;
+                case "seo": output = await cmdSeo(args); break;
+                case "og": output = await cmdOg(args); break;
+                case "alt": output = await cmdAlt(args); break;
+                case "csp": output = await cmdCsp(args); break;
+                case "waf": output = await cmdWaf(args); break;
+                case "hsts": output = await cmdHsts(args); break;
+                case "minify": output = await cmdMinify(args); break;
+                case "schema": output = await cmdSchema(args); break;
+                case "diff": output = await cmdDiff(args); break;
+                case "headers-check": output = await cmdHeadersCheck(args); break;
                 case "wayback": output = await cmdWayback(args); break;
                 case "green": output = await cmdGreen(args); break;
                 case "cookies": output = await cmdCookies(args); break;
+                case "isup": output = await cmdIsUp(args); break;
+                case "speed": output = await cmdSpeed(args); break;
+                case "speedtest": output = await cmdSpeedtest(args); break;
                 case "stack": output = await cmdStack(args); break;
+                case "ip": output = await cmdIP(args); break;
+                case "security-txt": output = await cmdSecurityTxt(args); break;
+                case "vitals": output = await cmdVitals(args); break;
+                case "flush": output = await cmdFlush(args); break;
+                case "notes": output = await cmdNotes(args); break;
                 case "rev-dns": output = await cmdRevDNS(args); break;
                 case "port-scan": output = await cmdPortScan(args); break;
                 case "ftp-check": output = await cmdFTPCheck(args); break;
@@ -91,14 +138,35 @@ export async function executeCommand(input) {
                 case "whois-ext": output = cmdWhoisExt(args); break;
                 case "export": output = await cmdExport(args); break;
                 case "target": output = cmdTarget(args); break;
-                case "help": output = cmdHelp(); break;
+                case "help": output = cmdHelp(args); break;
                 case "errors": output = cmdErrors(); break;
-                case "about": output = cmdAbout(); break;
+                case "about": output = await cmdAbout(); break;
                 case "info": output = await cmdInfo(); break;
+                case "exit": output = await cmdExit(); break;
+                case "switch": {
+                    const result = await cmdSwitch();
+                    if (result && typeof result === "object" && result.__switch) {
+                        // Re-enter engine with the domain — triggers handleAutoTarget
+                        return await executeCommand(result.domain);
+                    }
+                    output = result;
+                    break;
+                }
+                case "start": {
+                    const result = await cmdStart(args);
+                    if (result && typeof result === "object" && result.__switch) {
+                        return await executeCommand(result.domain);
+                    }
+                    output = result;
+                    break;
+                }
+                case "config": output = await cmdConfig(args); break;
+                case "tabs": output = await cmdTabs(args); break;
+                case "reload": output = await cmdReload(); break;
                 case "clear": return "__CLEAR__";
                 default:
                     // If not a known command, check if it's an auto-target domain/IP
-                    output = await handleAutoTarget(cmd, args, opts);
+                    output = await handleAutoTarget(cmd, args, opts, flags);
                     // Progressive triage returns an object — pass through directly
                     if (output && typeof output === "object" && output.backgroundTriage !== undefined) {
                         return output;

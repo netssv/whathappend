@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/dns/host.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - resolveProvider from '../../utils.js'
+ * - Exports: cmdHost
+ * - Layer: Command Layer (DNS) - Executes DNS resolution and formatting.
+ */
+
 import {ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { resolveProvider } from "../../utils.js";
 
@@ -72,6 +84,8 @@ export async function cmdHost(args) {
         const prov = await resolveProvider((firstA.data||"").trim());
         if (prov) ins.push({level:"INFO",text:`Hosted by ${prov}.`});
     }
+
+    ins.push({level:"INFO",text:`External Check: https://mxtoolbox.com/SuperTool.aspx?action=a%3A${encodeURIComponent(domain)}`});
 
     if (ins.length > 0) o += "\n";
     o += insights(ins);

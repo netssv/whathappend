@@ -1,3 +1,15 @@
+/**
+ * @module modules/background/handlers/ssl.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - createAbort, completeAbort, getNextAbortSeq from '../abort.js'
+ *     - CONFIG from '../../data/constants.js'
+ * - Exports: handleSSL
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 import { createAbort, completeAbort, getNextAbortSeq } from "../abort.js";
 import { CONFIG } from "../../data/constants.js";
 

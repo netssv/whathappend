@@ -1,4 +1,14 @@
 /**
+ * @module modules/data/aliases.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: DNS_SHORTCUTS, DNS_TYPES, DNS_NUM, CMD_ALIASES, ALL_KNOWN_CMDS
+ * - Layer: Data Layer - Static constants, dictionaries, and autocomplete datasets.
+ */
+
+/**
  * WhatHappened — Command Aliases & DNS Shortcuts
  * Static data — no runtime dependencies.
  */
@@ -51,14 +61,62 @@ export const CMD_ALIASES = {
     "error-list": "errors", "error": "errors",
     // pixels
     "tracking": "pixels", "trackers": "pixels", "pixel": "pixels", "ads": "pixels",
+    // socials
+    "social": "socials",
     // stack / tech
     "tech": "stack", "techstack": "stack", "wappalyzer": "stack", "cms": "stack",
     // load / performance
-    "perf": "load", "performance": "load", "speed": "load", "pagespeed": "load", "timing": "load",
+    "perf": "load", "performance": "load", "pagespeed": "load", "timing": "load",
     // registrar
     "reg": "registrar", "lifecycle": "registrar",
     // hosting
     "hoster": "hosting", "provider": "hosting", "webhost": "hosting",
+    // exit
+    "quit": "exit",
+    // switch
+    "sw": "switch", "actual": "switch", "current": "switch", "here": "switch",
+    // tabs
+    "tab": "tabs",
+    // start
+    "run": "start", "go": "start", "begin": "start", "analyze": "start",
+    // config
+    "settings": "config", "set": "config", "prefs": "config",
+    // isup
+    "upcheck": "isup", "down": "isup", "downcheck": "isup", "status": "isup",
+    // speed
+    "jitter": "speed", "latency-test": "speed",
+    // speedtest
+    "bandwidth": "speedtest", "nettest": "speedtest",
+    // ip
+    "myip": "ip", "public-ip": "ip",
+    // security-txt
+    "sec-txt": "security-txt", "securitytxt": "security-txt",
+    // vitals
+    "cwv": "vitals", "web-vitals": "vitals", "core-vitals": "vitals",
+    // flush
+    "clearcache": "flush", "clear-cache": "flush",
+    // notes
+    "note": "notes", "memo": "notes", "annotation": "notes",
+    // rank
+    "ranking": "rank", "traffic": "rank",
+    // seo
+    "meta": "seo", "tags": "seo",
+    // og
+    "thaks": "og", "opengraph": "og", "cards": "og",
+    // alt
+    "images": "alt", "a11y": "alt",
+    // reload
+    "restart": "reload", "reboot": "reload",
+    // waf
+    "firewall": "waf", "cdn-check": "waf",
+    // hsts
+    "strict": "hsts", "secure-transport": "hsts",
+    // minify
+    "min": "minify", "assets": "minify",
+    // schema
+    "structured": "schema", "jsonld": "schema", "microdata": "schema",
+    // headers-check
+    "hcheck": "headers-check", "security-headers": "headers-check",
 };
 
 export const ALL_KNOWN_CMDS = [
@@ -69,6 +127,8 @@ export const ALL_KNOWN_CMDS = [
     "dkim", "robots", "sec", "target", "help", "clear",
     "rev-dns", "port-scan", "ftp-check", "export",
     "blacklist", "ssllabs", "securityheaders", "whois-ext",
-    "errors", "pixels", "stack", "load",
-    "registrar", "hosting",
+    "errors", "pixels", "socials", "stack", "load", "rank", "seo", "og", "alt", "csp", "waf", "hsts", "minify", "schema", "diff", "headers-check",
+    "registrar", "hosting", "exit", "switch", "reload",
+    "start", "config", "isup", "speed", "speedtest",
+    "ip", "security-txt", "vitals", "flush", "notes", "tabs", "actual", "current", "here",
 ].filter(c => /^[a-z]/i.test(c));

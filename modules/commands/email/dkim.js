@@ -1,6 +1,21 @@
+/**
+ * @module modules/commands/email/dkim.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveBaseDomain from '../../formatter.js'
+ *     - getPossibleSelectors from './dkim-discovery.js'
+ *     - normTxt from './utils.js'
+ *     - getProviderFromCNAME from '../../utils.js'
+ * - Exports: cmdDKIM, checkSel
+ * - Layer: Command Layer (Email) - Audits SPF, DKIM, DMARC records.
+ */
+
 import { ANSI, insights, resolveBaseDomain } from "../../formatter.js";
 import { getPossibleSelectors } from "./dkim-discovery.js";
 import { normTxt } from "./utils.js";
+import { getProviderFromCNAME } from "../../utils.js";
 
 // ===================================================================
 //  dkim
@@ -27,7 +42,7 @@ export async function cmdDKIM(args) {
         sels = getPossibleSelectors(mxData, spfData);
     }
 
-    let o = `> dkim-scan ${base} (${manualSel ? 'manual' : 'dynamic'}: ${sels.length} selectors)\n`;
+    let o = `> for sel in ${sels.slice(0,3).join(" ")}${sels.length>3?"...":""}; do dig $sel._domainkey.${base} txt +short; done\n`;
 
     const results = await Promise.all(sels.map(s => checkSel(s, base)));
     const found = results.filter(Boolean);
@@ -63,7 +78,7 @@ export async function checkSel(sel, base) {
             // Guard: empty or self-referencing CNAME — bail out
             if (!target || target === curr) return prov ? { sel, domain, prov } : null;
             curr = target;
-            prov = depth > 0 ? `CNAME ➝ ${curr} (depth: ${depth + 1})` : `CNAME ➝ ${curr}`;
+            prov = `[INFO] Managed by ${getProviderFromCNAME(curr)}`;
         } else {
             return { sel, domain, prov };
         }
@@ -81,6 +96,6 @@ function buildInsights(found, base) {
         const provs = [...new Set(found.map(d => d.prov).filter(Boolean))];
         if (provs.length) ins.push({level:"INFO", text:`Providers: ${provs.join(", ")}`});
     }
-    ins.push({level:"INFO", text:`Test DKIM: https://mxtoolbox.com/dkim.aspx`});
+    ins.push({level:"INFO", text:`External Check: https://mxtoolbox.com/dkim.aspx`});
     return ins;
 }

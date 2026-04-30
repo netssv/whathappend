@@ -1,5 +1,17 @@
+/**
+ * @module modules/commands/native/export.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - getHistory, getNotes from '../../state.js'
+ * - Exports: cmdExport
+ * - Layer: Command Layer (Native) - Native App messaging commands.
+ */
+
 import {ANSI, cmdUsage, cmdError, workerError } from "../../formatter.js";
-import { getHistory } from "../../state.js";
+import { getHistory, getNotes } from "../../state.js";
 
 // ===================================================================
 //  export — Export terminal history to JSON or CSV
@@ -19,7 +31,7 @@ export async function cmdExport(args) {
 
     const resp = await chrome.runtime.sendMessage({
         command: "export-history",
-        payload: { history, format },
+        payload: { history, format, notes: getNotes() },
     });
 
     if (!resp) return workerError();

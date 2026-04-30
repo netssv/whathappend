@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/web/hosting.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, isIPAddress, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - resolveProvider from '../../utils.js'
+ * - Exports: cmdHosting
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import { ANSI, insights, resolveTargetDomain, isIPAddress, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { resolveProvider } from "../../utils.js";
 
@@ -31,7 +43,7 @@ export async function cmdHosting(args) {
 }
 
 async function resolveAndFormat(ip, domain) {
-    let o = `> hosting ${domain}\n`;
+    let o = `> whois ${domain} | grep -iE 'orgname|netname'\n`;
     o += `${ANSI.white}IP:${ANSI.reset}         ${ip}\n`;
 
     const provider = await resolveProvider(ip);
@@ -49,6 +61,7 @@ async function resolveAndFormat(ip, domain) {
         ins.push({ level: "INFO", text: `Manual lookup: https://www.whois.com/whois/${ip}` });
     }
     ins.push({ level: "INFO", text: `IP WHOIS: https://rdap.org/ip/${ip}` });
+    ins.push({ level: "INFO", text: `External Check: https://who.is/whois/${domain}` });
 
     o += insights(ins);
     return o;

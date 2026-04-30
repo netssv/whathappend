@@ -1,3 +1,14 @@
+/**
+ * @module modules/core/parser.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ALL_KNOWN_CMDS from '../data/aliases.js'
+ * - Exports: levenshtein, suggestCommand, parseCommand
+ * - Layer: Core Layer (Engine) - Central triaging, parsing, and execution routing.
+ */
+
 import { ALL_KNOWN_CMDS } from "../data/aliases.js";
 
 // ---------------------------------------------------------------------------
@@ -29,8 +40,8 @@ export function suggestCommand(input) {
 
 export function parseCommand(input) {
     const tokens = input.split(/\s+/);
-    const flags = tokens.filter(t => t.startsWith("--"));
+    const flags = tokens.filter(t => t.startsWith("-") && t !== "-");
     const opts = tokens.filter(t => t.startsWith("+"));
-    const nf = tokens.filter(t => !t.startsWith("--") && !t.startsWith("+"));
+    const nf = tokens.filter(t => !(t.startsWith("-") && t !== "-") && !t.startsWith("+"));
     return { cmd: nf[0]?.toLowerCase()||"", args: nf.slice(1), flags, opts };
 }

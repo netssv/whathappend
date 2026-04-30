@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/email/dmarc.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveBaseDomain, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - normTxt from './utils.js'
+ * - Exports: cmdDMARC
+ * - Layer: Command Layer (Email) - Audits SPF, DKIM, DMARC records.
+ */
+
 import {ANSI, insights, resolveBaseDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { normTxt } from "./utils.js";
 
@@ -24,11 +36,14 @@ export async function cmdDMARC(args) {
         else if (val.includes("p=quarantine")) ins.push({level:"PASS",text:"Quarantine policy — unauthorized mail goes to spam."});
         else if (val.includes("p=none")) ins.push({level:"WARN",text:"None policy — DMARC is monitoring only."});
         if (val.includes("rua=")) ins.push({level:"INFO",text:"Aggregate reports configured."});
-        ins.push({level:"INFO",text:`Test DMARC: https://mxtoolbox.com/dmarc/${base}`});
+        ins.push({level:"INFO",text:`External Check: https://mxtoolbox.com/dmarc/${base}`});
         o += insights(ins);
     } else {
         o += `${ANSI.dim}(not found)${ANSI.reset}\n`;
-        o += insights([{level:"WARN",text:"No DMARC — spoofed emails bypass filters."}]);
+        o += insights([
+            {level:"WARN",text:"No DMARC — spoofed emails bypass filters."},
+            {level:"INFO",text:`External Check: https://mxtoolbox.com/dmarc/${base}`}
+        ]);
     }
     return o;
 }

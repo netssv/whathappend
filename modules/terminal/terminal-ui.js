@@ -1,4 +1,16 @@
-import { setTermCols } from "../state.js";
+/**
+ * @module modules/terminal/terminal-ui.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - setTermCols, getHistory from '../state.js'
+ *     - showBanner as _showBanner from './terminal-banner.js'
+ * - Exports: PROMPT_PREFIX, PROMPT, term, fitAddon, isSystemWriting, initTerminalUI, refitTerminal, showBanner, writePrompt, writeOutput, showSpinner, stopSpinner
+ * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
+ */
+
+import { setTermCols, getHistory } from "../state.js";
 import { showBanner as _showBanner } from "./terminal-banner.js";
 
 // ---------------------------------------------------------------------------
@@ -71,6 +83,13 @@ export function initTerminalUI(containerId) {
         setTermCols(term.cols);
     });
 
+    // Watch for header geometry changes (triad/tab-switch bar show/hide)
+    const observer = new ResizeObserver(() => {
+        fitAddon.fit();
+        setTermCols(term.cols);
+    });
+    observer.observe(container);
+
     setupFontControls();
 
     return new Promise((resolve) => {
@@ -80,6 +99,15 @@ export function initTerminalUI(containerId) {
             resolve();
         }, 50);
     });
+}
+
+/** Re-fit the terminal to the current available space. */
+export function refitTerminal() {
+    if (fitAddon) {
+        fitAddon.fit();
+        setTermCols(term.cols);
+        term.scrollToBottom();
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -132,7 +160,12 @@ export function showBanner() {
 }
 
 export function writePrompt() {
-    term.write(PROMPT_PREFIX + PROMPT);
+    // Write the prompt, and the dim placeholder only if it's the very first command
+    if (getHistory().length === 0) {
+        term.write(PROMPT_PREFIX + PROMPT + "\x1b[90mgoogle.com\x1b[0m\x1b[10D");
+    } else {
+        term.write(PROMPT_PREFIX + PROMPT);
+    }
 }
 
 export function writeOutput(output) {

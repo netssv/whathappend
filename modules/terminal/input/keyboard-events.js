@@ -1,10 +1,42 @@
-import { InputEvents } from "./events.js";
-import { term, PROMPT, writePrompt, isSystemWriting } from "../terminal-ui.js";
-import { isWriteLocked, enqueueWrite } from "../write-lock.js";
-import { deleteCharBefore, deleteWordBefore, deleteCharAfter, deleteWordAfter, moveCursorWordLeft, moveCursorWordRight } from "./buffer-ops.js";
+/**
+ * @module modules/terminal/input/keyboard-events.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - InputEvents from './events.js'
+ *     - term, writePrompt, isSystemWriting from '../terminal-ui.js'
+ *     - deleteCharBefore, deleteWordBefore, deleteCharAfter, deleteWordAfter, moveCursorWordLeft, moveCursorWordRight from './buffer-ops.js'
+ *     - getTermCols from '../../state.js'
+ *     - getCurrentLine, getCursorPosition, isKeyboardLocked, setKeyboardLock, insertText, setLine, clearBuffer, clearCurrentLine, refreshLine, updateBufferState, getVisualRow from './buffer-manager.js'
+ * - Exports: getCurrentBuffer, initKeyboardEvents, setKeyboardLock, setLine
+ * - Layer: Terminal Layer (Input) - Handles keyboard events, autocomplete, and history.
+ */
 
-let currentLine = "";
-let cursorPosition = 0;
+import { InputEvents } from "./events.js";
+import { term, writePrompt, isSystemWriting } from "../terminal-ui.js";
+import { deleteCharBefore, deleteWordBefore, deleteCharAfter, deleteWordAfter, moveCursorWordLeft, moveCursorWordRight } from "./buffer-ops.js";
+import { getTermCols } from "../../state.js";
+
+import {
+    getCurrentLine,
+    getCursorPosition,
+    isKeyboardLocked,
+    setKeyboardLock,
+    insertText,
+    setLine,
+    clearBuffer,
+    clearCurrentLine,
+    refreshLine,
+    updateBufferState,
+    getVisualRow
+} from "./buffer-manager.js";
+
+// Re-export for compatibility with index.js if needed
+export function getCurrentBuffer() {
+    return getCurrentLine();
+}
+export { setKeyboardLock, setLine };
 
 export function initKeyboardEvents() {
     setupTerminalListener();
@@ -21,13 +53,8 @@ export function initKeyboardEvents() {
     
     // Listen to clear screen
     InputEvents.on(InputEvents.EV_CLEAR_SCREEN, () => {
-        currentLine = "";
-        cursorPosition = 0;
+        clearBuffer();
     });
-}
-
-export function getCurrentBuffer() {
-    return currentLine;
 }
 
 function setupTerminalListener() {
@@ -51,8 +78,9 @@ function setupTerminalListener() {
             InputEvents.emit("EV_TRIGGER_MANUAL_PASTE", null);
             return;
         }
-        if (keyCode !== 9) InputEvents.emit(InputEvents.EV_KEY_TYPED, keyCode);
-        if (isLocked) return;
+        const isNavKey = keyCode >= 35 && keyCode <= 40;
+        if (keyCode !== 9 && !isNavKey) InputEvents.emit(InputEvents.EV_KEY_TYPED, keyCode);
+        if (isKeyboardLocked()) return;
 
         // ── Editing shortcuts ──
         if (ctrlKey && keyCode === 76) {
@@ -63,21 +91,45 @@ function setupTerminalListener() {
         }
         if (ctrlKey && keyCode === 85) {
             clearCurrentLine();
-            currentLine = "";
-            cursorPosition = 0;
+            clearBuffer();
             return;
         }
         if (keyCode === 13) {
+            const currentLine = getCurrentLine();
+            if (currentLine === "") {
+                // Clear the placeholder before submitting empty string
+                clearCurrentLine();
+                term.write("\r\n");
+                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, "");
+                return;
+            }
+
+            // Move cursor to the end of the visual line before printing newline
+            const cols = getTermCols();
+            const promptLen = 2; // "❯ "
+            const cursorPosition = getCursorPosition();
+            const newTotalAbs = promptLen + currentLine.length;
+            const newCursorAbs = promptLen + cursorPosition;
+            const newEndRow = getVisualRow(newTotalAbs, cols);
+            const targetRow = getVisualRow(newCursorAbs, cols);
+            const rowsDown = newEndRow - targetRow;
+            if (rowsDown > 0) {
+                term.write(`\x1b[${rowsDown}B`); // move down
+            }
             term.write("\r\n");
+            
             const input = currentLine.trim();
-            currentLine = "";
-            cursorPosition = 0;
+            clearBuffer();
             InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, input);
             return;
         }
-        if (keyCode === 38) return InputEvents.emit(InputEvents.EV_HISTORY_NAVIGATE, "UP");
-        if (keyCode === 40) return InputEvents.emit(InputEvents.EV_HISTORY_NAVIGATE, "DOWN");
+        
+        const currentLine = getCurrentLine();
+        if (keyCode === 38) { domEvent.preventDefault(); return InputEvents.emit(InputEvents.EV_HISTORY_NAVIGATE, "UP"); }
+        if (keyCode === 40) { domEvent.preventDefault(); return InputEvents.emit(InputEvents.EV_HISTORY_NAVIGATE, "DOWN"); }
         if (keyCode === 9)  { domEvent.preventDefault(); return InputEvents.emit(InputEvents.EV_TAB_PRESSED, currentLine); }
+
+        const cursorPosition = getCursorPosition();
 
         // ── Buffer mutations (guard-clause style) ──
         if (keyCode === 8) {
@@ -85,9 +137,7 @@ function setupTerminalListener() {
             const result = altKey
                 ? deleteWordBefore(currentLine, cursorPosition)
                 : deleteCharBefore(currentLine, cursorPosition);
-            currentLine = result.line;
-            cursorPosition = result.cursor;
-            return refreshLine();
+            return updateBufferState(result.line, result.cursor, cursorPosition);
         }
 
         if (keyCode === 46) {
@@ -95,90 +145,32 @@ function setupTerminalListener() {
             const result = altKey
                 ? deleteWordAfter(currentLine, cursorPosition)
                 : deleteCharAfter(currentLine, cursorPosition);
-            currentLine = result.line;
-            cursorPosition = result.cursor;
-            return refreshLine();
+            return updateBufferState(result.line, result.cursor, cursorPosition);
         }
 
         // ── Cursor movement ──
         if (keyCode === 37) {
             if (cursorPosition <= 0) return;
-            if (altKey) {
-                cursorPosition = moveCursorWordLeft(currentLine, cursorPosition);
-                refreshLine();
-            } else {
-                cursorPosition--;
-                term.write("\x1b[D");
-            }
-            return;
+            let newPos = altKey 
+                ? moveCursorWordLeft(currentLine, cursorPosition) 
+                : cursorPosition - 1;
+            return updateBufferState(currentLine, newPos, cursorPosition);
         }
         if (keyCode === 39) {
             if (cursorPosition >= currentLine.length) return;
-            if (altKey) {
-                cursorPosition = moveCursorWordRight(currentLine, cursorPosition);
-                refreshLine();
-            } else {
-                cursorPosition++;
-                term.write("\x1b[C");
-            }
-            return;
+            let newPos = altKey 
+                ? moveCursorWordRight(currentLine, cursorPosition) 
+                : cursorPosition + 1;
+            return updateBufferState(currentLine, newPos, cursorPosition);
         }
-        if (keyCode === 36) {
-            while (cursorPosition > 0) { cursorPosition--; term.write("\x1b[D"); }
-            return;
+        if (keyCode === 36) { // Home
+            return updateBufferState(currentLine, 0, cursorPosition);
         }
-        if (keyCode === 35) {
-            while (cursorPosition < currentLine.length) { cursorPosition++; term.write("\x1b[C"); }
-            return;
+        if (keyCode === 35) { // End
+            return updateBufferState(currentLine, currentLine.length, cursorPosition);
         }
 
         // ── Printable character ──
         if (key.length === 1 && !ctrlKey) insertText(key);
     });
-}
-
-// ---------------------------------------------------------------------------
-// Buffer Manipulation
-// ---------------------------------------------------------------------------
-
-let isLocked = false;
-export function setKeyboardLock(locked) {
-    isLocked = locked;
-}
-
-function insertText(text) {
-    currentLine =
-        currentLine.slice(0, cursorPosition) +
-        text +
-        currentLine.slice(cursorPosition);
-    cursorPosition += text.length;
-    refreshLine();
-}
-
-function clearCurrentLine() {
-    term.write("\r" + PROMPT + "\x1b[K");
-}
-
-function refreshLine() {
-    const doRefresh = () => {
-        term.write("\r" + PROMPT + currentLine + "\x1b[K");
-        const moveBack = currentLine.length - cursorPosition;
-        if (moveBack > 0) {
-            term.write(`\x1b[${moveBack}D`);
-        }
-        InputEvents.emit("EV_INPUT_UPDATED", currentLine);
-    };
-
-    if (isWriteLocked()) {
-        enqueueWrite(doRefresh);
-    } else {
-        doRefresh();
-    }
-}
-
-export function setLine(text) {
-    currentLine = text;
-    cursorPosition = text.length;
-    clearCurrentLine();
-    term.write(text);
 }
