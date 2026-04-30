@@ -42,11 +42,11 @@ import { handleAutoTarget } from "./core/fallback.js";
 // Command modules
 import { cmdDig, cmdHost, cmdNslookup, cmdTTL, cmdDnssec } from "./commands/dns/index.js";
 import { cmdEmail, cmdSPF, cmdDMARC, cmdDKIM } from "./commands/email/index.js";
-import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdRegistrar, cmdHosting, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdIsUp, cmdSpeed, cmdSpeedtest, cmdIP, cmdSocials, cmdRank, cmdSeo, cmdOg, cmdAlt, cmdCsp, cmdWaf, cmdHsts, cmdMinify, cmdSchema, cmdDiff, cmdHeadersCheck } from "./commands/web/index.js";
+import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdIsUp, cmdJitter, cmdSpeedtest, cmdIP, cmdSocials, cmdRank, cmdSeo, cmdOg, cmdAlt, cmdCsp, cmdWaf, cmdHsts, cmdMinify, cmdSchema, cmdDiff, cmdHeadersCheck, cmdAudit, cmdExt, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "./commands/web/index.js";
 import { cmdSecurityTxt } from "./commands/web/security-txt.js";
 import { cmdVitals } from "./commands/web/vitals.js";
 import { cmdFlush } from "./commands/web/flush.js";
-import { cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "./commands/native/index.js";
+import { cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport } from "./commands/native/index.js";
 import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig, cmdNotes, cmdTabs, cmdReload } from "./commands/util/index.js";
 import { cmdStack } from "./commands/stack/index.js";
 
@@ -103,10 +103,10 @@ export async function executeCommand(input) {
                 case "socials": output = await cmdSocials(args); break;
                 case "links": output = await cmdLinks(args); break;
                 case "load": output = await cmdLoad(args); break;
-                case "registrar": output = await cmdRegistrar(args); break;
                 case "hosting": output = await cmdHosting(args); break;
                 case "history": output = await cmdHistory(args); break;
                 case "rank": output = await cmdRank(args); break;
+                case "audit": output = await cmdAudit(args); break;
                 case "seo": output = await cmdSeo(args); break;
                 case "og": output = await cmdOg(args); break;
                 case "alt": output = await cmdAlt(args); break;
@@ -121,7 +121,7 @@ export async function executeCommand(input) {
                 case "green": output = await cmdGreen(args); break;
                 case "cookies": output = await cmdCookies(args); break;
                 case "isup": output = await cmdIsUp(args); break;
-                case "speed": output = await cmdSpeed(args); break;
+                case "jitter": output = await cmdJitter(args); break;
                 case "speedtest": output = await cmdSpeedtest(args); break;
                 case "stack": output = await cmdStack(args); break;
                 case "ip": output = await cmdIP(args); break;
@@ -132,6 +132,7 @@ export async function executeCommand(input) {
                 case "rev-dns": output = await cmdRevDNS(args); break;
                 case "port-scan": output = await cmdPortScan(args); break;
                 case "ftp-check": output = await cmdFTPCheck(args); break;
+                case "ext": output = cmdExt(args); break;
                 case "blacklist": output = cmdBlacklist(args); break;
                 case "ssllabs": output = cmdSSLLabs(args); break;
                 case "securityheaders": output = cmdSecurityHeaders(args); break;
@@ -177,6 +178,10 @@ export async function executeCommand(input) {
     } catch (err) {
         output = cmdError(` ${err.message || "Unknown error occurred"}`);
         output += `\n${ANSI.dim}If this persists, try a different domain or check your connection.${ANSI.reset}`;
+    }
+
+    if (output && typeof output === "object" && output.__watch) {
+        return output;
     }
 
     if (hasImpact && !["help","clear","target"].includes(resolved)) {

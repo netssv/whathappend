@@ -5,7 +5,7 @@
  * @connections
  * - Imports: 
  *     - ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError from '../../formatter.js'
- * - Exports: cmdSpeed
+ * - Exports: cmdJitter
  * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
  */
 
@@ -18,10 +18,10 @@ import { ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError } 
 //  latency and standard deviation (jitter).
 // ===================================================================
 
-export async function cmdSpeed(args) {
+export async function cmdJitter(args) {
     const info = {};
     const domain = resolveTargetDomain(args[0], info);
-    if (!domain) return cmdUsage("speed", "<domain>");
+    if (!domain) return cmdUsage("jitter", "<domain>");
 
     let o = `> ping -c 10 ${domain} | awk '{print $time}'\n`;
     o += `${ANSI.dim}Running 5-round latency test...${ANSI.reset}\n\n`;

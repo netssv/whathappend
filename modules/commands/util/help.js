@@ -14,104 +14,13 @@
 import { ANSI, isIPAddress } from "../../formatter.js";
 import { ContextManager } from "../../context.js";
 import { getTermCols } from "../../state.js";
+import { HELP_SECTIONS } from "../../data/help-data.js";
 
 // ===================================================================
 //  help — Responsive layout (adapts to terminal width)
 // ===================================================================
 
-// Command definitions: [name, description, aliases]
-export const HELP_SECTIONS = [
-    { title: "AUDITS", cmds: [
-        ["email", "MX+SPF+DMARC+DKIM", "mail"],
-        ["web", "DNS+Headers+SSL", "audit"],
-        ["sec", "Security scorecard", "scan security"],
-        ["csp", "Content-Security-Policy", "xss"],
-        ["waf", "WAF / CDN detection", "firewall"],
-        ["hsts", "HSTS policy audit", "strict"],
-        ["headers-check", "Security header checklist", "hcheck"],
-    ]},
-    { title: "DNS", cmds: [
-        ["dig", "Full DNS [+short]", "dns record"],
-        ["host", "A + AAAA + MX", ""],
-        ["nslookup", "Name server lookup", "lookup"],
-        ["ttl", "TTL all records", ""],
-        ["dnssec", "DNSSEC zone auth", ""],
-    ]},
-    { title: "DNS SHORTCUTS", cmds: [
-        ["a", "IPv4 address", ""],
-        ["aaaa", "IPv6 address", ""],
-        ["mx", "Mail servers", ""],
-        ["txt", "Text records", ""],
-        ["ns", "Nameservers", ""],
-        ["cname", "Domain aliases", ""],
-        ["soa", "Start of Authority", ""],
-    ]},
-    { title: "EMAIL", cmds: [
-        ["spf", "SPF record", ""],
-        ["dmarc", "DMARC policy", ""],
-        ["dkim", "DKIM scan (dynamic)", ""],
-    ]},
-    { title: "WEB", cmds: [
-        ["curl", "HTTP headers", "http headers"],
-        ["openssl", "SSL/TLS cert", "ssl cert tls"],
-        ["whois", "Domain WHOIS", "domain"],
-        ["registrar", "Registrar lifecycle", "reg lifecycle"],
-        ["hosting", "IP hosting provider", "provider webhost"],
-        ["history", "Cert transparency logs", "crt"],
-        ["rank", "Global traffic rank", "ranking traffic"],
-        ["ping", "HTTP latency", "latency"],
-        ["trace", "Redirect chain", "redirect follow"],
-        ["robots", "robots.txt", "sitemap"],
-        ["links", "Mixed content scan", "src"],
-        ["wayback", "Archive.org timeline", "archive"],
-        ["green", "Green energy host", ""],
-        ["cookies", "Privacy cookies audit", ""],
-        ["pixels", "Ad/tracking pixels", "tracking ads"],
-        ["socials", "Social media presence", "social"],
-        ["stack", "Technology stack", "tech cms"],
-        ["seo", "Baseline SEO audit", "meta tags"],
-        ["og", "Open Graph cards", "thaks opengraph"],
-        ["alt", "Image accessibility", "a11y images"],
-        ["schema", "Structured data scanner", "jsonld"],
-        ["minify", "Asset minification check", "min"],
-        ["load", "Performance timing", "perf timing"],
-        ["vitals", "Core Web Vitals", "cwv web-vitals"],
-        ["security-txt", "Security contact (RFC 9116)", "sec-txt"],
-    ]},
-    { title: "NETWORK", cmds: [
-        ["isup", "Local vs global parity", "upcheck down"],
-        ["speed", "Latency jitter test", "jitter"],
-        ["speedtest", "Local bandwidth test", "bandwidth"],
-        ["rev-dns", "Reverse DNS (PTR)", "rdns ptr"],
-        ["port-scan", "Port scanner", "ports nmap"],
-        ["ftp-check", "FTP banner grab", "ftp"],
-        ["ip", "Public IP / domain IP", "myip public-ip"],
-    ]},
-    { title: "EXTERNAL", subtitle: "(opens link)", cmds: [
-        ["blacklist", "Blacklist lookup", "bl rbl"],
-        ["ssllabs", "SSL Labs deep scan", "ssltest"],
-        ["securityheaders", "Header grade A+ to F", "sheaders"],
-        ["whois-ext", "ICANN/DomainTools", "icann"],
-    ]},
-    { title: "UTIL", cmds: [
-        ["start", "Analyze active tab", "run go begin"],
-        ["switch", "Switch to active tab", "actual current here"],
-        ["export", "Save report", "dump save"],
-        ["target", "Set target domain", ""],
-        ["tabs", "List / close / inspect tabs", "tab list close info"],
-        ["reload", "Extension hard reboot", "restart reboot"],
-        ["config", "User preferences", "settings set"],
-        ["about", "Philosophy & identity", ""],
-        ["info", "System diagnostics", "telemetry status"],
-        ["errors", "Error & insight guide", "error"],
-        ["clear", "Clear terminal", "cls reset"],
-        ["flush", "Clear cookies+cache", "clearcache"],
-        ["notes", "Session annotations", "note memo"],
-        ["diff", "Compare two domains", ""],
-        ["exit", "End session & clear", "quit"],
-        ["help", "Show this menu", "? ls man"],
-    ]},
-];
+
 
 export function cmdHelp(args = []) {
     const cols = getTermCols();
@@ -119,7 +28,7 @@ export function cmdHelp(args = []) {
     // IP-aware dimming: domain-only commands are dimmed when target is an IP
     const currentTarget = ContextManager.getDomain();
     const targetIsIP = currentTarget ? isIPAddress(currentTarget) : false;
-    const domainOnlyCmds = ["email", "spf", "dmarc", "dkim", "openssl", "whois", "registrar", "pixels", "socials", "stack", "robots", "web", "sec"];
+    const domainOnlyCmds = ["email", "spf", "dmarc", "dkim", "openssl", "whois", "audit", "pixels", "socials", "stack", "robots", "web", "sec"];
 
     let o = "";
 

@@ -1,10 +1,10 @@
 /**
  * @module modules/commands/util/index.js
- * @description Architectural connections and module role.
+ * @description Re-export barrel for all utility commands.
  * 
  * @connections
  * - Imports: None (Dependency-free)
- * - Exports: cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig, cmdNotes, cmdTabs
+ * - Exports: cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig, cmdNotes, cmdTabs, cmdReload
  * - Layer: Command Layer (Util) - Terminal utilities and internal tools.
  */
 
@@ -18,6 +18,6 @@ export { cmdExit } from "./exit.js";
 export { cmdSwitch } from "./switch.js";
 export { cmdStart } from "./start.js";
 export { cmdConfig } from "./config.js";
+export { cmdNotes } from "./notes.js";
 export { cmdTabs } from "./tabs.js";
 export { cmdReload } from "./reload.js";
-export { cmdNotes } from "./notes.js";

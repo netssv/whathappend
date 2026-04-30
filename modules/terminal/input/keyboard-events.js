@@ -1,18 +1,3 @@
-/**
- * @module modules/terminal/input/keyboard-events.js
- * @description Architectural connections and module role.
- * 
- * @connections
- * - Imports: 
- *     - InputEvents from './events.js'
- *     - term, writePrompt, isSystemWriting from '../terminal-ui.js'
- *     - deleteCharBefore, deleteWordBefore, deleteCharAfter, deleteWordAfter, moveCursorWordLeft, moveCursorWordRight from './buffer-ops.js'
- *     - getTermCols from '../../state.js'
- *     - getCurrentLine, getCursorPosition, isKeyboardLocked, setKeyboardLock, insertText, setLine, clearBuffer, clearCurrentLine, refreshLine, updateBufferState, getVisualRow from './buffer-manager.js'
- * - Exports: getCurrentBuffer, initKeyboardEvents, setKeyboardLock, setLine
- * - Layer: Terminal Layer (Input) - Handles keyboard events, autocomplete, and history.
- */
-
 import { InputEvents } from "./events.js";
 import { term, writePrompt, isSystemWriting } from "../terminal-ui.js";
 import { deleteCharBefore, deleteWordBefore, deleteCharAfter, deleteWordAfter, moveCursorWordLeft, moveCursorWordRight } from "./buffer-ops.js";
@@ -50,7 +35,7 @@ export function initKeyboardEvents() {
     InputEvents.on(InputEvents.EV_PASTE_TEXT, (text) => {
         insertText(text);
     });
-    
+
     // Listen to clear screen
     InputEvents.on(InputEvents.EV_CLEAR_SCREEN, () => {
         clearBuffer();
@@ -117,17 +102,17 @@ function setupTerminalListener() {
                 term.write(`\x1b[${rowsDown}B`); // move down
             }
             term.write("\r\n");
-            
+
             const input = currentLine.trim();
             clearBuffer();
             InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, input);
             return;
         }
-        
-        const currentLine = getCurrentLine();
+
+        const currentLine = getCurrentLine();  // 
         if (keyCode === 38) { domEvent.preventDefault(); return InputEvents.emit(InputEvents.EV_HISTORY_NAVIGATE, "UP"); }
         if (keyCode === 40) { domEvent.preventDefault(); return InputEvents.emit(InputEvents.EV_HISTORY_NAVIGATE, "DOWN"); }
-        if (keyCode === 9)  { domEvent.preventDefault(); return InputEvents.emit(InputEvents.EV_TAB_PRESSED, currentLine); }
+        if (keyCode === 9) { domEvent.preventDefault(); return InputEvents.emit(InputEvents.EV_TAB_PRESSED, currentLine); }
 
         const cursorPosition = getCursorPosition();
 
@@ -151,15 +136,15 @@ function setupTerminalListener() {
         // ── Cursor movement ──
         if (keyCode === 37) {
             if (cursorPosition <= 0) return;
-            let newPos = altKey 
-                ? moveCursorWordLeft(currentLine, cursorPosition) 
+            let newPos = altKey
+                ? moveCursorWordLeft(currentLine, cursorPosition)
                 : cursorPosition - 1;
             return updateBufferState(currentLine, newPos, cursorPosition);
         }
         if (keyCode === 39) {
             if (cursorPosition >= currentLine.length) return;
-            let newPos = altKey 
-                ? moveCursorWordRight(currentLine, cursorPosition) 
+            let newPos = altKey
+                ? moveCursorWordRight(currentLine, cursorPosition)
                 : cursorPosition + 1;
             return updateBufferState(currentLine, newPos, cursorPosition);
         }

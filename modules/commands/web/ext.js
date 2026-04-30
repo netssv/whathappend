@@ -1,26 +1,39 @@
 /**
- * @module modules/commands/native/external.js
- * @description Architectural connections and module role.
- * 
- * @connections
- * - Imports: 
- *     - ANSI, insights, resolveTargetDomain, isIPAddress, cmdUsage, cmdError, workerError from '../../formatter.js'
- * - Exports: cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt
- * - Layer: Command Layer (Native) - Native App messaging commands.
+ * @module modules/commands/web/ext.js
+ * @description Consolidated external tools wrapper.
  */
 
-import {ANSI, insights, resolveTargetDomain, isIPAddress, cmdUsage, cmdError, workerError } from "../../formatter.js";
+import { ANSI, insights, resolveTargetDomain, isIPAddress, cmdUsage, cmdError } from "../../formatter.js";
 
 // ===================================================================
 //  EXTERNAL LOOKUPS — Generate clickable links
 // ===================================================================
 
+export function cmdExt(args) {
+    if (args.length === 0) {
+        return cmdUsage("ext", "<ssl|bl|headers|whois> <domain|ip>");
+    }
+
+    const sub = args[0].toLowerCase();
+    const targetArgs = args.slice(1);
+
+    switch (sub) {
+        case "ssl": return cmdSSLLabs(targetArgs);
+        case "bl": return cmdBlacklist(targetArgs);
+        case "headers": return cmdSecurityHeaders(targetArgs);
+        case "whois": return cmdWhoisExt(targetArgs);
+        default: return cmdError(`Unknown ext subcommand: ${sub}. Try: ssl, bl, headers, whois.`);
+    }
+}
+
+// Proxies for backwards-compatibility / alias support
+
 export function cmdBlacklist(args) {
     const info = {};
     const target = resolveTargetDomain(args[0], info);
-    if (!target) return cmdUsage("blacklist", "<ip|domain>");
+    if (!target) return cmdUsage("ext bl", "<ip|domain>");
 
-    let o = `> blacklist ${target}\n\n`;
+    let o = `> ext bl ${target}\n\n`;
     o += `  ${ANSI.white}External blacklist checks:${ANSI.reset}\n\n`;
     o += `  ${ANSI.cyan}MXToolbox${ANSI.reset}\n`;
     o += `  ${ANSI.blue}https://mxtoolbox.com/SuperTool.aspx?action=blacklist:${encodeURIComponent(target)}${ANSI.reset}\n\n`;
@@ -39,13 +52,13 @@ export function cmdBlacklist(args) {
 export function cmdSSLLabs(args) {
     const info = {};
     const target = resolveTargetDomain(args[0], info);
-    if (!target) return cmdUsage("ssllabs", "<domain>");
+    if (!target) return cmdUsage("ext ssl", "<domain>");
 
     if (isIPAddress(target)) {
         return cmdError(` SSL Labs requires a domain, not an IP.`);
     }
 
-    let o = `> ssllabs ${target}\n\n`;
+    let o = `> ext ssl ${target}\n\n`;
     o += `  ${ANSI.white}SSL Labs Deep Analysis:${ANSI.reset}\n\n`;
     o += `  ${ANSI.blue}https://www.ssllabs.com/ssltest/analyze.html?d=${encodeURIComponent(target)}&hideResults=on${ANSI.reset}\n`;
     o += `\n${ANSI.dim}Full TLS audit: certificate chain, protocol support, cipher suites,${ANSI.reset}`;
@@ -57,9 +70,9 @@ export function cmdSSLLabs(args) {
 export function cmdSecurityHeaders(args) {
     const info = {};
     const target = resolveTargetDomain(args[0], info);
-    if (!target) return cmdUsage("securityheaders", "<domain>");
+    if (!target) return cmdUsage("ext headers", "<domain>");
 
-    let o = `> securityheaders ${target}\n\n`;
+    let o = `> ext headers ${target}\n\n`;
     o += `  ${ANSI.white}Security Headers Analysis:${ANSI.reset}\n\n`;
     o += `  ${ANSI.blue}https://securityheaders.com/?q=${encodeURIComponent(target)}&followRedirects=on${ANSI.reset}\n`;
     o += `\n${ANSI.dim}Checks: CSP, X-Frame-Options, X-Content-Type-Options,${ANSI.reset}`;
@@ -71,9 +84,9 @@ export function cmdSecurityHeaders(args) {
 export function cmdWhoisExt(args) {
     const info = {};
     const target = resolveTargetDomain(args[0], info);
-    if (!target) return cmdUsage("whois-ext", "<domain>");
+    if (!target) return cmdUsage("ext whois", "<domain>");
 
-    let o = `> whois-ext ${target}\n\n`;
+    let o = `> ext whois ${target}\n\n`;
     o += `  ${ANSI.white}Extended WHOIS Lookups:${ANSI.reset}\n\n`;
     o += `  ${ANSI.cyan}ICANN Lookup${ANSI.reset}\n`;
     o += `  ${ANSI.blue}https://lookup.icann.org/en/lookup?name=${encodeURIComponent(target)}${ANSI.reset}\n\n`;

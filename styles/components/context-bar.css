@@ -113,4 +113,8 @@
     flex-shrink: 0;
 }
 
-
+@keyframes contextPulse {
+    0% { background: var(--bg-panel); }
+    50% { background: var(--bg-active-border); }
+    100% { background: var(--bg-panel); }
+}

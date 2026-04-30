@@ -14,107 +14,133 @@ import { retryEmptyHeaderFields } from "./modules/core/triage-retries.js";
 // ---------------------------------------------------------------------------
 
 async function bootstrap() {
-    // 1. Setup the terminal UI visually
-    await initTerminalUI("terminal-container");
+    try {
+        // 1. Setup the terminal UI visually
+        await initTerminalUI("terminal-container");
 
-    // 2. Setup the header logic
-    initHeaderController(term);
-    initBlockPanel();
-    initLogoMenu();
+        // 2. Setup the header logic
+        initHeaderController(term);
+        initBlockPanel();
+        initLogoMenu();
 
-    // 3. Setup the input manager (keyboard, paste, execution)
-    initInputManager();
+        // 3. Setup the input manager (keyboard, paste, execution)
+        initInputManager();
 
-    // 4. Show initial prompt
-    showBanner();
+        // 4. Show initial prompt
+        showBanner();
 
-    // 5. Restore previous session (if panel was closed and reopened)
-    const session = await restoreSession();
+        // 5. Restore previous session (if panel was closed and reopened)
+        const session = await restoreSession();
 
-    // 6. Context Manager Init + Initial Auto-Analysis
-    const initialDomain = await ContextManager.init();
+        // 6. Context Manager Init + Initial Auto-Analysis
+        const initialDomain = await ContextManager.init();
 
-    if (session.target && session.history.length > 0) {
-        // Resume previous session — replay history + restore target
-        ContextManager.setManualTarget(session.target);
+        if (session.target && session.history.length > 0) {
+            // Resume previous session — replay history + restore target
+            ContextManager.setManualTarget(session.target);
 
-        // Restore header triad immediately (no re-fetch needed)
-        if (session.triad) {
-            const domain = session.target;
-            const apex = toApex(domain);
-            if (session.triad.registrar) updateWhoisFields(session.triad.registrar, `https://www.whois.com/whois/${apex}`);
-            if (session.triad.ns) updateNSField(session.triad.ns, `https://intodns.com/${domain}`);
-            if (session.triad.host) updateHostField(session.triad.host, `https://ipinfo.io/${domain}`);
-        }
-
-        // Replay saved command/output pairs into the terminal
-        for (const entry of session.history) {
-            if (entry.command) {
-                term.writeln(`\x1b[90m~\x1b[0m`);
-                term.writeln(`\x1b[35m❯\x1b[0m ${entry.command}`);
+            // Restore header triad immediately (no re-fetch needed)
+            if (session.triad) {
+                const domain = session.target;
+                const apex = toApex(domain);
+                if (session.triad.registrar) updateWhoisFields(session.triad.registrar, `https://www.whois.com/whois/${apex}`);
+                if (session.triad.ns) updateNSField(session.triad.ns, `https://intodns.com/${domain}`);
+                if (session.triad.host) updateHostField(session.triad.host, `https://ipinfo.io/${domain}`);
             }
-            if (entry.output) {
-                const lines = entry.output.split("\n");
-                for (const line of lines) {
-                    term.writeln(line);
+
+            // Replay saved command/output pairs into the terminal
+            for (const entry of session.history) {
+                if (entry.command) {
+                    term.writeln(`\x1b[90m~\x1b[0m`);
+                    term.writeln(`\x1b[35m❯\x1b[0m ${entry.command}`);
+                }
+                if (entry.output) {
+                    const lines = entry.output.split("\n");
+                    for (const line of lines) {
+                        term.writeln(line);
+                    }
                 }
             }
+
+            term.writeln(`\x1b[90m── Session restored (${session.history.length} cmd) → \x1b[36m${session.target}\x1b[90m ──\x1b[0m`);
+            writePrompt();
+
+            // If active tab differs from restored target, suggest switching
+            if (initialDomain && initialDomain !== "restricted" && toApex(initialDomain) !== toApex(session.target)) {
+                showTabSwitch(initialDomain, (newDomain) => {
+                    ContextManager.setManualTarget(newDomain);
+                    writePrompt();
+                    term.write(newDomain + "\r\n");
+                    InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, newDomain);
+                });
+            }
+        } else if (session.target) {
+            // Target exists but no history
+            ContextManager.setManualTarget(session.target);
+            if (session.triad) {
+                const domain = session.target;
+                const apex = toApex(domain);
+                if (session.triad.registrar) updateWhoisFields(session.triad.registrar, `https://www.whois.com/whois/${apex}`);
+                if (session.triad.ns) updateNSField(session.triad.ns, `https://intodns.com/${domain}`);
+                if (session.triad.host) updateHostField(session.triad.host, `https://ipinfo.io/${domain}`);
+            }
+            term.writeln(`\x1b[90m── Session restored → \x1b[36m${session.target}\x1b[90m ──\x1b[0m`);
+            writePrompt();
+
+            // If active tab differs from restored target, suggest switching
+            if (initialDomain && initialDomain !== "restricted" && toApex(initialDomain) !== toApex(session.target)) {
+                showTabSwitch(initialDomain, (newDomain) => {
+                    ContextManager.setManualTarget(newDomain);
+                    writePrompt();
+                    term.write(newDomain + "\r\n");
+                    InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, newDomain);
+                });
+            }
+        } else if (initialDomain) {
+            writePrompt();
+            
+            const autoTriage = await getConfig("auto-triage");
+            if (autoTriage) {
+                ContextManager.setManualTarget(initialDomain);
+            }
+        } else {
+            writePrompt();
         }
 
-        term.writeln(`\x1b[90m── Session restored (${session.history.length} cmd) → \x1b[36m${session.target}\x1b[90m ──\x1b[0m`);
-        writePrompt();
+        // 7. Ensure terminal captures keyboard focus
+        setTimeout(() => {
+            window.focus();
+            const textarea = document.querySelector('.xterm-helper-textarea');
+            if (textarea) textarea.focus();
+            term.focus();
+        }, 150);
 
-        // If active tab differs from restored target, suggest switching
-        if (initialDomain && initialDomain !== "restricted" && toApex(initialDomain) !== toApex(session.target)) {
-            showTabSwitch(initialDomain, (newDomain) => {
-                ContextManager.setManualTarget(newDomain);
-                writePrompt();
-                term.write(newDomain + "\r\n");
-                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, newDomain);
-            });
-        }
-    } else if (session.target) {
-        // Target exists but no history
-        ContextManager.setManualTarget(session.target);
-        if (session.triad) {
-            const domain = session.target;
-            const apex = toApex(domain);
-            if (session.triad.registrar) updateWhoisFields(session.triad.registrar, `https://www.whois.com/whois/${apex}`);
-            if (session.triad.ns) updateNSField(session.triad.ns, `https://intodns.com/${domain}`);
-            if (session.triad.host) updateHostField(session.triad.host, `https://ipinfo.io/${domain}`);
-        }
-        term.writeln(`\x1b[90m── Session restored → \x1b[36m${session.target}\x1b[90m ──\x1b[0m`);
-        writePrompt();
-
-        // If active tab differs from restored target, suggest switching
-        if (initialDomain && initialDomain !== "restricted" && toApex(initialDomain) !== toApex(session.target)) {
-            showTabSwitch(initialDomain, (newDomain) => {
-                ContextManager.setManualTarget(newDomain);
-                writePrompt();
-                term.write(newDomain + "\r\n");
-                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, newDomain);
-            });
-        }
-    } else if (initialDomain) {
-        // Test de inicio eliminado (no auto-start terminal output).
-        // Pero sí disparamos la recolección de triada silenciosa si auto-triage está activo.
-        writePrompt();
-        
-        const autoTriage = await getConfig("auto-triage");
-        if (autoTriage) {
-            ContextManager.setManualTarget(initialDomain);
-        }
-    } else {
-        writePrompt();
+    } catch (err) {
+        console.error("[WhatHappened] Bootstrap failed:", err);
+        showBootstrapError(err);
     }
+}
 
-    // 6. Ensure terminal captures keyboard focus (deferred to ensure Side Panel is fully ready)
-    setTimeout(() => {
-        window.focus();
-        const textarea = document.querySelector('.xterm-helper-textarea');
-        if (textarea) textarea.focus();
-        term.focus();
-    }, 150);
+// ---------------------------------------------------------------------------
+// Fallback UI — visible error when bootstrap fails (prevents blank panel)
+// ---------------------------------------------------------------------------
+
+function showBootstrapError(err) {
+    const container = document.getElementById("terminal-container");
+    if (container) {
+        container.innerHTML = `
+            <div style="padding:24px;font-family:monospace;color:#ff6b6b;background:#1a1a2e;height:100%;box-sizing:border-box;">
+                <h2 style="color:#e94560;margin:0 0 12px">⚠ WhatHappened failed to start</h2>
+                <p style="color:#aaa;margin:0 0 8px">The terminal could not initialize. This is usually caused by a corrupt extension state or a failed module import.</p>
+                <pre style="color:#ff6b6b;background:#0f0f23;padding:12px;border-radius:6px;overflow:auto;max-height:120px;font-size:12px">${err?.message || "Unknown error"}\n${err?.stack || ""}</pre>
+                <p style="color:#888;margin:16px 0 8px">Try one of these fixes:</p>
+                <ol style="color:#ccc;padding-left:20px;line-height:1.8">
+                    <li>Close and reopen the Side Panel</li>
+                    <li>Go to <code style="color:#00d2ff">chrome://extensions</code> → click <b>Reload</b> on WhatHappened</li>
+                    <li>If the issue persists, clear extension storage via DevTools</li>
+                </ol>
+            </div>`;
+    }
 }
 
 bootstrap();

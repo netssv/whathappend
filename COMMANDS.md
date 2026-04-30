@@ -25,7 +25,8 @@ These commands bundle multiple checks together to give you a comprehensive overv
 | Command | Description | Aliases |
 |---------|-------------|---------|
 | `email` | Checks MX, SPF, DMARC, and performs a heuristic DKIM discovery. | `mail` |
-| `web` | Runs DNS, HTTP Headers, and SSL certificate checks simultaneously. | `audit` |
+| `web` | Runs DNS, HTTP Headers, and SSL certificate checks simultaneously. | - |
+| `audit` | Runs the Marketing Suite (SEO, OpenGraph, Alt tags, and Schema). | `marketing` |
 | `sec` | Generates a security scorecard based on Headers and SSL/TLS configuration. | `scan`, `security` |
 | `csp` | Analyzes Content-Security-Policy header for XSS vulnerabilities. | `xss` |
 | `waf` | Detection of Web Application Firewalls (Cloudflare, Akamai, etc.). | `firewall` |
@@ -62,12 +63,11 @@ Dig into the architecture, hosting, and performance of a site.
 
 | Command | Description | Aliases |
 |---------|-------------|---------|
-| `whois` | Domain WHOIS registration data. | `domain` |
-| `registrar` | Domain lifecycle (Registrar, Created, Expiry dates, Days remaining). | `reg`, `lifecycle` |
+| `whois` | Domain WHOIS registration data (includes registrar, creation, and expiry). | `domain`, `reg`, `registrar` |
 | `hosting` | Identifies the actual IP hosting provider (AWS, Cloudflare, etc.). | `provider`, `webhost` |
 | `ip` | Shows your public IP (no args) or resolves a domain's A record/provider. | `myip`, `public-ip` |
 | `isup` | Compares local reachability vs Google's global DNS to check for downtime. | `upcheck`, `down` |
-| `speed` | Latency jitter test (performs 5 sequential HEAD requests). | `jitter` |
+| `jitter` | Latency jitter test (performs 5 sequential HEAD requests). | `speed` |
 | `speedtest` | Local bandwidth test to Cloudflare's speed endpoint. | `bandwidth` |
 | `curl` | Fetches and displays HTTP headers. | `http`, `headers` |
 | `openssl` | Inspects the SSL/TLS certificate chain. | `ssl`, `cert`, `tls` |
@@ -106,10 +106,10 @@ Generates safe, clickable links to industry-standard diagnostic tools. We never 
 
 | Command | Description | Aliases |
 |---------|-------------|---------|
-| `blacklist` | MXToolbox blacklist lookup. | `bl`, `rbl` |
-| `ssllabs` | Qualys SSL Labs deep scan. | `ssltest` |
-| `securityheaders` | Scott Helme's Header Grade (A+ to F). | `sheaders` |
-| `whois-ext` | ICANN / DomainTools lookup. | `icann` |
+| `ext ssl` | Qualys SSL Labs deep scan. | `ssllabs`, `ssltest` |
+| `ext bl` | MXToolbox, Spamhaus, and AbuseIPDB blacklist lookup. | `blacklist`, `bl`, `rbl` |
+| `ext headers` | Scott Helme's Security Header Grade (A+ to F). | `securityheaders`, `sheaders` |
+| `ext whois` | ICANN / DomainTools lookup for extended registration data. | `whois-ext`, `icann` |
 
 ---
 

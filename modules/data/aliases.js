@@ -33,7 +33,7 @@ export const CMD_ALIASES = {
     // sec / security
     security: "sec", scan: "sec",
     // web
-    audit: "web",
+    "marketing": "audit",
     // email
     mail: "email",
     // whois
@@ -68,7 +68,7 @@ export const CMD_ALIASES = {
     // load / performance
     "perf": "load", "performance": "load", "pagespeed": "load", "timing": "load",
     // registrar
-    "reg": "registrar", "lifecycle": "registrar",
+    "reg": "whois", "lifecycle": "whois", "registrar": "whois",
     // hosting
     "hoster": "hosting", "provider": "hosting", "webhost": "hosting",
     // exit
@@ -83,8 +83,8 @@ export const CMD_ALIASES = {
     "settings": "config", "set": "config", "prefs": "config",
     // isup
     "upcheck": "isup", "down": "isup", "downcheck": "isup", "status": "isup",
-    // speed
-    "jitter": "speed", "latency-test": "speed",
+    // jitter
+    "speed": "jitter", "latency-test": "jitter",
     // speedtest
     "bandwidth": "speedtest", "nettest": "speedtest",
     // ip

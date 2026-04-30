@@ -13,74 +13,58 @@
 // ===================================================================
 
 export const AVAILABLE_COMMANDS = [
-    "dig", "host", "nslookup", "curl", "openssl", "whois",
-    "ping", "trace", "target",
-    "email", "web", "sec", "ttl", "spf", "dmarc", "dkim", "robots",
-    "registrar", "hosting", "history",
-    "help",    "history", "crt", "wayback", "archive", "rank", "ranking", "traffic", "seo", "meta", "og", "opengraph", "thaks", "alt", "a11y", "images", "csp", "green", "cookies", "about", "info", "exit", "reload", "restart", "reboot",
-    "a", "aaaa", "mx", "txt", "ns", "cname", "soa", "dnssec",
-    "rev-dns", "port-scan", "ftp-check", "export",
-    "waf", "firewall", "cdn-check", "hsts", "strict", "secure-transport", "minify", "min", "assets", "schema", "structured", "jsonld", "microdata", "diff", "headers-check", "hcheck", "security-headers",
-    "blacklist", "ssllabs", "securityheaders", "whois-ext",
-    // aliases
-    "dns", "ssl", "headers", "redirect", "security",
-    "cls", "reset", "ls", "commands", "man",
-    "http", "cert", "tls", "traceroute", "follow",
-    "lookup", "scan", "audit", "mail", "domain",
-    "latency", "sitemap", "record",
-    "rdns", "ptr", "ports", "nmap", "portscan", "ftp",
-    "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann",
-    "dump", "report", "save",
-    "pixels", "tracking", "trackers", "pixel", "ads", "links", "socials", "social",
-    "stack", "tech", "techstack", "wappalyzer", "cms",
-    "load", "perf", "performance", "pagespeed", "timing",
-    "reg", "lifecycle",
-    "hoster", "provider", "webhost",
-    "switch", "sw", "actual", "current", "here",
-    "start", "run", "go", "begin", "analyze",
-    "config", "settings", "set", "prefs",
-    "tabs", "tablist", "close", "tab",
-    "isup", "upcheck", "down", "downcheck", "status",
-    "speed", "jitter", "latency-test",
-    "speedtest", "bandwidth", "nettest",
-    "ip", "myip", "public-ip",
-    "security-txt", "sec-txt", "securitytxt",
-    "vitals", "cwv", "web-vitals", "core-vitals",
-    "flush", "clearcache", "clear-cache",
-    "notes", "note", "memo", "annotation",
-    "clear", "errors", "error", "error-list", "quit",
-    "load",
+    // DNS
+    "dig", "host", "nslookup", "ttl", "dnssec",
+    "a", "aaaa", "mx", "txt", "ns", "cname", "soa",
+    
+    // EMAIL
+    "email", "spf", "dmarc", "dkim",
+    
+    // WEB
+    "web", "curl", "openssl", "whois", "hosting", "history", "rank", "ping", "trace", "robots", "links", "wayback", "green", "cookies", "pixels", "socials", "stack", "seo", "og", "alt", "schema", "minify", "load", "vitals", "security-txt",
+
+    // AUDITS
+    "audit", "sec", "csp", "waf", "hsts", "headers-check",
+
+    // NETWORK
+    "isup", "jitter", "speedtest", "rev-dns", "port-scan", "ftp-check", "ip",
+
+    // EXTERNAL
+    "ext", "blacklist", "ssllabs", "securityheaders", "whois-ext",
+
+    // UTIL
+    "start", "switch", "export", "target", "tabs", "reload", "config", "about", "info", "errors", "clear", "flush", "notes", "diff", "exit", "help",
+
+    // ALIASES
+    "dns", "record", "lookup", "mail", "http", "headers", "ssl", "cert", "tls", "domain", "reg", "registrar", "provider", "webhost", "crt", "ranking", "traffic", "latency", "redirect", "follow", "sitemap", "src", "archive", "tracking", "trackers", "pixel", "ads", "social", "tech", "cms", "wappalyzer", "techstack", "meta", "tags", "thaks", "opengraph", "a11y", "images", "jsonld", "structured", "microdata", "min", "assets", "perf", "timing", "performance", "pagespeed", "cwv", "web-vitals", "core-vitals", "sec-txt", "securitytxt", "marketing", "scan", "security", "xss", "firewall", "cdn-check", "strict", "secure-transport", "hcheck", "upcheck", "down", "downcheck", "status", "speed", "latency-test", "bandwidth", "nettest", "rdns", "ptr", "ports", "nmap", "portscan", "ftp", "myip", "public-ip", "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann", "run", "go", "begin", "analyze", "actual", "current", "here", "sw", "dump", "save", "report", "tablist", "close", "tab", "restart", "reboot", "settings", "set", "prefs", "telemetry", "error", "error-list", "cls", "reset", "clearcache", "clear-cache", "note", "memo", "annotation", "quit", "ls", "commands", "man"
 ];
 
 // Commands that accept a domain parameter (for auto-filling)
 export const DOMAIN_COMMANDS = [
-    "dig", "host", "nslookup", "curl", "openssl", "whois",
-    "ping", "trace",
-    "email", "web", "sec", "ttl", "spf", "dmarc", "dkim", "robots",
-    "registrar", "hosting", "history", "wayback", "rank", "ranking", "traffic", "seo", "meta", "og", "opengraph", "thaks", "alt", "a11y", "images", "csp", "green", "cookies",
-    "a", "aaaa", "mx", "txt", "ns", "cname", "soa", "dnssec",
-    "rev-dns", "port-scan", "ftp-check",
-    "waf", "hsts", "minify", "schema", "diff", "headers-check",
-    "blacklist", "ssllabs", "securityheaders", "whois-ext",
-    // aliases
-    "dns", "ssl", "headers", "redirect", "security",
-    "http", "cert", "tls", "traceroute", "follow",
-    "lookup", "scan", "audit", "mail", "domain",
-    "latency", "sitemap", "record",
-    "rdns", "ptr", "ports", "nmap", "portscan", "ftp",
-    "bl", "rbl", "ssltest", "sheaders", "icann",
-    "pixels", "tracking", "trackers", "pixel", "ads", "socials", "social",
-    "stack", "tech", "techstack", "wappalyzer", "cms",
-    "load", "perf", "performance", "pagespeed", "timing",
-    "reg", "lifecycle",
-    "hoster", "provider", "webhost",
-    "isup", "upcheck", "down", "downcheck", "status",
-    "speed", "jitter", "latency-test",
-    "speedtest", "bandwidth", "nettest",
-    "ip", "myip", "public-ip",
-    "security-txt", "sec-txt", "securitytxt",
-    "vitals", "cwv", "web-vitals", "core-vitals",
-    "flush", "clearcache", "clear-cache",
+    // DNS
+    "dig", "host", "nslookup", "ttl", "dnssec",
+    "a", "aaaa", "mx", "txt", "ns", "cname", "soa",
+    
+    // EMAIL
+    "email", "spf", "dmarc", "dkim",
+    
+    // WEB
+    "web", "curl", "openssl", "whois", "hosting", "history", "rank", "ping", "trace", "robots", "links", "wayback", "green", "cookies", "pixels", "socials", "stack", "seo", "og", "alt", "schema", "minify", "load", "vitals", "security-txt",
+
+    // AUDITS
+    "audit", "sec", "csp", "waf", "hsts", "headers-check",
+
+    // NETWORK
+    "isup", "jitter", "speedtest", "rev-dns", "port-scan", "ftp-check",
+
+    // EXTERNAL
+    "ext", "blacklist", "ssllabs", "securityheaders", "whois-ext",
+
+    // UTIL
+    "target", "flush", "diff",
+
+    // ALIASES
+    "dns", "record", "lookup", "mail", "http", "headers", "ssl", "cert", "tls", "domain", "reg", "registrar", "provider", "webhost", "crt", "ranking", "traffic", "latency", "redirect", "follow", "sitemap", "src", "archive", "tracking", "trackers", "pixel", "ads", "social", "tech", "cms", "wappalyzer", "techstack", "meta", "tags", "thaks", "opengraph", "a11y", "images", "jsonld", "structured", "microdata", "min", "assets", "perf", "timing", "performance", "pagespeed", "cwv", "web-vitals", "core-vitals", "sec-txt", "securitytxt", "marketing", "scan", "security", "xss", "firewall", "cdn-check", "strict", "secure-transport", "hcheck", "upcheck", "down", "downcheck", "speed", "latency-test", "bandwidth", "nettest", "rdns", "ptr", "ports", "nmap", "portscan", "ftp", "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann", "clearcache", "clear-cache"
 ];
 
 // Raw Bash Educational Snippets

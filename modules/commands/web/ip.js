@@ -42,7 +42,7 @@ async function showPublicIP() {
     if (resp.error) return o + cmdError(resp.error);
 
     const ip = resp.data.ip;
-    o += `  ${ANSI.white}Public IP:${ANSI.reset}  ${ANSI.green}${ip}${ANSI.reset}\n`;
+    o += `  ${ANSI.white}Local Public IP:${ANSI.reset}  ${ANSI.green}${ip}${ANSI.reset}\n`;
 
     // Resolve ISP via RDAP
     const isp = await resolveProvider(ip);
@@ -81,7 +81,7 @@ async function resolveDomainIP(domain) {
 
 async function resolveIPProvider(ip, prefix = "", domain = null) {
     let o = prefix || `> whois ${ip} | grep -i orgname\n`;
-    o += `  ${ANSI.white}IP:${ANSI.reset}         ${ANSI.green}${ip}${ANSI.reset}\n`;
+    o += `  ${ANSI.white}Remote Hosting IP:${ANSI.reset}  ${ANSI.green}${ip}${ANSI.reset}\n`;
 
     const provider = await resolveProvider(ip);
     if (provider) {

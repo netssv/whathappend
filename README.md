@@ -37,9 +37,11 @@ The fastest way to get an answer is to open the side panel and:
 
 We’ve turned the terminal into a professional-grade auditing suite:
 
-- **Marketing & SEO Suite**: New commands to audit your web presence: `seo` (Baseline audit), `og` (Social cards), `alt` (Accessibility), and `socials`.
+- **Marketing Suite (`audit`)**: Run a comprehensive, sequential audit of your web presence with a single command (combines `seo`, `og`, `alt`, and `schema`).
 - **Security Infrastructure Triage**: Go deep with `csp` (Policy analyzer), `waf` (Firewall detection), `hsts` (Strict transport), and `headers-check`.
+- **Performance & Diagnostics**: Measure connection stability with `jitter`, run local bandwidth checks with `speedtest`, and benchmark with `load`.
 - **Developer Utilities**: Compare domains with `diff`, validate `schema` (JSON-LD), and check asset `minify` status.
+- **External Consolidation**: Quickly generate standard external reports via the unified `ext` command (`ext ssl`, `ext bl`, `ext headers`).
 - **Intelligent Auto-Hide**: The infrastructure header now intelligently fades out after a delay to save space, but briefly "pings" back whenever you type a command.
 - **Hard Reboot**: Use `reload` to instantly flush memory and restart the extension context.
 - **100% English Diagnostics**: Completed the transition to a unified, professional English-only engine.
