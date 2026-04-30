@@ -1,3 +1,32 @@
+/**
+ * @module modules/background/router.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - cancelAbort from './abort.js'
+ *     - getActiveDomain from './tab-tracker.js'
+ *     - handleDNS from './handlers/dns.js'
+ *     - handleHTTPHeaders, handleFetchText from './handlers/http.js'
+ *     - handleSSL from './handlers/ssl.js'
+ *     - handleWHOIS, handleIPWhois from './handlers/whois.js'
+ *     - handlePing from './handlers/ping.js'
+ *     - handleRedirectTrace from './handlers/trace.js'
+ *     - handleGetPageHTML, handleDetectLivePixels, handleGetLinks from './handlers/dom.js'
+ *     - handleGetPerfTiming from './handlers/perf.js'
+ *     - handleGetCookies from './handlers/cookies.js'
+ *     - handlePortProbe from './handlers/port.js'
+ *     - handleExportHistory from './handlers/export.js'
+ *     - handleIsUpLocal, handleIsUpGlobal from './handlers/isup.js'
+ *     - handleSpeed from './handlers/speed.js'
+ *     - handleSpeedtest from './handlers/speedtest.js'
+ *     - handleGetPublicIP from './handlers/ip.js'
+ *     - handleGetWebVitals from './handlers/vitals.js'
+ *     - withCache from './cache.js'
+ * - Exports: setupRouter
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 import { cancelAbort } from "./abort.js";
 import { getActiveDomain } from "./tab-tracker.js";
 import { handleDNS } from "./handlers/dns.js";

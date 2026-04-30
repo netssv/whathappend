@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/util/system-info.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI from '../../formatter.js'
+ *     - getHistory from '../../state.js'
+ * - Exports: cmdInfo
+ * - Layer: Command Layer (Util) - Terminal utilities and internal tools.
+ */
+
 import { ANSI } from "../../formatter.js";
 import { getHistory } from "../../state.js";
 

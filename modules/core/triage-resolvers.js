@@ -1,3 +1,18 @@
+/**
+ * @module modules/core/triage-resolvers.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI from '../formatter.js'
+ *     - resolveProvider, isRdapMaintainer from '../utils.js'
+ *     - cmdDig from '../commands/dns/index.js'
+ *     - updateWhoisFields, updateNSField, updateHostField from '../terminal/header-controller.js'
+ *     - setSessionTriad from '../state.js'
+ * - Exports: resolveRegistrarRow, resolveNSRow, resolveWebHostRow
+ * - Layer: Core Layer (Engine) - Central triaging, parsing, and execution routing.
+ */
+
 import { ANSI } from "../formatter.js";
 import { resolveProvider, isRdapMaintainer } from "../utils.js";
 import { cmdDig } from "../commands/dns/index.js";

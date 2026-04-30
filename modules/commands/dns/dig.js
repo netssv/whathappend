@@ -1,3 +1,17 @@
+/**
+ * @module modules/commands/dns/dig.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, toRegisteredDomain, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - DNS_TYPES, DNS_NUM from '../../data/aliases.js'
+ *     - digInsights from './dig-insights.js'
+ *     - getConfig from '../util/config.js'
+ * - Exports: cmdDig, digInsights
+ * - Layer: Command Layer (DNS) - Executes DNS resolution and formatting.
+ */
+
 import {ANSI, insights, resolveTargetDomain, toRegisteredDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { DNS_TYPES, DNS_NUM } from "../../data/aliases.js";
 import { digInsights } from "./dig-insights.js";

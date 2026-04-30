@@ -1,4 +1,14 @@
 /**
+ * @module modules/background/handlers/cookies.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: handleGetCookies
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
+/**
  * WhatHappened — Cookies Background Handler
  *
  * Uses the chrome.cookies API to retrieve all cookies associated with a domain.

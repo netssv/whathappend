@@ -1,8 +1,23 @@
+/**
+ * @module modules/terminal/header/header-triad.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ContextManager from '../../context.js'
+ *     - refitTerminal from '../terminal-ui.js'
+ *     - toApex from '../../formatter.js'
+ *     - setSessionTriad from '../../state.js'
+ *     - handleTriadRetryClick from './header-retry.js'
+ * - Exports: updateWhoisFields, updateNSField, updateHostField, markFieldRetryable, clearWhoisFields, pingTriadVisibility
+ * - Layer: Terminal Layer (Header) - Renders the top UI header blocks.
+ */
+
 import { ContextManager } from "../../context.js";
 import { refitTerminal } from "../terminal-ui.js";
 import { toApex } from "../../formatter.js";
 import { setSessionTriad } from "../../state.js";
-import { handleTriadRetryClick } from "./header-retry.js";
+import { initTriadEvents } from "./header-triad-events.js";
 
 // ===================================================================
 // Header Triad — Infrastructure badges (REG / NS / HOST)
@@ -41,12 +56,13 @@ function refreshTriadVisibility() {
         chrome.storage.local.get("wh_config").then(data => {
             if (checkId !== currentVisibilityCheck) return;
             const config = data["wh_config"] || {};
-            const autoHide = config["auto-hide"] !== undefined ? config["auto-hide"] : true;
+            const autoHide = config["autoHide"] !== undefined ? config["autoHide"] : true;
+            const autoHideDelay = config["autoHideDelay"] || 5000;
             if (autoHide && contextTriad.classList.contains("visible")) {
                 hideTimeout = setTimeout(() => {
                     contextTriad.classList.remove("visible");
                     setTimeout(() => refitTerminal(), 350);
-                }, 4000); // 4 seconds after data loads
+                }, autoHideDelay);
             }
         });
     } else {
@@ -96,73 +112,21 @@ function setTriadValue(el, text, url) {
 }
 
 // ---------------------------------------------------------------------------
-// Click delegation: verify (populated) + retry (empty)
+// Initialize Event Listeners
 // ---------------------------------------------------------------------------
 
-if (contextTriad) {
-    contextTriad.addEventListener("click", (e) => {
-        // Handle retry clicks on empty fields
-        const retryTarget = e.target.closest(".triad-value.retryable");
-        if (retryTarget) {
-            let type;
-            if (retryTarget === contextRegistrar) type = "registrar";
-            else if (retryTarget === contextNS) type = "ns";
-            else if (retryTarget === contextHost) type = "host";
-            if (type) handleTriadRetryClick(retryTarget, type, setTriadValue);
-            return;
-        }
-        // Handle verify clicks on populated fields
-        const target = e.target.closest(".triad-value[data-href]");
-        if (target?.dataset.href) {
-            chrome.tabs.create({ url: target.dataset.href });
-        }
-    });
-}
-
-const triadHandle = document.getElementById("triad-handle");
-if (triadHandle && contextTriad) {
-    triadHandle.addEventListener("click", () => {
+initTriadEvents({
+    contextTriad, contextRegistrar, contextNS, contextHost,
+    setTriadValue, refreshTriadVisibility,
+    cancelAutoHide: () => {
         if (hideTimeout) clearTimeout(hideTimeout);
-        currentVisibilityCheck++; // Cancel any pending auto-hide
-        contextTriad.classList.toggle("visible");
-        setTimeout(() => refitTerminal(), 350);
-    });
-}
-
-chrome.tabs?.onActivated?.addListener(() => {
-    if (contextTriad && contextTriad.classList.contains("visible")) {
-        chrome.storage.local.get("wh_config").then(data => {
-            const config = data["wh_config"] || {};
-            const autoHide = config["auto-hide"] !== undefined ? config["auto-hide"] : true;
-            if (autoHide) {
-                if (hideTimeout) clearTimeout(hideTimeout);
-                currentVisibilityCheck++;
-                hideTimeout = setTimeout(() => {
-                    contextTriad.classList.remove("visible");
-                    setTimeout(() => refitTerminal(), 350);
-                }, 1500); // 1.5s delay to hide on tab change
-            }
-        });
-    }
-});
-
-chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === "local" && changes["wh_config"]) {
-        const oldAuto = changes["wh_config"].oldValue?.["auto-hide"];
-        const newAuto = changes["wh_config"].newValue?.["auto-hide"];
-        
-        // If user manually turned ON auto-hide, hide it immediately instead of waiting 4s
-        if (oldAuto === false && newAuto === true) {
-            if (contextTriad) {
-                contextTriad.classList.remove("visible");
-                const handle = document.getElementById("triad-handle");
-                if (handle) handle.classList.remove("visible");
-                if (hideTimeout) clearTimeout(hideTimeout);
-                setTimeout(() => refitTerminal(), 350);
-            }
-        } else {
-            refreshTriadVisibility();
-        }
+        currentVisibilityCheck++;
+    },
+    setAutoHide: (delay) => {
+        hideTimeout = setTimeout(() => {
+            contextTriad.classList.remove("visible");
+            setTimeout(() => refitTerminal(), 350);
+        }, delay);
     }
 });
 
@@ -211,3 +175,6 @@ export function clearWhoisFields() {
 // Retry click handler — single-field retry on user click
 // ---------------------------------------------------------------------------
 
+export function pingTriadVisibility() {
+    refreshTriadVisibility();
+}

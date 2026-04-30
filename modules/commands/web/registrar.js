@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/web/registrar.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, toRegisteredDomain, isIPAddress, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - extractRegistrar, extractExpiry, extractRegistration from './whois-parser.js'
+ * - Exports: cmdRegistrar
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import { ANSI, insights, resolveTargetDomain, toRegisteredDomain, isIPAddress, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { extractRegistrar, extractExpiry, extractRegistration } from "./whois-parser.js";
 
@@ -17,6 +29,17 @@ export async function cmdRegistrar(args) {
     const resp = await chrome.runtime.sendMessage({ command: "whois", payload: { domain } });
     if (!resp) return workerError();
     if (resp.error) {
+        if (resp.error.includes("404") || resp.error.includes("failed with HTTP")) {
+            const tld = domain.split(".").slice(1).join(".");
+            let err = `> whois ${domain} | grep -i 'registrar'\n`;
+            err += `${ANSI.yellow}[WARN] .${tld} registry does not support RDAP.${ANSI.reset}\n`;
+            err += `${ANSI.dim}Many country-code TLDs (ccTLDs) don't have RDAP endpoints.${ANSI.reset}\n`;
+            err += insights([
+                { level: "INFO", text: `Lookup WHOIS: https://www.whois.com/whois/${domain}` },
+                { level: "INFO", text: `Alternative: https://who.is/whois/${domain}` },
+            ]);
+            return err;
+        }
         return cmdError(`WHOIS lookup failed for ${domain}\n${ANSI.dim}${resp.error}${ANSI.reset}`);
     }
 

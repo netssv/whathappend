@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/util/about.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI from '../../formatter.js'
+ * - Exports: cmdAbout
+ * - Layer: Command Layer (Util) - Terminal utilities and internal tools.
+ */
+
 import { ANSI } from "../../formatter.js";
 
 // ===================================================================

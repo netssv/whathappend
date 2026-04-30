@@ -1,3 +1,16 @@
+/**
+ * @module modules/commands/util/help.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, isIPAddress from '../../formatter.js'
+ *     - ContextManager from '../../context.js'
+ *     - getTermCols from '../../state.js'
+ * - Exports: HELP_SECTIONS, cmdHelp
+ * - Layer: Command Layer (Util) - Terminal utilities and internal tools.
+ */
+
 import { ANSI, isIPAddress } from "../../formatter.js";
 import { ContextManager } from "../../context.js";
 import { getTermCols } from "../../state.js";
@@ -12,6 +25,10 @@ export const HELP_SECTIONS = [
         ["email", "MX+SPF+DMARC+DKIM", "mail"],
         ["web", "DNS+Headers+SSL", "audit"],
         ["sec", "Security scorecard", "scan security"],
+        ["csp", "Content-Security-Policy", "xss"],
+        ["waf", "WAF / CDN detection", "firewall"],
+        ["hsts", "HSTS policy audit", "strict"],
+        ["headers-check", "Security header checklist", "hcheck"],
     ]},
     { title: "DNS", cmds: [
         ["dig", "Full DNS [+short]", "dns record"],
@@ -41,6 +58,7 @@ export const HELP_SECTIONS = [
         ["registrar", "Registrar lifecycle", "reg lifecycle"],
         ["hosting", "IP hosting provider", "provider webhost"],
         ["history", "Cert transparency logs", "crt"],
+        ["rank", "Global traffic rank", "ranking traffic"],
         ["ping", "HTTP latency", "latency"],
         ["trace", "Redirect chain", "redirect follow"],
         ["robots", "robots.txt", "sitemap"],
@@ -49,7 +67,14 @@ export const HELP_SECTIONS = [
         ["green", "Green energy host", ""],
         ["cookies", "Privacy cookies audit", ""],
         ["pixels", "Ad/tracking pixels", "tracking ads"],
-        ["stack", "Tech stack detect", "tech cms"],
+        ["socials", "Social media presence", "social"],
+        ["stack", "Technology stack", "tech cms"],
+        ["seo", "Baseline SEO audit", "meta tags"],
+        ["og", "Open Graph cards", "thaks opengraph"],
+        ["alt", "Image accessibility", "a11y images"],
+        ["schema", "Structured data scanner", "jsonld"],
+        ["minify", "Asset minification check", "min"],
+        ["load", "Performance timing", "perf timing"],
         ["vitals", "Core Web Vitals", "cwv web-vitals"],
         ["security-txt", "Security contact (RFC 9116)", "sec-txt"],
     ]},
@@ -74,6 +99,7 @@ export const HELP_SECTIONS = [
         ["export", "Save report", "dump save"],
         ["target", "Set target domain", ""],
         ["tabs", "List / close / inspect tabs", "tab list close info"],
+        ["reload", "Extension hard reboot", "restart reboot"],
         ["config", "User preferences", "settings set"],
         ["about", "Philosophy & identity", ""],
         ["info", "System diagnostics", "telemetry status"],
@@ -81,6 +107,7 @@ export const HELP_SECTIONS = [
         ["clear", "Clear terminal", "cls reset"],
         ["flush", "Clear cookies+cache", "clearcache"],
         ["notes", "Session annotations", "note memo"],
+        ["diff", "Compare two domains", ""],
         ["exit", "End session & clear", "quit"],
         ["help", "Show this menu", "? ls man"],
     ]},
@@ -92,7 +119,7 @@ export function cmdHelp(args = []) {
     // IP-aware dimming: domain-only commands are dimmed when target is an IP
     const currentTarget = ContextManager.getDomain();
     const targetIsIP = currentTarget ? isIPAddress(currentTarget) : false;
-    const domainOnlyCmds = ["email", "spf", "dmarc", "dkim", "openssl", "whois", "registrar", "pixels", "stack", "robots", "web", "sec"];
+    const domainOnlyCmds = ["email", "spf", "dmarc", "dkim", "openssl", "whois", "registrar", "pixels", "socials", "stack", "robots", "web", "sec"];
 
     let o = "";
 

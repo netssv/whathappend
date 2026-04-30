@@ -1,4 +1,14 @@
 /**
+ * @module modules/terminal/input/buffer-ops.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: deleteCharBefore, deleteWordBefore, deleteCharAfter, deleteWordAfter, moveCursorWordLeft, moveCursorWordRight
+ * - Layer: Terminal Layer (Input) - Handles keyboard events, autocomplete, and history.
+ */
+
+/**
  * Pure buffer manipulation functions.
  * No side effects, no terminal writes — just string math.
  */

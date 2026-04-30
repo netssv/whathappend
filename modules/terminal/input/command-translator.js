@@ -1,3 +1,13 @@
+/**
+ * @module modules/terminal/input/command-translator.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: translateRawCommand
+ * - Layer: Terminal Layer (Input) - Handles keyboard events, autocomplete, and history.
+ */
+
 // ===================================================================
 //  Command Translator (Educational Feedback Loop)
 //  Translates raw bash-like snippets into internal WhatHappened commands.

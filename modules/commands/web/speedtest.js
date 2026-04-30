@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/web/speedtest.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, cmdError, workerError, cmdUsage from '../../formatter.js'
+ * - Exports: cmdSpeedtest
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import { ANSI, insights, cmdError, workerError, cmdUsage } from "../../formatter.js";
 
 // ===================================================================

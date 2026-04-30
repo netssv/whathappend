@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/native/export.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - getHistory, getNotes from '../../state.js'
+ * - Exports: cmdExport
+ * - Layer: Command Layer (Native) - Native App messaging commands.
+ */
+
 import {ANSI, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { getHistory, getNotes } from "../../state.js";
 

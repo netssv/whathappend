@@ -1,3 +1,16 @@
+/**
+ * @module modules/commands/dns/dig-insights.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI from '../../formatter.js'
+ *     - toRegisteredDomain, isIPAddress from '../../formatter.js'
+ *     - resolveProvider from '../../utils.js'
+ * - Exports: digInsights
+ * - Layer: Command Layer (DNS) - Executes DNS resolution and formatting.
+ */
+
 import { ANSI } from "../../formatter.js";
 import { toRegisteredDomain, isIPAddress } from "../../formatter.js";
 import { resolveProvider } from "../../utils.js";

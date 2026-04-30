@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/util/switch.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, getSeparator from '../../formatter.js'
+ *     - ContextManager from '../../context.js'
+ * - Exports: cmdSwitch
+ * - Layer: Command Layer (Util) - Terminal utilities and internal tools.
+ */
+
 import { ANSI, getSeparator } from "../../formatter.js";
 import { ContextManager } from "../../context.js";
 

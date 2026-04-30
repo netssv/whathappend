@@ -1,3 +1,13 @@
+/**
+ * @module modules/background/handlers/vitals.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: handleGetWebVitals
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 // ===================================================================
 // Web Vitals Handler — Extracts CWV from the active tab
 // ===================================================================

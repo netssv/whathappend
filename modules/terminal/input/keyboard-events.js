@@ -1,3 +1,18 @@
+/**
+ * @module modules/terminal/input/keyboard-events.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - InputEvents from './events.js'
+ *     - term, writePrompt, isSystemWriting from '../terminal-ui.js'
+ *     - deleteCharBefore, deleteWordBefore, deleteCharAfter, deleteWordAfter, moveCursorWordLeft, moveCursorWordRight from './buffer-ops.js'
+ *     - getTermCols from '../../state.js'
+ *     - getCurrentLine, getCursorPosition, isKeyboardLocked, setKeyboardLock, insertText, setLine, clearBuffer, clearCurrentLine, refreshLine, updateBufferState, getVisualRow from './buffer-manager.js'
+ * - Exports: getCurrentBuffer, initKeyboardEvents, setKeyboardLock, setLine
+ * - Layer: Terminal Layer (Input) - Handles keyboard events, autocomplete, and history.
+ */
+
 import { InputEvents } from "./events.js";
 import { term, writePrompt, isSystemWriting } from "../terminal-ui.js";
 import { deleteCharBefore, deleteWordBefore, deleteCharAfter, deleteWordAfter, moveCursorWordLeft, moveCursorWordRight } from "./buffer-ops.js";

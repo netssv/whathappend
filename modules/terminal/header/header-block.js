@@ -1,3 +1,14 @@
+/**
+ * @module modules/terminal/header/header-block.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - refitTerminal from '../terminal-ui.js'
+ * - Exports: initBlockPanel, updateBlockState
+ * - Layer: Terminal Layer (Header) - Renders the top UI header blocks.
+ */
+
 // header-block — Shield indicator + content block panel controller
 import { refitTerminal } from "../terminal-ui.js";
 

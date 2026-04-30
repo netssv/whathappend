@@ -1,3 +1,13 @@
+/**
+ * @module modules/terminal/write-lock.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: acquireWriteLock, releaseWriteLock, isWriteLocked, enqueueWrite
+ * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
+ */
+
 // ===================================================================
 // Write Lock — Mutex for terminal ANSI cursor manipulation
 //

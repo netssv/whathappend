@@ -1,3 +1,15 @@
+/**
+ * @module modules/terminal/progressive-renderer.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI from '../formatter.js'
+ *     - RenderQueue from './render-queue.js'
+ * - Exports: ProgressiveRenderer, ROW_KEYS, ROW_LABELS
+ * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
+ */
+
 import { ANSI } from "../formatter.js";
 import { RenderQueue } from "./render-queue.js";
 

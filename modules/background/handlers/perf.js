@@ -1,3 +1,13 @@
+/**
+ * @module modules/background/handlers/perf.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: handleGetPerfTiming
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 // ===================================================================
 // Get Performance Timing — reads window.performance from active tab
 // ===================================================================

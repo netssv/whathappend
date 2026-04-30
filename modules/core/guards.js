@@ -1,3 +1,15 @@
+/**
+ * @module modules/core/guards.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI from '../formatter.js'
+ *     - cmdDig from '../commands/dns/index.js'
+ * - Exports: checkTargetGuards
+ * - Layer: Core Layer (Engine) - Central triaging, parsing, and execution routing.
+ */
+
 import { ANSI } from "../formatter.js";
 import { cmdDig } from "../commands/dns/index.js";
 

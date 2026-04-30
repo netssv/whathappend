@@ -1,3 +1,14 @@
+/**
+ * @module modules/background/handlers/speedtest.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - createAbort, getNextAbortSeq from '../abort.js'
+ * - Exports: handleSpeedtest
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 // Speedtest Handler — Measures local download bandwidth using Cloudflare's speed API
 import { createAbort, getNextAbortSeq } from "../abort.js";
 

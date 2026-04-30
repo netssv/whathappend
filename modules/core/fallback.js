@@ -1,3 +1,25 @@
+/**
+ * @module modules/core/fallback.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, isIPAddress, toApex, cmdError, getSeparator from '../formatter.js'
+ *     - REGEX from '../data/constants.js'
+ *     - DNS_TYPES from '../data/aliases.js'
+ *     - ContextManager from '../context.js'
+ *     - cmdDig from '../commands/dns/index.js'
+ *     - cmdRevDNS from '../commands/native/index.js'
+ *     - suggestCommand from './parser.js'
+ *     - resolveRegistrarRow, resolveNSRow, resolveWebHostRow from './triage-resolvers.js'
+ *     - term from '../terminal/terminal-ui.js'
+ *     - ProgressiveRenderer from '../terminal/progressive-renderer.js'
+ *     - buildTriageHistory from '../terminal/triage-history.js'
+ *     - retryEmptyHeaderFields from './triage-retries.js'
+ * - Exports: handleAutoTarget
+ * - Layer: Core Layer (Engine) - Central triaging, parsing, and execution routing.
+ */
+
 import { ANSI, isIPAddress, toApex, cmdError, getSeparator } from "../formatter.js";
 import { REGEX } from "../data/constants.js";
 import { DNS_TYPES } from "../data/aliases.js";

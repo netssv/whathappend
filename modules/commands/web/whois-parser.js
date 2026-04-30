@@ -1,3 +1,13 @@
+/**
+ * @module modules/commands/web/whois-parser.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: normalize, extractRegistrar, extractExpiry, extractRegistration, parseWhoisSummary
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 // ===================================================================
 // WHOIS Parser — Heuristic-based, provider-agnostic
 //

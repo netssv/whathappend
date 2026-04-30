@@ -1,3 +1,14 @@
+/**
+ * @module modules/background/tab-tracker.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - extractDomain from '../utils.js'
+ * - Exports: getActiveDomain, setupTabTracker
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 // ===================================================================
 // Active Tab Tracking — Context Awareness
 // ===================================================================

@@ -1,3 +1,14 @@
+/**
+ * @module modules/terminal/render-queue.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - acquireWriteLock, releaseWriteLock from './write-lock.js'
+ * - Exports: RenderQueue
+ * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
+ */
+
 import { acquireWriteLock, releaseWriteLock } from "./write-lock.js";
 
 // ===================================================================

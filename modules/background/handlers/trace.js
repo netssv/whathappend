@@ -1,3 +1,16 @@
+/**
+ * @module modules/background/handlers/trace.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - createAbort, completeAbort, getNextAbortSeq from '../abort.js'
+ *     - ensureProtocol from '../../utils.js'
+ *     - classifyFetchError from './http.js'
+ * - Exports: handleRedirectTrace
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 import { createAbort, completeAbort, getNextAbortSeq } from "../abort.js";
 import { ensureProtocol } from "../../utils.js";
 import { classifyFetchError } from "./http.js";

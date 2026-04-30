@@ -1,3 +1,24 @@
+/**
+ * @module modules/terminal/input/index.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - InputEvents from './events.js'
+ *     - initKeyboardEvents, setKeyboardLock, setLine from './keyboard-events.js'
+ *     - initCommandHistory from './command-history.js'
+ *     - initAutocompleteEngine from './autocomplete-engine.js'
+ *     - initClipboardHandler from './clipboard-handler.js'
+ *     - initContextParser from './context-parser.js'
+ *     - translateRawCommand from './command-translator.js'
+ *     - executeCommand from '../../engine.js'
+ *     - pushHistory from '../../state.js'
+ *     - term, writePrompt, showBanner, writeOutput, showSpinner, stopSpinner from '../terminal-ui.js'
+ *     - pingTriadVisibility from '../header/header-triad.js'
+ * - Exports: initInputManager, isCommandProcessing
+ * - Layer: Terminal Layer (Input) - Handles keyboard events, autocomplete, and history.
+ */
+
 import { InputEvents } from "./events.js";
 import { initKeyboardEvents, setKeyboardLock, setLine } from "./keyboard-events.js";
 import { initCommandHistory } from "./command-history.js";
@@ -9,6 +30,7 @@ import { translateRawCommand } from "./command-translator.js";
 import { executeCommand } from "../../engine.js";
 import { pushHistory } from "../../state.js";
 import { term, writePrompt, showBanner, writeOutput, showSpinner, stopSpinner } from "../terminal-ui.js";
+import { pingTriadVisibility } from "../header/header-triad.js";
 
 let isProcessing = false;
 let currentAbortId = null;
@@ -24,6 +46,7 @@ export function initInputManager() {
 
     // 2. Orchestrate Sub-Module Events
     InputEvents.on(InputEvents.EV_COMMAND_SUBMIT, async (input) => {
+        pingTriadVisibility();
         if (!input || input.trim() === "") {
             // Empty Enter → standard terminal behavior (new prompt)
             writePrompt();

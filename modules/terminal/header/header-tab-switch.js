@@ -1,3 +1,14 @@
+/**
+ * @module modules/terminal/header/header-tab-switch.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - refitTerminal from '../terminal-ui.js'
+ * - Exports: showTabSwitch, hideTabSwitch
+ * - Layer: Terminal Layer (Header) - Renders the top UI header blocks.
+ */
+
 import { refitTerminal } from "../terminal-ui.js";
 
 // ===================================================================

@@ -1,3 +1,16 @@
+/**
+ * @module modules/core/triage-retries.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - updateWhoisFields, updateNSField, updateHostField, markFieldRetryable from '../terminal/header-controller.js'
+ *     - setSessionTriad from '../state.js'
+ *     - resolveProvider, isRdapMaintainer, getProviderFromCNAME from '../utils.js'
+ * - Exports: retryEmptyHeaderFields
+ * - Layer: Core Layer (Engine) - Central triaging, parsing, and execution routing.
+ */
+
 import { updateWhoisFields, updateNSField, updateHostField, markFieldRetryable } from "../terminal/header-controller.js";
 import { setSessionTriad } from "../state.js";
 import { resolveProvider, isRdapMaintainer, getProviderFromCNAME } from "../utils.js";

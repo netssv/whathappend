@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/web/links.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, cmdUsage, formatError from '../../formatter.js'
+ * - Exports: cmdLinks
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import { ANSI, insights, resolveTargetDomain, cmdUsage, formatError } from "../../formatter.js";
 
 // ===================================================================

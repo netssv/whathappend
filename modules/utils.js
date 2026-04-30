@@ -1,3 +1,15 @@
+/**
+ * @module modules/utils.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - REGEX from './data/constants.js'
+ *     - isIPAddress from './formatter.js'
+ * - Exports: stripANSI, isRdapMaintainer, ensureProtocol, daysUntil, extractDomain, resolveProvider, getProviderFromCNAME
+ * - Layer: Shared Utility / Router - Common functions or central engine index used across the app.
+ */
+
 import { REGEX } from "./data/constants.js";
 import { isIPAddress } from "./formatter.js";
 

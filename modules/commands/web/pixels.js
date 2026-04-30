@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/web/pixels.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError from '../../formatter.js'
+ * - Exports: PIXEL_SIGNATURES, cmdPixels
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import {ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError } from "../../formatter.js";
 
 // ===================================================================
@@ -120,6 +131,10 @@ export async function cmdPixels(args) {
         } else {
             ins.push({level:"INFO",text:`${found.length} tracker(s) detected.`});
             if (found.some(s => s.isLiveOnly)) ins.push({level:"INFO", text:"Dynamic Pixel injection detected (GTM/Async)."});
+        }
+
+        if (isStatic) {
+            ins.push({level:"INFO",text:"Tip: Run this command while the site is open in the active tab for deeper JS/DOM analysis."});
         }
 
         // Category insights

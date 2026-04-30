@@ -1,3 +1,15 @@
+/**
+ * @module modules/terminal/triage-history.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI from '../formatter.js'
+ *     - ROW_KEYS, ROW_LABELS from './progressive-renderer.js'
+ * - Exports: buildTriageHistory
+ * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
+ */
+
 import { ANSI } from "../formatter.js";
 import { ROW_KEYS, ROW_LABELS } from "./progressive-renderer.js";
 

@@ -1,3 +1,14 @@
+/**
+ * @module modules/core/parser.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ALL_KNOWN_CMDS from '../data/aliases.js'
+ * - Exports: levenshtein, suggestCommand, parseCommand
+ * - Layer: Core Layer (Engine) - Central triaging, parsing, and execution routing.
+ */
+
 import { ALL_KNOWN_CMDS } from "../data/aliases.js";
 
 // ---------------------------------------------------------------------------

@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/web/openssl.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - processSSLAudit from '../ssl-auditor.js'
+ * - Exports: cmdOpenSSL
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import {ANSI, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { processSSLAudit } from "../ssl-auditor.js";
 

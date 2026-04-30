@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/web/hosting.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, isIPAddress, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - resolveProvider from '../../utils.js'
+ * - Exports: cmdHosting
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import { ANSI, insights, resolveTargetDomain, isIPAddress, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { resolveProvider } from "../../utils.js";
 

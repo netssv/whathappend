@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/util/exit.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI from '../../formatter.js'
+ *     - clearSession from '../../state.js'
+ * - Exports: cmdExit
+ * - Layer: Command Layer (Util) - Terminal utilities and internal tools.
+ */
+
 import { ANSI } from "../../formatter.js";
 import { clearSession } from "../../state.js";
 

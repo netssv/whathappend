@@ -1,3 +1,18 @@
+/**
+ * @module modules/commands/util/tabs.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI from '../../formatter.js'
+ *     - tabInfo from './tabs-info.js'
+ *     - tabDiag from './tabs-diag.js'
+ *     - createTabWatcher from './tabs-watch.js'
+ *     - tabBlock from './tabs-block.js'
+ * - Exports: cmdTabs
+ * - Layer: Command Layer (Util) - Terminal utilities and internal tools.
+ */
+
 import { ANSI } from "../../formatter.js";
 import { tabInfo } from "./tabs-info.js";
 import { tabDiag } from "./tabs-diag.js";

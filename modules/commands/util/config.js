@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/util/config.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI from '../../formatter.js'
+ * - Exports: cmdConfig, getConfig
+ * - Layer: Command Layer (Util) - Terminal utilities and internal tools.
+ */
+
 import { ANSI } from "../../formatter.js";
 
 // ===================================================================
@@ -40,10 +51,18 @@ const CONFIG_SCHEMA = {
         type: "boolean",
         desc: "Show tab-switch notification bar",
     },
-    "auto-hide": {
+    "autoHide": {
         default: true,
         type: "boolean",
         desc: "Auto-hide header panels when data loaded",
+    },
+    "autoHideDelay": {
+        default: 5000,
+        type: "number",
+        min: 1000,
+        max: 30000,
+        unit: "ms",
+        desc: "Delay before header auto-hides",
     },
     "expert-mode": {
         default: false,

@@ -1,3 +1,17 @@
+/**
+ * @module modules/terminal/input/buffer-manager.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - InputEvents from './events.js'
+ *     - term, PROMPT from '../terminal-ui.js'
+ *     - isWriteLocked, enqueueWrite from '../write-lock.js'
+ *     - getTermCols, getHistory from '../../state.js'
+ * - Exports: getCurrentLine, getCursorPosition, isKeyboardLocked, setKeyboardLock, getVisualRow, getVisualCol, updateBufferState, insertText, setLine, clearBuffer, clearCurrentLine, refreshLine
+ * - Layer: Terminal Layer (Input) - Handles keyboard events, autocomplete, and history.
+ */
+
 import { InputEvents } from "./events.js";
 import { term, PROMPT } from "../terminal-ui.js";
 import { isWriteLocked, enqueueWrite } from "../write-lock.js";

@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/web/cookies.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, cmdUsage, formatError, workerError, toApex from '../../formatter.js'
+ * - Exports: cmdCookies
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import { ANSI, insights, resolveTargetDomain, cmdUsage, formatError, workerError, toApex } from "../../formatter.js";
 
 // ===================================================================

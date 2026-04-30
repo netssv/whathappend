@@ -1,3 +1,13 @@
+/**
+ * @module modules/background/handlers/export.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: handleExportHistory
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 // ===================================================================
 // Export History Handler
 // ===================================================================

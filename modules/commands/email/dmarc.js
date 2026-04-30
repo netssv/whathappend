@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/email/dmarc.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveBaseDomain, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - normTxt from './utils.js'
+ * - Exports: cmdDMARC
+ * - Layer: Command Layer (Email) - Audits SPF, DKIM, DMARC records.
+ */
+
 import {ANSI, insights, resolveBaseDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { normTxt } from "./utils.js";
 

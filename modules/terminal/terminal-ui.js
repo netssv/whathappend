@@ -1,3 +1,15 @@
+/**
+ * @module modules/terminal/terminal-ui.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - setTermCols, getHistory from '../state.js'
+ *     - showBanner as _showBanner from './terminal-banner.js'
+ * - Exports: PROMPT_PREFIX, PROMPT, term, fitAddon, isSystemWriting, initTerminalUI, refitTerminal, showBanner, writePrompt, writeOutput, showSpinner, stopSpinner
+ * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
+ */
+
 import { setTermCols, getHistory } from "../state.js";
 import { showBanner as _showBanner } from "./terminal-banner.js";
 

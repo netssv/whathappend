@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/stack/formatter.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights from '../../formatter.js'
+ * - Exports: formatStackOutput
+ * - Layer: Command Layer (Stack) - Tech stack identification.
+ */
+
 import { ANSI, insights } from "../../formatter.js";
 
 export function formatStackOutput({ domain, foundCMS, foundFrameworks, foundServers, headers, headersLower, fetchMethod }) {
@@ -62,6 +73,10 @@ export function formatStackOutput({ domain, foundCMS, foundFrameworks, foundServ
     }
     if (total === 0) {
         ins.push({ level: "INFO", text: "No technologies detected. Site may use custom stack or block fingerprinting." });
+    }
+
+    if (fetchMethod.startsWith("Static HTML")) {
+        ins.push({level:"INFO",text:"Tip: Run this command while the site is open in the active tab for deeper JS/DOM analysis."});
     }
 
     ins.push({ level: "INFO", text: `Test Stack: https://builtwith.com/${encodeURIComponent(domain)}` });

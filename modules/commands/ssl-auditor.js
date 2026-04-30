@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/ssl-auditor.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, formatError, insights from '../formatter.js'
+ * - Exports: processSSLAudit
+ * - Layer: Shared Utility / Router - Common functions or central engine index used across the app.
+ */
+
 import { ANSI, formatError, insights } from "../formatter.js";
 
 /**

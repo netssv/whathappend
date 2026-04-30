@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/dns/ttl.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError, toRegisteredDomain from '../../formatter.js'
+ * - Exports: fmtTTL, cmdTTL
+ * - Layer: Command Layer (DNS) - Executes DNS resolution and formatting.
+ */
+
 import {ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError, toRegisteredDomain } from "../../formatter.js";
 
 // ===================================================================
@@ -40,6 +51,8 @@ export async function cmdTTL(args) {
             }
         }
     }
+
+    ins.push({level:"INFO",text:`External Check: https://dnschecker.org/#A/${encodeURIComponent(domain)}`});
 
     if (ins.length > 0) o += "\n";
     o += insights(ins);

@@ -1,3 +1,16 @@
+/**
+ * @module modules/terminal/input/autocomplete-engine.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - InputEvents from './events.js'
+ *     - ContextManager from '../../context.js'
+ *     - AVAILABLE_COMMANDS, DOMAIN_COMMANDS, RAW_SNIPPETS, SUBCOMMAND_MAP from '../../data/autocomplete-data.js'
+ * - Exports: initAutocompleteEngine
+ * - Layer: Terminal Layer (Input) - Handles keyboard events, autocomplete, and history.
+ */
+
 import { InputEvents } from "./events.js";
 import { ContextManager } from "../../context.js";
 import { AVAILABLE_COMMANDS, DOMAIN_COMMANDS, RAW_SNIPPETS, SUBCOMMAND_MAP } from "../../data/autocomplete-data.js";

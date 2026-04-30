@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/native/rev-dns.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, isIPAddress, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - resolveProvider from '../../utils.js'
+ * - Exports: cmdRevDNS
+ * - Layer: Command Layer (Native) - Native App messaging commands.
+ */
+
 import {ANSI, insights, resolveTargetDomain, isIPAddress, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { resolveProvider } from "../../utils.js";
 

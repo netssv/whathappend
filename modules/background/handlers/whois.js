@@ -1,3 +1,16 @@
+/**
+ * @module modules/background/handlers/whois.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - createAbort, completeAbort, getNextAbortSeq from '../abort.js'
+ *     - CONFIG from '../../data/constants.js'
+ *     - parseWhoisSummary from '../../commands/web/whois-parser.js'
+ * - Exports: handleWHOIS, handleIPWhois
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
 import { createAbort, completeAbort, getNextAbortSeq } from "../abort.js";
 import { CONFIG } from "../../data/constants.js";
 import { parseWhoisSummary } from "../../commands/web/whois-parser.js";

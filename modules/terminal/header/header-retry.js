@@ -1,3 +1,17 @@
+/**
+ * @module modules/terminal/header/header-retry.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ContextManager from '../../context.js'
+ *     - toApex from '../../formatter.js'
+ *     - resolveProvider, isRdapMaintainer, getProviderFromCNAME from '../../utils.js'
+ *     - setSessionTriad from '../../state.js'
+ * - Exports: handleTriadRetryClick
+ * - Layer: Terminal Layer (Header) - Renders the top UI header blocks.
+ */
+
 import { ContextManager } from "../../context.js";
 import { toApex } from "../../formatter.js";
 import { resolveProvider, isRdapMaintainer, getProviderFromCNAME } from "../../utils.js";

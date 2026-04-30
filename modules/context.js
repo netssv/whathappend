@@ -1,4 +1,14 @@
 /**
+ * @module modules/context.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: ContextManager
+ * - Layer: Shared Utility / Router - Common functions or central engine index used across the app.
+ */
+
+/**
  * WhatHappened — Context Manager
  *
  * Tracks the active tab's domain and manages manual target overrides.

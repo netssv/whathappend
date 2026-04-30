@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/web/vitals.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, cmdUsage, cmdError from '../../formatter.js'
+ * - Exports: cmdVitals
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import { ANSI, insights, cmdUsage, cmdError } from "../../formatter.js";
 
 // ===================================================================

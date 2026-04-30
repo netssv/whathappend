@@ -2,6 +2,41 @@
 
 All the latest updates and improvements to the WhatHappened terminal.
 
+## [2.5.0] - 2026-04-29
+**The "Marketing & Security Audit" Update**
+
+### What's New?
+- **Marketing & SEO Suite**: New commands for auditing web presence:
+  - `seo`: Comprehensive SEO audit (titles, descriptions, headers, canonicals).
+  - `og`: Open Graph and Twitter Card metadata analysis.
+  - `alt`: DOM scanner for missing image accessibility tags.
+  - `socials`: Extraction of social media profiles from the page.
+- **Security Infrastructure Triage**:
+  - `csp`: Content-Security-Policy analyzer for XSS and data-leakage risks.
+  - `waf`: Detection of common Web Application Firewalls (Cloudflare, Akamai, etc.).
+  - `hsts`: Verification of HTTP Strict Transport Security policies.
+  - `headers-check`: Batch audit of all security-related HTTP response headers.
+- **Developer Utilities**:
+  - `diff`: Compare DNS/HTTP results between two different domains.
+  - `schema`: Validate JSON-LD and Microdata structured data.
+  - `minify`: Check if CSS/JS assets are properly minified.
+  - `reload`: Extension-wide hard reboot to clear memory and reset state.
+
+### UX & Performance
+- **Dynamic UI (Infrastructure Triad)**:
+  - Re-engineered the "Auto-Hide" logic. The header now intelligently fades out after a configurable delay (`autoHideDelay`).
+  - Added "Input Ping": Typing a new command briefly reveals the infrastructure context if it was hidden.
+  - Decoupled the header module into `header-triad.js` and `header-triad-events.js` for better performance and maintainability (Atomic Architecture compliance).
+- **Favicon Menu Improvements**: Updated the logo dropdown with toggle-able state indicators and direct access to system reloads.
+- **Global Localization**: Completed the transition to a 100% English-only diagnostic engine. Removed all legacy Spanish strings from the core formatter and help modules.
+
+### Bug Fixes
+- Resolved UI layout corruption in narrow viewports by implementing vertical chunking for long diagnostic reports (e.g., CSP audits).
+- Fixed race conditions during rapid tab switching in the tab-tracker service.
+- Standardized timeout handling across all network modules with clearer error feedback.
+
+---
+
 ## [2.4.2] - 2026-04-28
 **The "Release 2.4.2" Update**
 - Verified version references across files.

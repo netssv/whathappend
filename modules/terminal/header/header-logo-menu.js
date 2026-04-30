@@ -1,3 +1,15 @@
+/**
+ * @module modules/terminal/header/header-logo-menu.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - term, showBanner, refitTerminal from '../terminal-ui.js'
+ *     - InputEvents from '../input/events.js'
+ * - Exports: initLogoMenu
+ * - Layer: Terminal Layer (Header) - Renders the top UI header blocks.
+ */
+
 // header-logo-menu — Favicon dropdown utility menu
 import { term, showBanner, refitTerminal } from "../terminal-ui.js";
 import { InputEvents } from "../input/events.js";
@@ -17,7 +29,7 @@ export function initLogoMenu() {
         try {
             const data = await chrome.storage.local.get("wh_config");
             const config = data["wh_config"] || {};
-            const isAutoHidden = config["auto-hide"] !== undefined ? config["auto-hide"] : true;
+            const isAutoHidden = config["autoHide"] !== undefined ? config["autoHide"] : true;
             
             const btn = document.getElementById("menu-toggle-header");
             if (btn) {
@@ -57,10 +69,10 @@ export function initLogoMenu() {
         try {
             const data = await chrome.storage.local.get("wh_config");
             const config = data["wh_config"] || {};
-            const current = config["auto-hide"] !== undefined ? config["auto-hide"] : true;
+            const current = config["autoHide"] !== undefined ? config["autoHide"] : true;
             const newVal = !current;
-            term.write(`config auto-hide ${newVal}\r\n`);
-            InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `config auto-hide ${newVal}`);
+            term.write(`config autoHide ${newVal}\r\n`);
+            InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `config autoHide ${newVal}`);
             
             // Re-evaluate triad visibility after brief delay to allow config to save
             setTimeout(() => {

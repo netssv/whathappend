@@ -1,3 +1,16 @@
+/**
+ * @module modules/commands/web/whois.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, toRegisteredDomain, isIPAddress, cmdUsage, workerError, cmdError from '../../formatter.js'
+ *     - extractRegistrar, extractExpiry from './whois-parser.js'
+ *     - getConfig from '../util/config.js'
+ * - Exports: cmdWhois
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import { ANSI, insights, resolveTargetDomain, toRegisteredDomain, isIPAddress, cmdUsage, workerError, cmdError } from "../../formatter.js";
 import { extractRegistrar, extractExpiry } from "./whois-parser.js";
 import { getConfig } from "../util/config.js";

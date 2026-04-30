@@ -1,4 +1,14 @@
 /**
+ * @module modules/state.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: pushHistory, getHistory, pushNote, getNotes, setSessionTarget, setSessionTriad, getSessionTarget, restoreSession, clearSession, setTermCols, getTermCols
+ * - Layer: Shared Utility / Router - Common functions or central engine index used across the app.
+ */
+
+/**
  * WhatHappened — Shared State
  *
  * Holds the commandOutputHistory array shared between terminal.js (writer)

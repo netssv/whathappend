@@ -1,4 +1,14 @@
 /**
+ * @module modules/background/cache.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: withCache
+ * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
+ */
+
+/**
  * WhatHappened — Ephemeral API Cache (LRU-style)
  * Uses chrome.storage.session to cache deterministic background network requests.
  * Prevents redundant external API hits during rapid triage.
@@ -16,7 +26,9 @@ const CACHE_TTL_MS = 60 * 1000; // 60 seconds
 export async function withCache(command, payload, handlerFn) {
     // We stringify the payload to create a deterministic cache key.
     // Example: cache:dns:{"domain":"google.com","type":"A"}
-    const payloadStr = JSON.stringify(payload || {});
+    const cleanPayload = { ...payload };
+    delete cleanPayload.abortId; // Strip unique IDs so cache keys match
+    const payloadStr = JSON.stringify(cleanPayload);
     const cacheKey = `cache:${command}:${payloadStr}`;
 
     try {

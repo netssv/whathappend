@@ -1,3 +1,14 @@
+/**
+ * @module modules/commands/web/flush.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, cmdUsage, cmdError from '../../formatter.js'
+ * - Exports: cmdFlush
+ * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
+ */
+
 import { ANSI, insights, resolveTargetDomain, cmdUsage, cmdError } from "../../formatter.js";
 
 // ===================================================================

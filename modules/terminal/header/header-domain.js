@@ -1,3 +1,14 @@
+/**
+ * @module modules/terminal/header/header-domain.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ContextManager from '../../context.js'
+ * - Exports: initDomainInput, isHeaderFocused
+ * - Layer: Terminal Layer (Header) - Renders the top UI header blocks.
+ */
+
 import { ContextManager } from "../../context.js";
 
 // ===================================================================

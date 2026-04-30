@@ -1,12 +1,25 @@
 # WhatHappened: Command Reference
 
-This is a comprehensive guide to all the commands available in the WhatHappened terminal. 
+<!-- SYSTEM INSTRUCTION: 
+When adding or modifying a command in this repository, you MUST verify and update the following files to ensure consistency:
+1. COMMANDS.md (this file)
+2. README.md (if applicable to features)
+3. modules/commands/util/detailed-help.js (for `cmd?`)
+4. modules/commands/util/help.js (for the main `help` menu)
+5. modules/data/autocomplete-data.js (for tab-completion)
+6. modules/engine.js (the main command router)
+7. modules/data/aliases.js (for aliases and ALL_KNOWN_CMDS)
+8. The respective index.js file in modules/commands/ (e.g. web/index.js)
+Failure to update these files will break the atomic architecture and UX consistency.
+-->
+This is a comprehensive guide to all the commands available in the WhatHappened terminal.
 
 **Pro-Tip:** If you ever forget how a command works, just type `?` after it in the terminal (e.g. `email?` or `dig?`) for a detailed breakdown and examples.
 
 ---
 
 ## Audits (The Heavy Hitters)
+
 These commands bundle multiple checks together to give you a comprehensive overview of a specific area.
 
 | Command | Description | Aliases |
@@ -14,10 +27,15 @@ These commands bundle multiple checks together to give you a comprehensive overv
 | `email` | Checks MX, SPF, DMARC, and performs a heuristic DKIM discovery. | `mail` |
 | `web` | Runs DNS, HTTP Headers, and SSL certificate checks simultaneously. | `audit` |
 | `sec` | Generates a security scorecard based on Headers and SSL/TLS configuration. | `scan`, `security` |
+| `csp` | Analyzes Content-Security-Policy header for XSS vulnerabilities. | `xss` |
+| `waf` | Detection of Web Application Firewalls (Cloudflare, Akamai, etc.). | `firewall` |
+| `hsts` | Verification of HTTP Strict Transport Security policies. | `strict` |
+| `headers-check` | Batch audit of all security-related HTTP response headers. | `hcheck` |
 
 ---
 
 ## DNS & Network
+
 Native DNS queries using Google's DNS-over-HTTPS.
 
 | Command | Description | Aliases |
@@ -32,12 +50,14 @@ Native DNS queries using Google's DNS-over-HTTPS.
 | `ftp-check` | Grabs the FTP banner if port 21 is open. | `ftp` |
 
 ### DNS Shortcuts
+
 Type these directly to get specific records:
 `a`, `aaaa`, `mx`, `txt`, `ns`, `cname`, `soa`
 
 ---
 
 ## ️ Web & Infrastructure
+
 Dig into the architecture, hosting, and performance of a site.
 
 | Command | Description | Aliases |
@@ -58,6 +78,7 @@ Dig into the architecture, hosting, and performance of a site.
 ---
 
 ## ️ OSINT & Content
+
 Gather public intelligence and historical data.
 
 | Command | Description | Aliases |
@@ -67,6 +88,12 @@ Gather public intelligence and historical data.
 | `robots` | Fetches and displays `robots.txt`. | `sitemap` |
 | `links` | Scans the active tab's DOM for mixed content (HTTP links on HTTPS). | `src` |
 | `pixels` | Scans the active tab for known ad/tracking pixels. | `tracking`, `ads` |
+| `socials`| Detects social media presence (scans active tab or static HTML). | `social` |
+| `seo` | Baseline SEO audit (Title, Meta Description, H1-H6 structure). | `meta`, `tags` |
+| `og` | Open Graph & Social Cards audit (`og:image`, `twitter:card`). | `thaks`, `opengraph` |
+| `alt` | Image accessibility scanner (missing `alt` tags). | `images`, `a11y` |
+| `schema` | Structured Data scanner (JSON-LD, Microdata). | `jsonld` |
+| `minify` | Checks if JS/CSS assets are properly minified. | `min` |
 | `green` | Checks if the hosting provider runs on green/renewable energy. | - |
 | `cookies` | Privacy audit of cookies set by the domain. | - |
 | `security-txt`| RFC 9116 security contact discovery (`/.well-known/security.txt`). | `sec-txt` |
@@ -74,6 +101,7 @@ Gather public intelligence and historical data.
 ---
 
 ## External Tools
+
 Generates safe, clickable links to industry-standard diagnostic tools. We never send your data to them directly.
 
 | Command | Description | Aliases |
@@ -86,6 +114,7 @@ Generates safe, clickable links to industry-standard diagnostic tools. We never 
 ---
 
 ## ️ Terminal Utilities
+
 Control the terminal environment itself.
 
 | Command | Description | Aliases |
@@ -94,10 +123,12 @@ Control the terminal environment itself.
 | `switch` | Switches target to the active browser tab. | `actual`, `current`, `here`, `sw` |
 | `target` | Sets the target domain silently. | - |
 | `tabs` | List, close, sleep, or inspect tabs. `diag` scans for health issues. | `tab`, `close`, `info`, `diag`, `sleep` |
+| `reload` | Hard reboots the extension context (clears memory). | `restart`, `reboot` |
 | `config` | View or change user preferences (`config timeout 5000`). | `settings`, `set` |
 | `export` | Saves the entire session output as a JSON file. | `dump`, `save` |
 | `flush` | Clears cookies and cache for a specific domain. | `clearcache` |
 | `notes` | Add session annotations (included in JSON export). | `note`, `memo` |
+| `diff` | Compare DNS/HTTP results between two different domains. | - |
 | `info` | System diagnostics (telemetry, versions, browser details). | `status` |
 | `errors`| Common diagnostic insights and network error explanations. | `error` |
 | `about` | Philosophy, identity, and architecture. | - |

@@ -1,3 +1,13 @@
+/**
+ * @module modules/data/autocomplete-data.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: AVAILABLE_COMMANDS, DOMAIN_COMMANDS, RAW_SNIPPETS, CONFIG_KEYS, SUBCOMMAND_MAP
+ * - Layer: Data Layer - Static constants, dictionaries, and autocomplete datasets.
+ */
+
 // ===================================================================
 // Autocomplete Data
 // ===================================================================
@@ -7,9 +17,10 @@ export const AVAILABLE_COMMANDS = [
     "ping", "trace", "target",
     "email", "web", "sec", "ttl", "spf", "dmarc", "dkim", "robots",
     "registrar", "hosting", "history",
-    "help",    "history", "crt", "wayback", "archive", "green", "cookies", "about", "info", "exit",
+    "help",    "history", "crt", "wayback", "archive", "rank", "ranking", "traffic", "seo", "meta", "og", "opengraph", "thaks", "alt", "a11y", "images", "csp", "green", "cookies", "about", "info", "exit", "reload", "restart", "reboot",
     "a", "aaaa", "mx", "txt", "ns", "cname", "soa", "dnssec",
     "rev-dns", "port-scan", "ftp-check", "export",
+    "waf", "firewall", "cdn-check", "hsts", "strict", "secure-transport", "minify", "min", "assets", "schema", "structured", "jsonld", "microdata", "diff", "headers-check", "hcheck", "security-headers",
     "blacklist", "ssllabs", "securityheaders", "whois-ext",
     // aliases
     "dns", "ssl", "headers", "redirect", "security",
@@ -20,7 +31,7 @@ export const AVAILABLE_COMMANDS = [
     "rdns", "ptr", "ports", "nmap", "portscan", "ftp",
     "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann",
     "dump", "report", "save",
-    "pixels", "tracking", "trackers", "pixel", "ads", "links",
+    "pixels", "tracking", "trackers", "pixel", "ads", "links", "socials", "social",
     "stack", "tech", "techstack", "wappalyzer", "cms",
     "load", "perf", "performance", "pagespeed", "timing",
     "reg", "lifecycle",
@@ -46,9 +57,10 @@ export const DOMAIN_COMMANDS = [
     "dig", "host", "nslookup", "curl", "openssl", "whois",
     "ping", "trace",
     "email", "web", "sec", "ttl", "spf", "dmarc", "dkim", "robots",
-    "registrar", "hosting", "history", "wayback", "green", "cookies",
+    "registrar", "hosting", "history", "wayback", "rank", "ranking", "traffic", "seo", "meta", "og", "opengraph", "thaks", "alt", "a11y", "images", "csp", "green", "cookies",
     "a", "aaaa", "mx", "txt", "ns", "cname", "soa", "dnssec",
     "rev-dns", "port-scan", "ftp-check",
+    "waf", "hsts", "minify", "schema", "diff", "headers-check",
     "blacklist", "ssllabs", "securityheaders", "whois-ext",
     // aliases
     "dns", "ssl", "headers", "redirect", "security",
@@ -57,7 +69,7 @@ export const DOMAIN_COMMANDS = [
     "latency", "sitemap", "record",
     "rdns", "ptr", "ports", "nmap", "portscan", "ftp",
     "bl", "rbl", "ssltest", "sheaders", "icann",
-    "pixels", "tracking", "trackers", "pixel", "ads",
+    "pixels", "tracking", "trackers", "pixel", "ads", "socials", "social",
     "stack", "tech", "techstack", "wappalyzer", "cms",
     "load", "perf", "performance", "pagespeed", "timing",
     "reg", "lifecycle",
@@ -89,7 +101,7 @@ export const RAW_SNIPPETS = [
 ];
 
 // Context-aware subcommand completion (keys scoped to their parent command only)
-export const CONFIG_KEYS = ["timeout", "retry-timeout", "auto-triage", "tab-notify", "auto-hide", "expert-mode", "reset", "list"];
+export const CONFIG_KEYS = ["timeout", "retry-timeout", "auto-triage", "tab-notify", "autoHide", "autoHideDelay", "expert-mode", "reset", "list"];
 const TABS_KEYS = ["list", "close", "info", "diag", "watch", "block", "sleep", "focus"];
 export const SUBCOMMAND_MAP = {
     config:   CONFIG_KEYS,

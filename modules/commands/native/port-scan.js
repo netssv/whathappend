@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/native/port-scan.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError from '../../formatter.js'
+ *     - PORT_SERVICES from '../../data/constants.js'
+ * - Exports: cmdPortScan, formatPortResults
+ * - Layer: Command Layer (Native) - Native App messaging commands.
+ */
+
 import {ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { PORT_SERVICES } from "../../data/constants.js";
 

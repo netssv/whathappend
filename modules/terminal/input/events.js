@@ -1,4 +1,14 @@
 /**
+ * @module modules/terminal/input/events.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: None (Dependency-free)
+ * - Exports: InputEvents
+ * - Layer: Terminal Layer (Input) - Handles keyboard events, autocomplete, and history.
+ */
+
+/**
  * Simple Pub/Sub Event Bus for Terminal Input
  */
 

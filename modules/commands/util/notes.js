@@ -1,3 +1,15 @@
+/**
+ * @module modules/commands/util/notes.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, cmdUsage from '../../formatter.js'
+ *     - pushNote, getNotes from '../../state.js'
+ * - Exports: cmdNotes
+ * - Layer: Command Layer (Util) - Terminal utilities and internal tools.
+ */
+
 import { ANSI, cmdUsage } from "../../formatter.js";
 import { pushNote, getNotes } from "../../state.js";
 

@@ -1,3 +1,17 @@
+/**
+ * @module modules/commands/email/dkim.js
+ * @description Architectural connections and module role.
+ * 
+ * @connections
+ * - Imports: 
+ *     - ANSI, insights, resolveBaseDomain from '../../formatter.js'
+ *     - getPossibleSelectors from './dkim-discovery.js'
+ *     - normTxt from './utils.js'
+ *     - getProviderFromCNAME from '../../utils.js'
+ * - Exports: cmdDKIM, checkSel
+ * - Layer: Command Layer (Email) - Audits SPF, DKIM, DMARC records.
+ */
+
 import { ANSI, insights, resolveBaseDomain } from "../../formatter.js";
 import { getPossibleSelectors } from "./dkim-discovery.js";
 import { normTxt } from "./utils.js";
