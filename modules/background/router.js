@@ -28,7 +28,7 @@
  */
 
 import { cancelAbort } from "./abort.js";
-import { getActiveDomain } from "./tab-tracker.js";
+import { getActiveDomain, checkTabExists } from "./tab-tracker.js";
 import { handleDNS } from "./handlers/dns.js";
 import { handleHTTPHeaders, handleFetchText } from "./handlers/http.js";
 import { handleSSL } from "./handlers/ssl.js";
@@ -108,6 +108,9 @@ export function setupRouter() {
                 break;
             case "get-active-domain":
                 getActiveDomain().then(sendResponse);
+                break;
+            case "check-tab-exists":
+                checkTabExists(payload?.domain).then(sendResponse);
                 break;
 
             // ── Browser-based network tools ──

@@ -9,7 +9,7 @@
  * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
  */
 
-import {ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError} from "../../formatter.js";
+import {ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError, getLiveDomNote} from "../../formatter.js";
 
 const SOCIAL_NETWORKS = [
     { id: "facebook", name: "Facebook", regex: /https?:\/\/(www\.)?facebook\.com\/([a-zA-Z0-9_.-]+)/gi },
@@ -108,12 +108,12 @@ export async function cmdSocials(args) {
         }
 
         if (isStatic) {
-            ins.push({level:"INFO",text:"Tip: Run this command while the site is open in the active tab for deeper JS/DOM analysis."});
+            ins.push(await getLiveDomNote(domain));
         }
         
-        ins.push({ level: "INFO", text: `External Check: https://builtwith.com/${encodeURIComponent(domain)}` });
-
+        if (ins.length > 0) o += "\n";
         o += insights(ins);
+        o += `\n${ANSI.dim}External:${ANSI.reset} ${ANSI.blue}https://builtwith.com/${encodeURIComponent(domain)}${ANSI.reset}\n`;
         return o;
 
     } catch (err) {

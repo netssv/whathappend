@@ -9,7 +9,7 @@
  * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
  */
 
-import {ANSI, insights, resolveTargetDomain, formatError, cmdUsage} from "../../formatter.js";
+import {ANSI, insights, resolveTargetDomain, formatError, cmdUsage, getLiveDomNote} from "../../formatter.js";
 
 // ===================================================================
 //  alt — Image Accessibility Scanner (Active Tab / Static)
@@ -111,12 +111,12 @@ export async function cmdAlt(args) {
 
         if (!isLive) {
             ins.push({level: "INFO", text: "Scanned static HTML. If this is an SPA (React/Vue), images might load dynamically."});
-            ins.push({level: "INFO", text: "To scan the final DOM, navigate to the site in your browser and run: alt here"});
+            ins.push(await getLiveDomNote(domain));
         }
 
-        ins.push({level: "INFO", text: `External Check: https://wave.webaim.org/report#/${domain}`});
-        
+        if (ins.length > 0) o += "\n";
         o += insights(ins);
+        o += `\n${ANSI.dim}External:${ANSI.reset} ${ANSI.blue}https://wave.webaim.org/report#/${domain}${ANSI.reset}\n`;
         return o;
 
     } catch (err) {

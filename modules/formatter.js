@@ -111,6 +111,16 @@ export function workerError(msg = "No response from background worker.") {
     return `${ANSI.red}[ERROR] ${msg}${ANSI.reset}`;
 }
 
+export async function getLiveDomNote(domain) {
+    try {
+        const tabState = await chrome.runtime.sendMessage({ command: "check-tab-exists", payload: { domain } });
+        if (tabState?.exists) {
+            return { level: "INFO", text: "This website is open in another tab. Switch to it and run this command to scan the Live DOM." };
+        }
+    } catch (_) {}
+    return { level: "INFO", text: `To scan the Live Rendered DOM, open ${domain} in a browser tab and run this command.` };
+}
+
 // ---------------------------------------------------------------------------
 // Target Resolution
 // ---------------------------------------------------------------------------

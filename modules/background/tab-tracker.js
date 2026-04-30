@@ -44,6 +44,20 @@ export async function getActiveDomain() {
     }
 }
 
+export async function checkTabExists(domain) {
+    try {
+        const tabs = await chrome.tabs.query({});
+        for (const tab of tabs) {
+            if (tab.url && extractDomain(tab.url) === domain) {
+                return { exists: true, windowId: tab.windowId, tabId: tab.id };
+            }
+        }
+        return { exists: false };
+    } catch (_e) {
+        return { exists: false };
+    }
+}
+
 export function setupTabTracker() {
     // When the user switches to a different tab
     chrome.tabs.onActivated.addListener(async (activeInfo) => {

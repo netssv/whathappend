@@ -11,7 +11,7 @@
 
 import { ANSI, insights } from "../../formatter.js";
 
-export function formatStackOutput({ domain, foundCMS, foundFrameworks, foundServers, headers, headersLower, fetchMethod }) {
+export function formatStackOutput({ domain, foundCMS, foundFrameworks, foundServers, headers, headersLower, fetchMethod, liveDomInsight }) {
     const sepLen = Math.min(50, 36);
     const sep = ANSI.dim + "━".repeat(sepLen) + ANSI.reset;
     let o = `> stack ${domain}\n`;
@@ -75,8 +75,8 @@ export function formatStackOutput({ domain, foundCMS, foundFrameworks, foundServ
         ins.push({ level: "INFO", text: "No technologies detected. Site may use custom stack or block fingerprinting." });
     }
 
-    if (fetchMethod.startsWith("Static HTML")) {
-        ins.push({level:"INFO",text:"Tip: Run this command while the site is open in the active tab for deeper JS/DOM analysis."});
+    if (liveDomInsight) {
+        ins.push(liveDomInsight);
     }
 
     ins.push({ level: "INFO", text: `Test Stack: https://builtwith.com/${encodeURIComponent(domain)}` });
