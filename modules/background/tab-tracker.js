@@ -30,12 +30,12 @@ async function broadcastDomain(urlString) {
 
 export async function getActiveDomain() {
     try {
-        const [tab] = await chrome.tabs.query({
+        const tabs = await chrome.tabs.query({
             active: true,
-            currentWindow: true,
+            lastFocusedWindow: true,
         });
-        if (tab?.url) {
-            const domain = extractDomain(tab.url);
+        if (tabs && tabs.length > 0 && tabs[0].url) {
+            const domain = extractDomain(tabs[0].url);
             return { domain: domain || "restricted" };
         }
         return { domain: "restricted" };

@@ -20,3 +20,4 @@ export { cmdStart } from "./start.js";
 export { cmdConfig } from "./config.js";
 export { cmdTabs } from "./tabs.js";
 export { cmdReload } from "./reload.js";
+export { cmdNotes } from "./notes.js";

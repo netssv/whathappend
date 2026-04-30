@@ -158,13 +158,14 @@ export async function cmdConfig(args) {
         return out;
     }
 
-    const key = args[0].toLowerCase();
+    const inputKey = args[0].toLowerCase();
+    const key = Object.keys(CONFIG_SCHEMA).find(k => k.toLowerCase() === inputKey);
 
     // config <key> — show single value
     if (args.length === 1) {
-        if (!CONFIG_SCHEMA[key]) {
+        if (!key) {
             const available = Object.keys(CONFIG_SCHEMA).join(", ");
-            return `${ANSI.red}Unknown key: '${key}'${ANSI.reset}\n${ANSI.dim}Available: ${available}${ANSI.reset}`;
+            return `${ANSI.red}Unknown key: '${args[0]}'${ANSI.reset}\n${ANSI.dim}Available: ${available}${ANSI.reset}`;
         }
         const val = resolveValue(key, stored);
         const isCustom = stored[key] !== undefined;
@@ -176,6 +177,11 @@ export async function cmdConfig(args) {
     }
 
     // config <key> <value> — set value
+    if (!key) {
+        const available = Object.keys(CONFIG_SCHEMA).join(", ");
+        return `${ANSI.red}Unknown key: '${args[0]}'${ANSI.reset}\n${ANSI.dim}Available: ${available}${ANSI.reset}`;
+    }
+
     const rawValue = args.slice(1).join(" ");
     const result = validateAndParse(key, rawValue);
 

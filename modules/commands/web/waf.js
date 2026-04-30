@@ -64,6 +64,41 @@ export async function cmdWaf(args) {
             detected = true;
         }
 
+        // AWS Application Load Balancer / API Gateway
+        if (headers["x-amzn-trace-id"] || headers["x-amzn-requestid"] || headers["server"]?.toLowerCase().includes("awselb")) {
+            o += `${ANSI.cyan}AWS Edge/ALB${ANSI.reset} detected via ${ANSI.dim}AWS headers${ANSI.reset}\n`;
+            ins.push({ level: "INFO", text: "AWS infrastructure detected. AWS WAF might be attached." });
+            detected = true;
+        }
+
+        // Azure Front Door / Application Gateway
+        if (headers["x-azure-ref"] || headers["x-ms-routing-name"] || headers["server"]?.toLowerCase().includes("azure")) {
+            o += `${ANSI.cyan}Azure Front Door${ANSI.reset} detected via ${ANSI.dim}x-azure-ref${ANSI.reset}\n`;
+            ins.push({ level: "INFO", text: "Azure Edge Network detected. Azure WAF is likely active." });
+            detected = true;
+        }
+
+        // Vercel Edge
+        if (headers["x-vercel-id"] || headers["server"]?.toLowerCase() === "vercel") {
+            o += `${ANSI.cyan}Vercel Edge${ANSI.reset} detected via ${ANSI.dim}x-vercel-id${ANSI.reset}\n`;
+            ins.push({ level: "INFO", text: "Vercel Edge Network detected. Includes built-in DDoS mitigation." });
+            detected = true;
+        }
+
+        // Netlify Edge
+        if (headers["x-nf-request-id"] || headers["server"]?.toLowerCase() === "netlify") {
+            o += `${ANSI.cyan}Netlify Edge${ANSI.reset} detected via ${ANSI.dim}x-nf-request-id${ANSI.reset}\n`;
+            ins.push({ level: "INFO", text: "Netlify Edge network detected. Standard DDoS protection is active." });
+            detected = true;
+        }
+
+        // GitHub Custom Infrastructure
+        if (headers["x-github-request-id"]) {
+            o += `${ANSI.cyan}GitHub Infrastructure${ANSI.reset} detected via ${ANSI.dim}x-github-request-id${ANSI.reset}\n`;
+            ins.push({ level: "INFO", text: "GitHub proprietary edge infrastructure detected." });
+            detected = true;
+        }
+
         if (!detected) {
             o += `${ANSI.dim}No common WAF signatures found in HTTP headers.${ANSI.reset}\n`;
             ins.push({ level: "WARN", text: "No WAF detected. The site may be vulnerable to brute force or Layer 7 attacks if not protected." });

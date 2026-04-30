@@ -52,9 +52,8 @@ export async function cmdTTL(args) {
         }
     }
 
-    ins.push({level:"INFO",text:`External Check: https://dnschecker.org/#A/${encodeURIComponent(domain)}`});
-
     if (ins.length > 0) o += "\n";
     o += insights(ins);
+    o += `\n${ANSI.dim}External:${ANSI.reset} ${ANSI.blue}https://toolbox.googleapps.com/apps/dig/#A/${encodeURIComponent(domain)}${ANSI.reset}\n`;
     return o;
 }

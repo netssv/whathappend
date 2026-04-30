@@ -65,7 +65,7 @@ async function bootstrap() {
         writePrompt();
 
         // If active tab differs from restored target, suggest switching
-        if (initialDomain && toApex(initialDomain) !== toApex(session.target)) {
+        if (initialDomain && initialDomain !== "restricted" && toApex(initialDomain) !== toApex(session.target)) {
             showTabSwitch(initialDomain, (newDomain) => {
                 ContextManager.setManualTarget(newDomain);
                 writePrompt();
@@ -87,7 +87,7 @@ async function bootstrap() {
         writePrompt();
 
         // If active tab differs from restored target, suggest switching
-        if (initialDomain && toApex(initialDomain) !== toApex(session.target)) {
+        if (initialDomain && initialDomain !== "restricted" && toApex(initialDomain) !== toApex(session.target)) {
             showTabSwitch(initialDomain, (newDomain) => {
                 ContextManager.setManualTarget(newDomain);
                 writePrompt();
@@ -154,7 +154,9 @@ ContextManager.onTargetChanged(async (domain) => {
 
 // Tab-change notification: Show interactive bar so user can choose to switch
 ContextManager.onTabChanged((domain, prev) => {
-    // Don't suggest switching if the new domain matches the current target
+    // Don't suggest switching if the new domain is invalid or matches the current target
+    if (domain === "restricted" || !domain) return;
+    
     const current = ContextManager.getDomain();
     if (current && toApex(domain) === toApex(current)) return;
 
