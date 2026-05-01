@@ -78,7 +78,7 @@ export function initAutocompleteEngine() {
                     if (prefix.length > partial.length) {
                         InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, `${parts[0]} ${prefix}`);
                     } else {
-                        // Dynamic inline autocomplete (CachyOS style)
+                        // Dynamic inline autocomplete (WhOS style)
                         tabCycleMatches = matches.map(m => `${parts[0]} ${m} `);
                         tabCycleIndex = 0;
                         InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, tabCycleMatches[tabCycleIndex]);
@@ -104,12 +104,74 @@ export function initAutocompleteEngine() {
                 if (prefix.length > partial.length) {
                     InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, `${baseCmd} ${prefix}`);
                 } else {
-                    // Dynamic inline autocomplete (CachyOS style)
+                    // Dynamic inline autocomplete (WhOS style)
                     tabCycleMatches = matches.map(m => `${baseCmd} ${m} `);
                     tabCycleIndex = 0;
                     InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, tabCycleMatches[tabCycleIndex]);
                 }
             }
+            return;
+        }
+
+        // ── Config value completion: config theme <value> ────────────
+        const CONFIG_VALUE_MAP = {
+            theme: ["WhOS", "amber", "matrix"],
+        };
+        const configAliases = ["config", "settings", "set", "prefs"];
+        if (configAliases.includes(baseCmd) && parts.length === 3 && !hasTrailingSpace) {
+            const subKey = parts[1].toLowerCase();
+            const valueOpts = CONFIG_VALUE_MAP[subKey];
+            if (valueOpts) {
+                const partial = parts[2].toLowerCase();
+                const matches = valueOpts.filter(v => v.startsWith(partial));
+                if (matches.length === 1) {
+                    InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, `${baseCmd} ${subKey} ${matches[0]} `);
+                } else if (matches.length > 1) {
+                    const prefix = getLongestCommonPrefix(matches);
+                    if (prefix.length > partial.length) {
+                        InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, `${baseCmd} ${subKey} ${prefix}`);
+                    } else {
+                        tabCycleMatches = matches.map(m => `${baseCmd} ${subKey} ${m} `);
+                        tabCycleIndex = 0;
+                        InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, tabCycleMatches[tabCycleIndex]);
+                    }
+                }
+                return;
+            }
+        }
+
+        // ── Active Tabs Domain Autocompletion for DOMAIN_COMMANDS ──
+        if (isDomainCmd && parts.length === 2 && !hasTrailingSpace) {
+            const partialDomain = parts[1].toLowerCase();
+            
+            chrome.tabs.query({}, (tabs) => {
+                const openDomains = new Set();
+                if (tabs) {
+                    tabs.forEach(tab => {
+                        if (tab.url && tab.url.startsWith("http")) {
+                            try {
+                                const url = new URL(tab.url);
+                                openDomains.add(url.hostname.replace(/^www\./, ""));
+                            } catch(e) {}
+                        }
+                    });
+                }
+                
+                const matches = Array.from(openDomains).filter(d => d.startsWith(partialDomain));
+                if (matches.length === 1) {
+                    InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, `${parts[0]} ${matches[0]} `);
+                } else if (matches.length > 1) {
+                    const prefix = getLongestCommonPrefix(matches);
+                    if (prefix.length > partialDomain.length) {
+                        InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, `${parts[0]} ${prefix}`);
+                    } else {
+                        // Dynamic inline autocomplete
+                        tabCycleMatches = matches.map(m => `${parts[0]} ${m} `);
+                        tabCycleIndex = 0;
+                        InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, tabCycleMatches[tabCycleIndex]);
+                    }
+                }
+            });
             return;
         }
 
@@ -124,7 +186,7 @@ export function initAutocompleteEngine() {
                 if (prefix.length > input.length) {
                     InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, prefix);
                 } else {
-                    // Dynamic inline autocomplete (CachyOS style)
+                    // Dynamic inline autocomplete (WhOS style)
                     tabCycleMatches = snippetMatches;
                     tabCycleIndex = 0;
                     InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, tabCycleMatches[tabCycleIndex]);
@@ -168,7 +230,7 @@ export function initAutocompleteEngine() {
                     if (prefix.length > input.length) {
                         InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, prefix);
                     } else {
-                        // Dynamic inline autocomplete (CachyOS style)
+                        // Dynamic inline autocomplete (WhOS style)
                         tabCycleMatches = matches.map(m => m + " ");
                         tabCycleIndex = 0;
                         InputEvents.emit(InputEvents.EV_BUFFER_CHANGE, tabCycleMatches[tabCycleIndex]);

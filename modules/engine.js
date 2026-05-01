@@ -9,15 +9,7 @@
  *     - parseCommand, suggestCommand from './core/parser.js'
  *     - checkTargetGuards from './core/guards.js'
  *     - handleAutoTarget from './core/fallback.js'
- *     - cmdDig, cmdHost, cmdNslookup, cmdTTL, cmdDnssec from './commands/dns/index.js'
- *     - cmdEmail, cmdSPF, cmdDMARC, cmdDKIM from './commands/email/index.js'
- *     - cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdRegistrar, cmdHosting, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdIsUp, cmdSpeed, cmdSpeedtest, cmdIP, cmdSocials, cmdRank, cmdSeo, cmdOg, cmdAlt, cmdCsp, cmdWaf, cmdHsts, cmdMinify, cmdSchema, cmdDiff, cmdHeadersCheck from './commands/web/index.js'
- *     - cmdSecurityTxt from './commands/web/security-txt.js'
- *     - cmdVitals from './commands/web/vitals.js'
- *     - cmdFlush from './commands/web/flush.js'
- *     - cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt from './commands/native/index.js'
- *     - cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig, cmdNotes, cmdTabs, cmdReload from './commands/util/index.js'
- *     - cmdStack from './commands/stack/index.js'
+ *     - COMMAND_REGISTRY from './core/registry.js'
  * - Exports: executeCommand
  * - Layer: Shared Utility / Router - Common functions or central engine index used across the app.
  */
@@ -31,24 +23,18 @@
  *   3. INSIGHTS — colored actionable findings
  */
 
-import {ANSI, generateImpactSection, isIPAddress, resolveTargetDomain, cmdUsage, cmdError, workerError } from "./formatter.js";
+import { ANSI, generateImpactSection, isIPAddress, resolveTargetDomain, cmdError } from "./formatter.js";
 import { CMD_ALIASES, DNS_SHORTCUTS } from "./data/aliases.js";
 
 // Core logic modules
 import { parseCommand, suggestCommand } from "./core/parser.js";
 import { checkTargetGuards } from "./core/guards.js";
 import { handleAutoTarget } from "./core/fallback.js";
+import { COMMAND_REGISTRY } from "./core/registry.js";
 
-// Command modules
-import { cmdDig, cmdHost, cmdNslookup, cmdTTL, cmdDnssec } from "./commands/dns/index.js";
-import { cmdEmail, cmdSPF, cmdDMARC, cmdDKIM } from "./commands/email/index.js";
-import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdIsUp, cmdJitter, cmdSpeedtest, cmdIP, cmdSocials, cmdRank, cmdSeo, cmdOg, cmdAlt, cmdCsp, cmdWaf, cmdHsts, cmdMinify, cmdSchema, cmdDiff, cmdHeadersCheck, cmdAudit, cmdExt, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "./commands/web/index.js";
-import { cmdSecurityTxt } from "./commands/web/security-txt.js";
-import { cmdVitals } from "./commands/web/vitals.js";
-import { cmdFlush } from "./commands/web/flush.js";
-import { cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport } from "./commands/native/index.js";
-import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig, cmdNotes, cmdTabs, cmdReload } from "./commands/util/index.js";
-import { cmdStack } from "./commands/stack/index.js";
+// Direct imports needed for engine internals
+import { cmdDig } from "./commands/dns/index.js";
+import { cmdHelp, cmdDetailedHelp, cmdSwitch, cmdStart } from "./commands/util/index.js";
 
 // ---------------------------------------------------------------------------
 // Public API — executeCommand
@@ -81,98 +67,30 @@ export async function executeCommand(input) {
         if (DNS_SHORTCUTS[resolved]) {
             output = await cmdDig(args, { forcedType: DNS_SHORTCUTS[resolved], opts, isShortcut: true });
         } else {
-            switch (resolved) {
-                case "dig": output = await cmdDig(args, { opts }); break;
-                case "host": output = await cmdHost(args); break;
-                case "nslookup": output = await cmdNslookup(args); break;
-                case "curl": output = await cmdCurl(args); break;
-                case "openssl": output = await cmdOpenSSL(args); break;
-                case "whois": output = await cmdWhois(args, flags); break;
-                case "ping": output = await cmdPing(args); break;
-                case "trace": output = await cmdTrace(args); break;
-                case "email": output = await cmdEmail(args); break;
-                case "web": output = await cmdWeb(args); break;
-                case "ttl": output = await cmdTTL(args); break;
-                case "dnssec": output = await cmdDnssec(args); break;
-                case "spf": output = await cmdSPF(args); break;
-                case "dmarc": output = await cmdDMARC(args); break;
-                case "dkim": output = await cmdDKIM(args); break;
-                case "robots": output = await cmdRobots(args); break;
-                case "sec": output = await cmdSec(args); break;
-                case "pixels": output = await cmdPixels(args); break;
-                case "socials": output = await cmdSocials(args); break;
-                case "links": output = await cmdLinks(args); break;
-                case "load": output = await cmdLoad(args); break;
-                case "hosting": output = await cmdHosting(args); break;
-                case "history": output = await cmdHistory(args); break;
-                case "rank": output = await cmdRank(args); break;
-                case "audit": output = await cmdAudit(args); break;
-                case "seo": output = await cmdSeo(args); break;
-                case "og": output = await cmdOg(args); break;
-                case "alt": output = await cmdAlt(args); break;
-                case "csp": output = await cmdCsp(args); break;
-                case "waf": output = await cmdWaf(args); break;
-                case "hsts": output = await cmdHsts(args); break;
-                case "minify": output = await cmdMinify(args); break;
-                case "schema": output = await cmdSchema(args); break;
-                case "diff": output = await cmdDiff(args); break;
-                case "headers-check": output = await cmdHeadersCheck(args); break;
-                case "wayback": output = await cmdWayback(args); break;
-                case "green": output = await cmdGreen(args); break;
-                case "cookies": output = await cmdCookies(args); break;
-                case "isup": output = await cmdIsUp(args); break;
-                case "jitter": output = await cmdJitter(args); break;
-                case "speedtest": output = await cmdSpeedtest(args); break;
-                case "stack": output = await cmdStack(args); break;
-                case "ip": output = await cmdIP(args); break;
-                case "security-txt": output = await cmdSecurityTxt(args); break;
-                case "vitals": output = await cmdVitals(args); break;
-                case "flush": output = await cmdFlush(args); break;
-                case "notes": output = await cmdNotes(args); break;
-                case "rev-dns": output = await cmdRevDNS(args); break;
-                case "port-scan": output = await cmdPortScan(args); break;
-                case "ftp-check": output = await cmdFTPCheck(args); break;
-                case "ext": output = cmdExt(args); break;
-                case "blacklist": output = cmdBlacklist(args); break;
-                case "ssllabs": output = cmdSSLLabs(args); break;
-                case "securityheaders": output = cmdSecurityHeaders(args); break;
-                case "whois-ext": output = cmdWhoisExt(args); break;
-                case "export": output = await cmdExport(args); break;
-                case "target": output = cmdTarget(args); break;
-                case "help": output = cmdHelp(args); break;
-                case "errors": output = cmdErrors(); break;
-                case "about": output = await cmdAbout(); break;
-                case "info": output = await cmdInfo(); break;
-                case "exit": output = await cmdExit(); break;
-                case "switch": {
-                    const result = await cmdSwitch();
-                    if (result && typeof result === "object" && result.__switch) {
-                        // Re-enter engine with the domain — triggers handleAutoTarget
-                        return await executeCommand(result.domain);
-                    }
-                    output = result;
-                    break;
+            if (resolved === "clear") return "__CLEAR__";
+
+            if (resolved === "switch") {
+                const result = await cmdSwitch();
+                if (result && typeof result === "object" && result.__switch) {
+                    // Re-enter engine with the domain — triggers handleAutoTarget
+                    return await executeCommand(result.domain);
                 }
-                case "start": {
-                    const result = await cmdStart(args);
-                    if (result && typeof result === "object" && result.__switch) {
-                        return await executeCommand(result.domain);
-                    }
-                    output = result;
-                    break;
+                output = result;
+            } else if (resolved === "start") {
+                const result = await cmdStart(args);
+                if (result && typeof result === "object" && result.__switch) {
+                    return await executeCommand(result.domain);
                 }
-                case "config": output = await cmdConfig(args); break;
-                case "tabs": output = await cmdTabs(args); break;
-                case "reload": output = await cmdReload(); break;
-                case "clear": return "__CLEAR__";
-                default:
-                    // If not a known command, check if it's an auto-target domain/IP
-                    output = await handleAutoTarget(cmd, args, opts, flags);
-                    // Progressive triage returns an object — pass through directly
-                    if (output && typeof output === "object" && output.backgroundTriage !== undefined) {
-                        return output;
-                    }
-                    break;
+                output = result;
+            } else if (COMMAND_REGISTRY[resolved]) {
+                output = await COMMAND_REGISTRY[resolved](args, flags, opts);
+            } else {
+                // If not a known command, check if it's an auto-target domain/IP
+                output = await handleAutoTarget(cmd, args, opts, flags);
+                // Progressive triage returns an object — pass through directly
+                if (output && typeof output === "object" && output.backgroundTriage !== undefined) {
+                    return output;
+                }
             }
         }
     } catch (err) {

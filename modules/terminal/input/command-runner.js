@@ -33,7 +33,7 @@ const SPINNER_CMDS = new Set([
     "hosting", "hoster", "provider", "webhost",
     "start", "run", "go", "begin", "analyze", "switch",
     "isup", "upcheck", "down", "downcheck", "status",
-    "speed", "jitter", "latency-test",
+    "jitter", "latency-test",
     "speedtest", "bandwidth", "nettest",
     "flush", "clearcache", "clear-cache",
 ]);

@@ -1,38 +1,38 @@
 /**
- * @module modules/background/handlers/speed.js
+ * @module modules/background/handlers/jitter.js
  * @description Architectural connections and module role.
  * 
  * @connections
  * - Imports: 
  *     - createAbort, completeAbort, getNextAbortSeq from '../abort.js'
- * - Exports: handleSpeed
+ * - Exports: handleJitter
  * - Layer: Background Layer (Network & Service Worker) - Handles external HTTP/DNS requests safely.
  */
 
 import { createAbort, completeAbort, getNextAbortSeq } from "../abort.js";
 
 // ===================================================================
-// Speed Handler — Latency Jitter Measurement
+// Jitter Handler — Latency Jitter Measurement
 //
 // Makes N sequential HEAD requests to the target and returns
 // individual timings for the command module to calculate avg + jitter.
 // ===================================================================
 
-const SPEED_TIMEOUT = 5000;
-const SPEED_ROUNDS = 5;
+const JITTER_TIMEOUT = 5000;
+const JITTER_ROUNDS = 5;
 
-export async function handleSpeed({ domain, abortId }) {
-    const signal = createAbort(abortId || `speed-${getNextAbortSeq()}`, SPEED_TIMEOUT * SPEED_ROUNDS + 5000);
+export async function handleJitter({ domain, abortId }) {
+    const signal = createAbort(abortId || `jitter-${getNextAbortSeq()}`, JITTER_TIMEOUT * JITTER_ROUNDS + 5000);
 
     try {
         const results = [];
 
-        for (let i = 0; i < SPEED_ROUNDS; i++) {
+        for (let i = 0; i < JITTER_ROUNDS; i++) {
             if (signal.aborted) return { error: "Command cancelled." };
 
             const start = performance.now();
             const ctrl = new AbortController();
-            const timer = setTimeout(() => ctrl.abort(), SPEED_TIMEOUT);
+            const timer = setTimeout(() => ctrl.abort(), JITTER_TIMEOUT);
             const onGlobalAbort = () => ctrl.abort();
             signal.addEventListener("abort", onGlobalAbort);
 
@@ -56,7 +56,7 @@ export async function handleSpeed({ domain, abortId }) {
             }
 
             // Short pause between rounds (except last)
-            if (i < SPEED_ROUNDS - 1) {
+            if (i < JITTER_ROUNDS - 1) {
                 await new Promise(r => setTimeout(r, 200));
             }
         }
@@ -65,6 +65,6 @@ export async function handleSpeed({ domain, abortId }) {
         return { success: true, data: { domain, results } };
     } catch (err) {
         if (err.name === "AbortError") return { error: "Command cancelled." };
-        return { error: `Speed test failed: ${err.message}` };
+        return { error: `Jitter test failed: ${err.message}` };
     }
 }

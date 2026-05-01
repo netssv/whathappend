@@ -11,4 +11,6 @@ body {
     overflow: hidden;
     background: var(--bg-main);
     font-family: var(--font-mono);
+    display: flex;
+    flex-direction: column;
 }

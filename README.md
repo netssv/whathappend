@@ -21,7 +21,8 @@ The fastest way to get an answer is to open the side panel and:
 2. **Type `go`** — Same as above, but for when you want to be explicit.
 3. **Type `google.com`** — To set a new target. It will load the header info silently in the background while you keep working.
 
-### Try these commands:
+### Try these commands
+
 ```text
  email google.com # Is their email security (SPF, DMARC, DKIM) set up right?
  sec github.com # Check SSL health and those pesky security headers.
@@ -33,7 +34,7 @@ The fastest way to get an answer is to open the side panel and:
 
 ---
 
-## What’s New in v2.5.0?
+## What’s New in v2.6.0?
 
 We’ve turned the terminal into a professional-grade auditing suite:
 
@@ -59,7 +60,8 @@ We take your privacy seriously because we’re users too.
 ## Under the Hood
 
 WhatHappened is a strict **Manifest V3** extension built for performance and reliability:
-- **xterm.js**: For that authentic, high-performance terminal feel.
+
+- **xterm.js** For that authentic, high-performance terminal feel.
 - **Atomic Architecture**: Our modules are strictly organized and kept under 200 lines to ensure the code stays fast and bug-free.
 - **Heuristic Engine**: We don't rely on hardcoded "provider lists." We analyze live CNAME chains and IP data to figure out infrastructure on the fly.
 

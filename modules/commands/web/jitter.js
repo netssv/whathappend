@@ -1,5 +1,5 @@
 /**
- * @module modules/commands/web/speed.js
+ * @module modules/commands/web/jitter.js
  * @description Architectural connections and module role.
  * 
  * @connections
@@ -12,7 +12,7 @@
 import { ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
 
 // ===================================================================
-//  speed — Latency Jitter Measurement
+//  jitter — Latency Jitter Measurement
 //
 //  Performs 5 sequential HEAD requests and calculates average
 //  latency and standard deviation (jitter).
@@ -26,7 +26,7 @@ export async function cmdJitter(args) {
     let o = `> ping -c 10 ${domain} | awk '{print $time}'\n`;
     o += `${ANSI.dim}Running 5-round latency test...${ANSI.reset}\n\n`;
 
-    const resp = await chrome.runtime.sendMessage({ command: "speed", payload: { domain } });
+    const resp = await chrome.runtime.sendMessage({ command: "jitter", payload: { domain } });
     if (!resp) return o + workerError();
     if (resp.error) return o + cmdError(resp.error);
 

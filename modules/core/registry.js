@@ -1,0 +1,93 @@
+/**
+ * @module modules/core/registry.js
+ * @description Centralized command registry. Maps resolved commands to execution functions.
+ */
+
+import { cmdDig, cmdHost, cmdNslookup, cmdTTL, cmdDnssec, cmdPropagation } from "../commands/dns/index.js";
+import { cmdEmail, cmdSPF, cmdDMARC, cmdDKIM, cmdDeliverability } from "../commands/email/index.js";
+import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdIsUp, cmdJitter, cmdSpeedtest, cmdIP, cmdSocials, cmdRank, cmdSeo, cmdOg, cmdAlt, cmdCsp, cmdWaf, cmdHsts, cmdMinify, cmdSchema, cmdDiff, cmdHeadersCheck, cmdAudit, cmdExt, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "../commands/web/index.js";
+import { cmdSecurityTxt } from "../commands/web/security-txt.js";
+import { cmdVitals } from "../commands/web/vitals.js";
+import { cmdFlush } from "../commands/web/flush.js";
+import { cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport } from "../commands/native/index.js";
+import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdConfig, cmdNotes, cmdTabs, cmdReload, cmdClip, cmdMatrix, cmdCoffee, cmdSudo, cmdDog, cmdSnake, cmdHack, cmdBTC, cmdSignal } from "../commands/util/index.js";
+import { cmdStack } from "../commands/stack/index.js";
+
+export const COMMAND_REGISTRY = {
+    dig: (args, flags, opts) => cmdDig(args, { opts }),
+    host: (args) => cmdHost(args),
+    nslookup: (args) => cmdNslookup(args),
+    curl: (args) => cmdCurl(args),
+    openssl: (args) => cmdOpenSSL(args),
+    whois: (args, flags) => cmdWhois(args, flags),
+    ping: (args) => cmdPing(args),
+    trace: (args) => cmdTrace(args),
+    email: (args) => cmdEmail(args),
+    web: (args) => cmdWeb(args),
+    ttl: (args) => cmdTTL(args),
+    dnssec: (args) => cmdDnssec(args),
+    spf: (args) => cmdSPF(args),
+    dmarc: (args) => cmdDMARC(args),
+    dkim: (args) => cmdDKIM(args),
+    deliverability: (args) => cmdDeliverability(args),
+    propagation: (args, flags, opts) => cmdPropagation(args, { opts }),
+    robots: (args) => cmdRobots(args),
+    sec: (args) => cmdSec(args),
+    pixels: (args) => cmdPixels(args),
+    socials: (args) => cmdSocials(args),
+    links: (args) => cmdLinks(args),
+    load: (args) => cmdLoad(args),
+    hosting: (args) => cmdLoad(args), // Note: cmdHosting is mapped to cmdLoad alias
+    history: (args) => cmdHistory(args),
+    rank: (args) => cmdRank(args),
+    audit: (args) => cmdAudit(args),
+    seo: (args) => cmdSeo(args),
+    og: (args) => cmdOg(args),
+    alt: (args) => cmdAlt(args),
+    csp: (args) => cmdCsp(args),
+    waf: (args) => cmdWaf(args),
+    hsts: (args) => cmdHsts(args),
+    minify: (args) => cmdMinify(args),
+    schema: (args) => cmdSchema(args),
+    diff: (args) => cmdDiff(args),
+    "headers-check": (args) => cmdHeadersCheck(args),
+    wayback: (args) => cmdWayback(args),
+    green: (args) => cmdGreen(args),
+    cookies: (args) => cmdCookies(args),
+    isup: (args) => cmdIsUp(args),
+    jitter: (args) => cmdJitter(args),
+    speedtest: (args) => cmdSpeedtest(args),
+    stack: (args) => cmdStack(args),
+    ip: (args) => cmdIP(args),
+    "security-txt": (args) => cmdSecurityTxt(args),
+    vitals: (args) => cmdVitals(args),
+    flush: (args) => cmdFlush(args),
+    notes: (args) => cmdNotes(args),
+    "rev-dns": (args) => cmdRevDNS(args),
+    "port-scan": (args) => cmdPortScan(args),
+    "ftp-check": (args) => cmdFTPCheck(args),
+    ext: (args) => cmdExt(args),
+    blacklist: (args) => cmdBlacklist(args),
+    ssllabs: (args) => cmdSSLLabs(args),
+    securityheaders: (args) => cmdSecurityHeaders(args),
+    "whois-ext": (args) => cmdWhoisExt(args),
+    export: (args) => cmdExport(args),
+    target: (args) => cmdTarget(args),
+    help: (args) => cmdHelp(args),
+    errors: () => cmdErrors(),
+    about: () => cmdAbout(),
+    info: () => cmdInfo(),
+    exit: () => cmdExit(),
+    config: (args) => cmdConfig(args),
+    clip: (args) => cmdClip(args),
+    matrix: () => cmdMatrix(),
+    coffee: (args) => cmdCoffee(args),
+    sudo: () => cmdSudo(),
+    dog: () => cmdDog(),
+    snake: () => cmdSnake(),
+    hack: () => cmdHack(),
+    btc: () => cmdBTC(),
+    signal: () => cmdSignal(),
+    tabs: (args) => cmdTabs(args),
+    reload: () => cmdReload()
+};

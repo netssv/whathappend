@@ -84,9 +84,9 @@ export const CMD_ALIASES = {
     // isup
     "upcheck": "isup", "down": "isup", "downcheck": "isup", "status": "isup",
     // jitter
-    "speed": "jitter", "latency-test": "jitter",
+    "latency-test": "jitter",
     // speedtest
-    "bandwidth": "speedtest", "nettest": "speedtest",
+    "bandwidth": "speedtest", "nettest": "speedtest", 
     // ip
     "myip": "ip", "public-ip": "ip",
     // security-txt
@@ -117,6 +117,26 @@ export const CMD_ALIASES = {
     "structured": "schema", "jsonld": "schema", "microdata": "schema",
     // headers-check
     "hcheck": "headers-check", "security-headers": "headers-check",
+    // clip
+    "copy": "clip", "clipboard": "clip",
+    // matrix
+    "rain": "matrix",
+    // coffee
+    "break": "coffee", "pomodoro": "coffee", "timer": "coffee",
+    // sudo
+    "su": "sudo",
+    // propagation
+    "global": "propagation", "resolve": "propagation",
+    // deliverability
+    "optimiza": "deliverability", "optimiza-mail": "deliverability",
+    // dog
+    "perro": "dog", "mascota": "dog", "pet": "dog",
+    // snake
+    "juego": "snake", "game": "snake", "play": "snake",
+    // hack
+    "trivia": "hack", "quiz": "hack",
+    // signal
+    "intercept": "signal", "wave": "signal", "oscilloscope": "signal",
 };
 
 export const ALL_KNOWN_CMDS = [
@@ -129,6 +149,6 @@ export const ALL_KNOWN_CMDS = [
     "blacklist", "ssllabs", "securityheaders", "whois-ext",
     "errors", "pixels", "socials", "stack", "load", "rank", "seo", "og", "alt", "csp", "waf", "hsts", "minify", "schema", "diff", "headers-check",
     "registrar", "hosting", "exit", "switch", "reload",
-    "start", "config", "isup", "speed", "speedtest",
+    "start", "config", "isup", "jitter", "speedtest", "clip", "matrix", "coffee",
     "ip", "security-txt", "vitals", "flush", "notes", "tabs", "actual", "current", "here",
 ].filter(c => /^[a-z]/i.test(c));

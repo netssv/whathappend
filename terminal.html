@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="styles.css" />
 </head>
 
-<body style="display:flex;flex-direction:column;height:100%;">
+<body>
     <!-- Active tab context display with logo -->
     <div id="context-bar">
         <div class="context-row context-top">
@@ -39,6 +39,22 @@
                     <button class="logo-menu-item" id="menu-reload-ext" title="Reload this extension">
                         <span>⟳</span> Reload Extension
                     </button>
+                    <button class="logo-menu-item" id="menu-clip" title="Copy session to clipboard as Markdown">
+                        <span>📋</span> Copy Session
+                    </button>
+                    <div class="logo-menu-sep"></div>
+                    <div class="logo-menu-theme-group">
+                        <span class="logo-menu-group-label">Theme</span>
+                        <button class="logo-menu-item" id="menu-theme-WhOS" title="WhOS green terminal">
+                            <span>●</span> WhOS
+                        </button>
+                        <button class="logo-menu-item" id="menu-theme-amber" title="Retro amber phosphor CRT">
+                            <span>●</span> Classic Amber
+                        </button>
+                        <button class="logo-menu-item" id="menu-theme-matrix" title="Deep dark matrix mode">
+                            <span>●</span> Matrix
+                        </button>
+                    </div>
                     <div class="logo-menu-sep"></div>
                     <button class="logo-menu-item" id="menu-about" title="About WhatHappened">
                         <span>ℹ</span> About

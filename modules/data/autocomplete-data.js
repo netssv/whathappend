@@ -14,11 +14,11 @@
 
 export const AVAILABLE_COMMANDS = [
     // DNS
-    "dig", "host", "nslookup", "ttl", "dnssec",
+    "dig", "host", "nslookup", "ttl", "dnssec", "propagation",
     "a", "aaaa", "mx", "txt", "ns", "cname", "soa",
     
     // EMAIL
-    "email", "spf", "dmarc", "dkim",
+    "email", "spf", "dmarc", "dkim", "deliverability",
     
     // WEB
     "web", "curl", "openssl", "whois", "hosting", "history", "rank", "ping", "trace", "robots", "links", "wayback", "green", "cookies", "pixels", "socials", "stack", "seo", "og", "alt", "schema", "minify", "load", "vitals", "security-txt",
@@ -33,10 +33,10 @@ export const AVAILABLE_COMMANDS = [
     "ext", "blacklist", "ssllabs", "securityheaders", "whois-ext",
 
     // UTIL
-    "start", "switch", "export", "target", "tabs", "reload", "config", "about", "info", "errors", "clear", "flush", "notes", "diff", "exit", "help",
+    "start", "switch", "export", "clip", "matrix", "coffee", "sudo", "dog", "hack", "signal", "target", "tabs", "reload", "config", "about", "info", "errors", "clear", "flush", "notes", "diff", "exit", "help",
 
     // ALIASES
-    "dns", "record", "lookup", "mail", "http", "headers", "ssl", "cert", "tls", "domain", "reg", "registrar", "provider", "webhost", "crt", "ranking", "traffic", "latency", "redirect", "follow", "sitemap", "src", "archive", "tracking", "trackers", "pixel", "ads", "social", "tech", "cms", "wappalyzer", "techstack", "meta", "tags", "thaks", "opengraph", "a11y", "images", "jsonld", "structured", "microdata", "min", "assets", "perf", "timing", "performance", "pagespeed", "cwv", "web-vitals", "core-vitals", "sec-txt", "securitytxt", "marketing", "scan", "security", "xss", "firewall", "cdn-check", "strict", "secure-transport", "hcheck", "upcheck", "down", "downcheck", "status", "speed", "latency-test", "bandwidth", "nettest", "rdns", "ptr", "ports", "nmap", "portscan", "ftp", "myip", "public-ip", "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann", "run", "go", "begin", "analyze", "actual", "current", "here", "sw", "dump", "save", "report", "tablist", "close", "tab", "restart", "reboot", "settings", "set", "prefs", "telemetry", "error", "error-list", "cls", "reset", "clearcache", "clear-cache", "note", "memo", "annotation", "quit", "ls", "commands", "man"
+    "dns", "record", "lookup", "mail", "http", "headers", "ssl", "cert", "tls", "domain", "reg", "registrar", "provider", "webhost", "crt", "ranking", "traffic", "latency", "redirect", "follow", "sitemap", "src", "archive", "tracking", "trackers", "pixel", "ads", "social", "tech", "cms", "wappalyzer", "techstack", "meta", "tags", "thaks", "opengraph", "a11y", "images", "jsonld", "structured", "microdata", "min", "assets", "perf", "timing", "performance", "pagespeed", "cwv", "web-vitals", "core-vitals", "sec-txt", "securitytxt", "marketing", "scan", "security", "xss", "firewall", "cdn-check", "strict", "secure-transport", "hcheck", "upcheck", "down", "downcheck", "status", "latency-test", "bandwidth", "nettest", "rdns", "ptr", "ports", "nmap", "portscan", "ftp", "myip", "public-ip", "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann", "run", "go", "begin", "analyze", "actual", "current", "here", "sw", "dump", "save", "report", "tablist", "close", "tab", "restart", "reboot", "settings", "set", "prefs", "telemetry", "error", "error-list", "cls", "reset", "clearcache", "clear-cache", "note", "memo", "annotation", "quit", "ls", "commands", "man", "copy", "clipboard", "rain", "break", "pomodoro", "su", "global", "resolve", "optimiza", "optimiza-mail", "perro", "mascota", "pet", "trivia", "quiz"
 ];
 
 // Commands that accept a domain parameter (for auto-filling)
@@ -55,16 +55,16 @@ export const DOMAIN_COMMANDS = [
     "audit", "sec", "csp", "waf", "hsts", "headers-check",
 
     // NETWORK
-    "isup", "jitter", "speedtest", "rev-dns", "port-scan", "ftp-check",
+    "isup", "jitter", "rev-dns", "port-scan", "ftp-check",
 
     // EXTERNAL
     "ext", "blacklist", "ssllabs", "securityheaders", "whois-ext",
 
     // UTIL
-    "target", "flush", "diff",
+    "target", "flush", "diff", "clip",
 
     // ALIASES
-    "dns", "record", "lookup", "mail", "http", "headers", "ssl", "cert", "tls", "domain", "reg", "registrar", "provider", "webhost", "crt", "ranking", "traffic", "latency", "redirect", "follow", "sitemap", "src", "archive", "tracking", "trackers", "pixel", "ads", "social", "tech", "cms", "wappalyzer", "techstack", "meta", "tags", "thaks", "opengraph", "a11y", "images", "jsonld", "structured", "microdata", "min", "assets", "perf", "timing", "performance", "pagespeed", "cwv", "web-vitals", "core-vitals", "sec-txt", "securitytxt", "marketing", "scan", "security", "xss", "firewall", "cdn-check", "strict", "secure-transport", "hcheck", "upcheck", "down", "downcheck", "speed", "latency-test", "bandwidth", "nettest", "rdns", "ptr", "ports", "nmap", "portscan", "ftp", "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann", "clearcache", "clear-cache"
+    "dns", "record", "lookup", "mail", "http", "headers", "ssl", "cert", "tls", "domain", "reg", "registrar", "provider", "webhost", "crt", "ranking", "traffic", "latency", "redirect", "follow", "sitemap", "src", "archive", "tracking", "trackers", "pixel", "ads", "social", "tech", "cms", "wappalyzer", "techstack", "meta", "tags", "thaks", "opengraph", "a11y", "images", "jsonld", "structured", "microdata", "min", "assets", "perf", "timing", "performance", "pagespeed", "cwv", "web-vitals", "core-vitals", "sec-txt", "securitytxt", "marketing", "scan", "security", "xss", "firewall", "cdn-check", "strict", "secure-transport", "hcheck", "upcheck", "down", "downcheck", "latency-test", "bandwidth", "nettest", "rdns", "ptr", "ports", "nmap", "portscan", "ftp", "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann", "clearcache", "clear-cache"
 ];
 
 // Raw Bash Educational Snippets
@@ -85,8 +85,9 @@ export const RAW_SNIPPETS = [
 ];
 
 // Context-aware subcommand completion (keys scoped to their parent command only)
-export const CONFIG_KEYS = ["timeout", "retry-timeout", "auto-triage", "tab-notify", "autoHide", "autoHideDelay", "expert-mode", "reset", "list"];
+export const CONFIG_KEYS = ["timeout", "retry-timeout", "auto-triage", "tab-notify", "autoHide", "autoHideDelay", "expert-mode", "theme", "reset", "list"];
 const TABS_KEYS = ["list", "close", "info", "diag", "watch", "block", "sleep", "focus"];
+const SPEEDTEST_KEYS = ["10", "25", "50", "90"];
 export const SUBCOMMAND_MAP = {
     config:   CONFIG_KEYS,
     settings: CONFIG_KEYS,
@@ -94,4 +95,6 @@ export const SUBCOMMAND_MAP = {
     prefs:    CONFIG_KEYS,
     tabs:     TABS_KEYS,
     tab:      TABS_KEYS,
+    speedtest: SPEEDTEST_KEYS,
+    bandwidth: SPEEDTEST_KEYS,
 };

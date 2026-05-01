@@ -10,6 +10,8 @@
  */
 
 import { ANSI } from "../../formatter.js";
+import { applyTheme } from "../../terminal/theme-engine.js";
+import { THEMES, DEFAULT_THEME_ID } from "../../data/themes.js";
 
 // ===================================================================
 //  config — User preferences via chrome.storage.local
@@ -69,6 +71,12 @@ const CONFIG_SCHEMA = {
         type: "boolean",
         desc: "Show raw technical data in diagnostics",
     },
+    "theme": {
+        default: DEFAULT_THEME_ID,
+        type: "enum",
+        options: Object.keys(THEMES),
+        desc: "Visual theme (WhOS, amber, matrix)",
+    },
 };
 
 const STORAGE_KEY = "wh_config";
@@ -118,6 +126,12 @@ function validateAndParse(key, rawValue) {
         if (["true", "1", "on", "yes"].includes(lower)) return { value: true };
         if (["false", "0", "off", "no"].includes(lower)) return { value: false };
         return { error: `'${key}' must be true/false. Got: '${rawValue}'` };
+    }
+
+    if (schema.type === "enum") {
+        const lower = String(rawValue).toLowerCase();
+        if (schema.options.includes(lower)) return { value: lower };
+        return { error: `'${key}' must be one of: ${schema.options.join(", ")}. Got: '${rawValue}'` };
     }
 
     return { value: rawValue };
@@ -191,6 +205,11 @@ export async function cmdConfig(args) {
 
     stored[key] = result.value;
     await saveConfig(stored);
+
+    // Side-effect: apply theme immediately when changed
+    if (key === "theme") {
+        applyTheme(result.value);
+    }
 
     const schema = CONFIG_SCHEMA[key];
     const unit = schema.unit || "";

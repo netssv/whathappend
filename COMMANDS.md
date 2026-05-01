@@ -67,7 +67,7 @@ Dig into the architecture, hosting, and performance of a site.
 | `hosting` | Identifies the actual IP hosting provider (AWS, Cloudflare, etc.). | `provider`, `webhost` |
 | `ip` | Shows your public IP (no args) or resolves a domain's A record/provider. | `myip`, `public-ip` |
 | `isup` | Compares local reachability vs Google's global DNS to check for downtime. | `upcheck`, `down` |
-| `jitter` | Latency jitter test (performs 5 sequential HEAD requests). | `speed` |
+| `jitter` | Latency jitter test (performs 5 sequential HEAD requests). | `latency-test` |
 | `speedtest` | Local bandwidth test to Cloudflare's speed endpoint. | `bandwidth` |
 | `curl` | Fetches and displays HTTP headers. | `http`, `headers` |
 | `openssl` | Inspects the SSL/TLS certificate chain. | `ssl`, `cert`, `tls` |
@@ -133,5 +133,22 @@ Control the terminal environment itself.
 | `errors`| Common diagnostic insights and network error explanations. | `error` |
 | `about` | Philosophy, identity, and architecture. | - |
 | `clear` | Clears the terminal screen. | `cls`, `reset` |
-| `exit` | Ends the session, clears history, and closes out. | `quit` |
-| `help` | Shows the quick-reference menu in the terminal. | `?`, `ls`, `man` |
+| `exit` | Ends the session, clears history, and closes out. | `quit`, `logout` |
+| `help` | Shows the quick-reference menu in the terminal. | `?`, `ls`, `man` | 
+| `coffee [mins]` | Pomodoro break timer with live ASCII cup animation. | `break`, `pomodoro`, `timer` |
+| `dog` | Dynamic two-dog ASCII animation & wellness reminder. | `perro`, `pet`, `mascota` |
+| `matrix` | Code rain visual overlay (katakana + hex). | `rain` |
+| `hack` | 10-question technical trivia: DNS, SEO, Web Security. | `trivia`, `quiz` |
+| `sudo` | Attempts root escalation. Receives a firm but witty rejection. | `su` |
+
+---
+
+## 🥚 Hidden Features (Easter Eggs)
+
+> These commands are intentionally **absent from `help`, autocomplete, and all public-facing UI**. They are discovered by those who explore. Zero risk — all local.
+
+| Command | Aliases | Description |
+|---|---|---|
+| `snake` | `juego`, `game` | Classic Snake in ASCII. Arrow keys or WASD to move. R to restart, Q to quit. |
+| `signal` | - | Displays a random ASCII signal generator |
+| `btc` | - | Live Bitcoin price fetched from Binance public API. May fail behind some corporate firewalls. |

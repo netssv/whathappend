@@ -71,6 +71,34 @@
     background: var(--bg-scrollbar-thumb, #333);
 }
 
+/* --- Theme Group --------------------------------------------------------- */
+
+.logo-menu-theme-group {
+    padding: 2px 0;
+}
+
+.logo-menu-group-label {
+    display: block;
+    padding: 3px 12px 2px;
+    font-size: 9px;
+    font-family: var(--font-mono);
+    color: var(--text-dark);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.logo-menu-item.active-theme {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.logo-menu-item.active-theme::after {
+    content: "✓";
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--text-dim);
+}
+
 /* --- Block Panel Reload Button ------------------------------------------- */
 
 .block-reload-btn {

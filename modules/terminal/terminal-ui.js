@@ -6,42 +6,22 @@
  * - Imports: 
  *     - setTermCols, getHistory from '../state.js'
  *     - showBanner as _showBanner from './terminal-banner.js'
+ *     - THEMES, DEFAULT_THEME_ID from '../data/themes.js'
+ *     - initThemeEngine from './theme-engine.js'
  * - Exports: PROMPT_PREFIX, PROMPT, term, fitAddon, isSystemWriting, initTerminalUI, refitTerminal, showBanner, writePrompt, writeOutput, showSpinner, stopSpinner
  * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
  */
 
 import { setTermCols, getHistory } from "../state.js";
 import { showBanner as _showBanner } from "./terminal-banner.js";
+import { THEMES, DEFAULT_THEME_ID } from "../data/themes.js";
+import { initThemeEngine } from "./theme-engine.js";
 
 // ---------------------------------------------------------------------------
-// Terminal Configuration — WCAG AA Compliant Palette
+// Terminal Configuration — Uses default theme from themes.js
 // ---------------------------------------------------------------------------
 
-const TERMINAL_THEME = {
-    background: "#0a0a0a",
-    foreground: "#d4d4d4",
-    cursor: "#00ff88",
-    cursorAccent: "#0a0a0a",
-    selectionBackground: "rgba(0, 255, 136, 0.18)",
-
-    black: "#0a0a0a",
-    red: "#ff6b6b",
-    green: "#00ff88",
-    yellow: "#ffd866",
-    blue: "#7aa2f7",
-    magenta: "#d4a0ff",
-    cyan: "#41d8e8",
-    white: "#d4d4d4",
-
-    brightBlack: "#737373",
-    brightRed: "#ff8585",
-    brightGreen: "#5cffaa",
-    brightYellow: "#ffe08a",
-    brightBlue: "#8fb4ff",
-    brightMagenta: "#e0b8ff",
-    brightCyan: "#6be5f0",
-    brightWhite: "#ffffff",
-};
+const TERMINAL_THEME = THEMES[DEFAULT_THEME_ID].xterm;
 
 export const PROMPT_PREFIX = "\x1b[36m~\x1b[0m\r\n";
 export const PROMPT = "\x1b[35m❯\x1b[0m ";
@@ -78,15 +58,29 @@ export function initTerminalUI(containerId) {
     const container = document.getElementById(containerId);
     term.open(container);
 
+    // Initialize theme engine (restores saved theme from storage)
+    initThemeEngine(term);
+
+    let resizeTimeout;
     window.addEventListener("resize", () => {
-        fitAddon.fit();
-        setTermCols(term.cols);
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            if (term && fitAddon) {
+                fitAddon.fit();
+                setTermCols(term.cols);
+            }
+        }, 50);
     });
 
     // Watch for header geometry changes (triad/tab-switch bar show/hide)
     const observer = new ResizeObserver(() => {
-        fitAddon.fit();
-        setTermCols(term.cols);
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            if (term && fitAddon) {
+                fitAddon.fit();
+                setTermCols(term.cols);
+            }
+        }, 50);
     });
     observer.observe(container);
 

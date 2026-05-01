@@ -18,7 +18,7 @@
  *     - handlePortProbe from './handlers/port.js'
  *     - handleExportHistory from './handlers/export.js'
  *     - handleIsUpLocal, handleIsUpGlobal from './handlers/isup.js'
- *     - handleSpeed from './handlers/speed.js'
+ *     - handleJitter from './handlers/jitter.js'
  *     - handleSpeedtest from './handlers/speedtest.js'
  *     - handleGetPublicIP from './handlers/ip.js'
  *     - handleGetWebVitals from './handlers/vitals.js'
@@ -41,7 +41,7 @@ import { handleGetCookies } from "./handlers/cookies.js";
 import { handlePortProbe } from "./handlers/port.js";
 import { handleExportHistory } from "./handlers/export.js";
 import { handleIsUpLocal, handleIsUpGlobal } from "./handlers/isup.js";
-import { handleSpeed } from "./handlers/speed.js";
+import { handleJitter } from "./handlers/jitter.js";
 import { handleSpeedtest } from "./handlers/speedtest.js";
 import { handleGetPublicIP } from "./handlers/ip.js";
 import { handleGetWebVitals } from "./handlers/vitals.js";
@@ -130,8 +130,8 @@ export function setupRouter() {
             case "isup-global":
                 handleIsUpGlobal(payload).then(sendResponse);
                 break;
-            case "speed":
-                handleSpeed(payload).then(sendResponse);
+            case "jitter":
+                handleJitter(payload).then(sendResponse);
                 break;
             case "speedtest":
                 handleSpeedtest(payload || {}).then(sendResponse);

@@ -11,12 +11,31 @@ If you are extending the terminal or adding new commands, you MUST verify the fo
 3. `modules/commands/util/help.js`: For the main `help` menu categorizations.
 4. `modules/data/autocomplete-data.js`: Ensure your command tab-completes correctly.
 5. `modules/data/aliases.js`: Register any shortcuts and add the root command to `ALL_KNOWN_CMDS`.
-6. `modules/engine.js`: Add your function to the command router switch statement.
+6. `modules/core/registry.js`: Add your function to the command registry map.
 7. `modules/commands/.../index.js`: Ensure your function is exported from its domain folder.
+
+## [2.6.0] - 2026-04-30
+
+**The "Atomic Refactor" Update**
+
+### Architecture
+
+- **Command Registry**: Replaced the monolithic `switch` statement in `engine.js` with a declarative `COMMAND_REGISTRY` map extracted to `modules/core/registry.js`. Adding new commands now requires a single line instead of touching engine internals.
+- **OOP Game Modules**: Fully refactored `signal.js` and the removed `invaders.js` from large closure-based functions into ES6 class hierarchies. Renderer (`SignalUI`), game logic (`SignalGame`), and entry-point (`signal.js`) are now separate atomic files under `games/core/`.
+- **Data Decoupling**: Extracted all static configuration (level data, scoring, signal parameters) into dedicated data modules: `signal-data.js`, keeping command files lean and data-driven.
+- **Coffee Timer Split**: Extracted audio alarm (`startAlarmChime`), visual flash (`startFlash`), and cup ASCII art (`getCup`) from `coffee.js` into `commands/util/core/coffee-ui.js`. Both files are now under the 200-line ceiling.
+- **engine.js Reduction**: Reduced `engine.js` from 213 lines to ~100 lines by extracting the full command import block and registry into `core/registry.js`.
+
+### Aliases
+
+- Added `timer` as an alias for `coffee`.
+- Added `logout` as an alias for `exit`.
+
+---
 
 ## [2.5.0] - 2026-04-29
 
-**The "Marketing & Security Audit" Update**
+**The "UX & Professional Audit" Update**
 
 ### What's New?
 

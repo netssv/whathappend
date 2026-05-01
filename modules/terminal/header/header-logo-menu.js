@@ -13,6 +13,8 @@
 // header-logo-menu — Favicon dropdown utility menu
 import { term, showBanner, refitTerminal } from "../terminal-ui.js";
 import { InputEvents } from "../input/events.js";
+import { applyTheme, getCurrentTheme } from "../theme-engine.js";
+import { THEMES } from "../../data/themes.js";
 
 let _headerHidden = false;
 
@@ -98,9 +100,30 @@ export function initLogoMenu() {
         chrome.runtime.reload();
     });
 
+    // ── Copy Session ─────────────────────────────────────────
+    document.getElementById("menu-clip")?.addEventListener("click", () => {
+        menu.classList.remove("open");
+        InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, "clip");
+        term.focus();
+    });
+
     // ── About ────────────────────────────────────────────────
     document.getElementById("menu-about")?.addEventListener("click", () => {
         menu.classList.remove("open");
         InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, "about");
     });
+
+    // ── Theme Selector ──────────────────────────────────────
+    for (const id of Object.keys(THEMES)) {
+        document.getElementById(`menu-theme-${id}`)?.addEventListener("click", () => {
+            menu.classList.remove("open");
+            if (getCurrentTheme() === id) {
+                term.focus();
+                return;
+            }
+            applyTheme(id);
+            term.writeln(`\x1b[32m✓\x1b[0m Theme set to \x1b[33m${THEMES[id].name}\x1b[0m`);
+            term.focus();
+        });
+    }
 }
