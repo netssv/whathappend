@@ -69,13 +69,24 @@ export async function cmdMap(args) {
         out += `       ${ANSI.dim}▼${ANSI.reset}\n`;
 
         out += `  ${ANSI.bold}5. ${ANSI.green}📚 Authoritative NS${ANSI.reset}\n`;
-        out += `       ${ANSI.dim}│${ANSI.reset}  Target NS: ${ANSI.white}${nsStr}${ANSI.reset}\n`;
-        out += `       ${ANSI.dim}│${ANSI.reset}  "The IP address for ${domain} is ${ANSI.white}${ipStr}${ANSI.reset}"${cnameStr}\n`;
+        if (nsStr === "Unknown NS") {
+            out += `       ${ANSI.dim}│${ANSI.reset}  Target NS: ${ANSI.red}Unknown NS / Resolution Failure${ANSI.reset}\n`;
+            out += `       ${ANSI.dim}│${ANSI.reset}  "The DNS provider is unreachable, misconfigured, or the domain does not exist."\n`;
+        } else {
+            out += `       ${ANSI.dim}│${ANSI.reset}  Target NS: ${ANSI.white}${nsStr}${ANSI.reset}\n`;
+            out += `       ${ANSI.dim}│${ANSI.reset}  "The IP address for ${domain} is ${ANSI.white}${ipStr}${ANSI.reset}"${cnameStr}\n`;
+        }
         out += `       ${ANSI.dim}▼${ANSI.reset}\n`;
 
-        out += `  ${ANSI.bold}6. ${ANSI.red}🎯 Target Server${ANSI.reset}\n`;
-        out += `       ${ANSI.dim}│${ANSI.reset}  Connection established to ${ANSI.white}${ipStr}${ANSI.reset} over TCP/TLS\n`;
-        out += `       ${ANSI.green}✔  Page Loads!${ANSI.reset}\n\n`;
+        if (ipStr === "Unknown IP") {
+            out += `  ${ANSI.bold}6. ${ANSI.red}🎯 Target Server${ANSI.reset}\n`;
+            out += `       ${ANSI.dim}│${ANSI.reset}  ${ANSI.red}DNS Resolution Failed (SERVFAIL / NXDOMAIN)${ANSI.reset}\n`;
+            out += `       ${ANSI.red}✖  Cannot connect to server.${ANSI.reset}\n\n`;
+        } else {
+            out += `  ${ANSI.bold}6. ${ANSI.red}🎯 Target Server${ANSI.reset}\n`;
+            out += `       ${ANSI.dim}│${ANSI.reset}  Connection established to ${ANSI.white}${ipStr}${ANSI.reset} over TCP/TLS\n`;
+            out += `       ${ANSI.green}✔  Page Loads!${ANSI.reset}\n\n`;
+        }
 
         return out;
     } catch (err) {

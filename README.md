@@ -34,7 +34,7 @@ The fastest way to get an answer is to open the side panel and:
 
 ---
 
-## What’s New in v2.6.0?
+## What’s New in v2.7.0?
 
 We’ve turned the terminal into a professional-grade auditing suite:
 

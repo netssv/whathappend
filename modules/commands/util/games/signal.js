@@ -1,6 +1,6 @@
 /**
  * @module modules/commands/util/games/signal.js
- * @version 2.6.0
+ * @version 2.7.0
  * @description 🎚️ Signal Interception — Retro oscilloscope puzzle.
  *              Match your wave's amplitude & frequency to the target signal.
  * Controls: ↑/↓ Amplitude | ←/→ Frequency | Q Quit

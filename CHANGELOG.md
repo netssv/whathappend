@@ -14,6 +14,26 @@ If you are extending the terminal or adding new commands, you MUST verify the fo
 6. `modules/core/registry.js`: Add your function to the command registry map.
 7. `modules/commands/.../index.js`: Ensure your function is exported from its domain folder.
 
+## [2.7.0] - 2026-05-02
+
+**The "RECON & Emulation" Update**
+
+### What's New?
+
+- **DNS Map (`map`)**: A visual ASCII representation of the domain resolution journey.
+- **RECON Suite**: New commands `emails`, `phones`, `comments`, and `cms` to extract critical data from the DOM.
+- **Emulation Suite**: Comprehensive tools to test sites from different perspectives, including `useragent`, `mobile`, `throttle`, and `geo`.
+- **Security Scanner (`malware`)**: Client-side heuristic scanner to detect known malicious patterns.
+- **Design Tools (`edit`, `fonts`, `palette`)**: Toggle design mode, check typography, and extract color palettes directly from the terminal.
+
+### Architecture & Polish
+
+- **Modular UI**: Refactored `terminal.html` into a cleaner template system with dynamic menu loading.
+- **Keyboard Shortcuts**: Added reliable Chrome shortcuts: `Ctrl+Shift+.` (Toggle Panel) and `Ctrl+Shift+,` (Reload).
+- **Bug Fixes**: Fixed ANSI italic rendering issues and improved CNAME chain resolution in DNS lookups.
+
+---
+
 ## [2.6.0] - 2026-04-30
 
 **The "Atomic Refactor" Update**
