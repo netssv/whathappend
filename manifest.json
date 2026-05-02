@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "WhatHappened",
-    "version": "2.6.0",
+    "version": "2.7.0",
     "description": "Your friendly side panel terminal! Learn how to diagnose DNS, SSL, and email infrastructure using simple, guided commands.",
     "permissions": [
         "activeTab",
@@ -13,7 +13,8 @@
         "clipboardRead",
         "browsingData",
         "contentSettings",
-        "notifications"
+        "notifications",
+        "debugger"
     ],
     "host_permissions": [
         "https://dns.google/*",
@@ -45,5 +46,21 @@
         "16": "icons/icon16.png",
         "48": "icons/icon48.png",
         "128": "icons/icon128.png"
+    },
+    "commands": {
+        "_execute_action": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+Period",
+                "mac": "Command+Shift+Period"
+            },
+            "description": "Open WhatHappened panel"
+        },
+        "reload-extension": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+Comma",
+                "mac": "Command+Shift+Comma"
+            },
+            "description": "Reload WhatHappened extension"
+        }
     }
 }

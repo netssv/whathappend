@@ -3,14 +3,14 @@
  * @description Centralized command registry. Maps resolved commands to execution functions.
  */
 
-import { cmdDig, cmdHost, cmdNslookup, cmdTTL, cmdDnssec, cmdPropagation } from "../commands/dns/index.js";
+import { cmdDig, cmdHost, cmdNslookup, cmdTTL, cmdDnssec, cmdPropagation, cmdMap } from "../commands/dns/index.js";
 import { cmdEmail, cmdSPF, cmdDMARC, cmdDKIM, cmdDeliverability } from "../commands/email/index.js";
-import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdIsUp, cmdJitter, cmdSpeedtest, cmdIP, cmdSocials, cmdRank, cmdSeo, cmdOg, cmdAlt, cmdCsp, cmdWaf, cmdHsts, cmdMinify, cmdSchema, cmdDiff, cmdHeadersCheck, cmdAudit, cmdExt, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "../commands/web/index.js";
+import { cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdWeb, cmdPixels, cmdLoad, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdFonts, cmdPalette, cmdComments, cmdCms, cmdMalware, cmdEdit, cmdEmails, cmdPhones, cmdIsUp, cmdJitter, cmdSpeedtest, cmdIP, cmdSocials, cmdRank, cmdSeo, cmdOg, cmdAlt, cmdCsp, cmdWaf, cmdHsts, cmdMinify, cmdSchema, cmdDiff, cmdHeadersCheck, cmdAudit, cmdExt, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "../commands/web/index.js";
 import { cmdSecurityTxt } from "../commands/web/security-txt.js";
 import { cmdVitals } from "../commands/web/vitals.js";
 import { cmdFlush } from "../commands/web/flush.js";
 import { cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport } from "../commands/native/index.js";
-import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdConfig, cmdNotes, cmdTabs, cmdReload, cmdClip, cmdMatrix, cmdCoffee, cmdSudo, cmdDog, cmdSnake, cmdHack, cmdBTC, cmdSignal } from "../commands/util/index.js";
+import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdConfig, cmdTabs, cmdReload, cmdClip, cmdMatrix, cmdCoffee, cmdSudo, cmdDog, cmdSnake, cmdHack, cmdBTC, cmdSignal, cmdUserAgent, cmdMobile, cmdThrottle, cmdGeo, cmdBlock } from "../commands/util/index.js";
 import { cmdStack } from "../commands/stack/index.js";
 
 export const COMMAND_REGISTRY = {
@@ -31,6 +31,7 @@ export const COMMAND_REGISTRY = {
     dkim: (args) => cmdDKIM(args),
     deliverability: (args) => cmdDeliverability(args),
     propagation: (args, flags, opts) => cmdPropagation(args, { opts }),
+    map: (args) => cmdMap(args),
     robots: (args) => cmdRobots(args),
     sec: (args) => cmdSec(args),
     pixels: (args) => cmdPixels(args),
@@ -54,6 +55,14 @@ export const COMMAND_REGISTRY = {
     wayback: (args) => cmdWayback(args),
     green: (args) => cmdGreen(args),
     cookies: (args) => cmdCookies(args),
+    fonts: (args) => cmdFonts(args),
+    palette: (args) => cmdPalette(args),
+    comments: (args) => cmdComments(args),
+    cms: (args) => cmdCms(args),
+    malware: (args) => cmdMalware(args),
+    edit: (args) => cmdEdit(args),
+    emails: (args) => cmdEmails(args),
+    phones: (args) => cmdPhones(args),
     isup: (args) => cmdIsUp(args),
     jitter: (args) => cmdJitter(args),
     speedtest: (args) => cmdSpeedtest(args),
@@ -62,7 +71,6 @@ export const COMMAND_REGISTRY = {
     "security-txt": (args) => cmdSecurityTxt(args),
     vitals: (args) => cmdVitals(args),
     flush: (args) => cmdFlush(args),
-    notes: (args) => cmdNotes(args),
     "rev-dns": (args) => cmdRevDNS(args),
     "port-scan": (args) => cmdPortScan(args),
     "ftp-check": (args) => cmdFTPCheck(args),
@@ -88,6 +96,11 @@ export const COMMAND_REGISTRY = {
     hack: () => cmdHack(),
     btc: () => cmdBTC(),
     signal: () => cmdSignal(),
+    useragent: (args) => cmdUserAgent(args),
+    mobile: (args) => cmdMobile(args),
+    throttle: (args) => cmdThrottle(args),
+    geo: (args) => cmdGeo(args),
+    block: (args) => cmdBlock(args),
     tabs: (args) => cmdTabs(args),
     reload: () => cmdReload()
 };

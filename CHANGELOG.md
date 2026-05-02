@@ -21,7 +21,7 @@ If you are extending the terminal or adding new commands, you MUST verify the fo
 ### Architecture
 
 - **Command Registry**: Replaced the monolithic `switch` statement in `engine.js` with a declarative `COMMAND_REGISTRY` map extracted to `modules/core/registry.js`. Adding new commands now requires a single line instead of touching engine internals.
-- **OOP Game Modules**: Fully refactored `signal.js` and the removed `invaders.js` from large closure-based functions into ES6 class hierarchies. Renderer (`SignalUI`), game logic (`SignalGame`), and entry-point (`signal.js`) are now separate atomic files under `games/core/`.
+- **OOP Game Modules**: Added and refactored `signal.js` into ES6 class hierarchies. Renderer (`SignalUI`), game logic (`SignalGame`), and entry-point (`signal.js`) are now separate atomic files under `games/core/`.
 - **Data Decoupling**: Extracted all static configuration (level data, scoring, signal parameters) into dedicated data modules: `signal-data.js`, keeping command files lean and data-driven.
 - **Coffee Timer Split**: Extracted audio alarm (`startAlarmChime`), visual flash (`startFlash`), and cup ASCII art (`getCup`) from `coffee.js` into `commands/util/core/coffee-ui.js`. Both files are now under the 200-line ceiling.
 - **engine.js Reduction**: Reduced `engine.js` from 213 lines to ~100 lines by extracting the full command import block and registry into `core/registry.js`.

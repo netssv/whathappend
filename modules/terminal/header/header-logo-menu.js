@@ -1,42 +1,37 @@
 /**
  * @module modules/terminal/header/header-logo-menu.js
- * @description Architectural connections and module role.
+ * @description Favicon dropdown utility menu with nested hover submenus.
  * 
  * @connections
- * - Imports: 
- *     - term, showBanner, refitTerminal from '../terminal-ui.js'
- *     - InputEvents from '../input/events.js'
+ * - Imports: initTabsSubmenu, initMenuActions, initMenuDelegation
  * - Exports: initLogoMenu
- * - Layer: Terminal Layer (Header) - Renders the top UI header blocks.
+ * - Layer: Terminal Layer (Header)
  */
 
-// header-logo-menu — Favicon dropdown utility menu
-import { term, showBanner, refitTerminal } from "../terminal-ui.js";
-import { InputEvents } from "../input/events.js";
-import { applyTheme, getCurrentTheme } from "../theme-engine.js";
-import { THEMES } from "../../data/themes.js";
-
-let _headerHidden = false;
+import { initTabsSubmenu } from "./menu-tabs.js";
+import { initMenuActions } from "./menu-actions.js";
+import { initMenuDelegation } from "./menu-delegation.js";
+import { MENU_HTML } from "./menu-template.js";
 
 export function initLogoMenu() {
     const logo = document.getElementById("logo-wrapper");
     const menu = document.getElementById("logo-menu");
     if (!logo || !menu) return;
 
-    // Toggle menu on click
+    // Inject the HTML template
+    menu.innerHTML = MENU_HTML;
+
+    // Toggle menu on logo click
     logo.addEventListener("click", async (e) => {
         e.stopPropagation();
         
-        // Update Auto-Hide text based on config before opening
+        // Update Auto-Hide text before opening
         try {
             const data = await chrome.storage.local.get("wh_config");
             const config = data["wh_config"] || {};
             const isAutoHidden = config["autoHide"] !== undefined ? config["autoHide"] : true;
-            
             const btn = document.getElementById("menu-toggle-header");
-            if (btn) {
-                btn.innerHTML = `<span>◫</span> Auto-Hide: ${isAutoHidden ? "ON" : "OFF"}`;
-            }
+            if (btn) btn.innerHTML = `<span>◫</span> Auto-Hide: ${isAutoHidden ? "ON" : "OFF"}`;
         } catch {}
 
         menu.classList.toggle("open");
@@ -46,84 +41,21 @@ export function initLogoMenu() {
         if (icon) icon.classList.remove("pulse-hint");
     });
 
-    // Close menu on outside click
-    document.addEventListener("click", () => menu.classList.remove("open"));
-
-    // ── Tabs ─────────────────────────────────────────────────
-    document.getElementById("menu-tabs")?.addEventListener("click", () => {
-        menu.classList.remove("open");
-        term.write("tabs\r\n");
-        InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, "tabs");
-        term.focus();
+    // Close menu on outside click — with a short grace delay
+    let _closeTimer = null;
+    document.addEventListener("click", (e) => {
+        if (!menu.contains(e.target) && !logo.contains(e.target)) {
+            _closeTimer = setTimeout(() => menu.classList.remove("open"), 300);
+        }
     });
 
-    // ── Clear Terminal ───────────────────────────────────────
-    document.getElementById("menu-clear")?.addEventListener("click", () => {
-        menu.classList.remove("open");
-        term.clear();
-        showBanner();
-        term.focus();
+    // Cancel pending close when mouse re-enters the menu
+    menu.addEventListener("mouseenter", () => {
+        if (_closeTimer) { clearTimeout(_closeTimer); _closeTimer = null; }
     });
 
-    // ── Toggle Auto-Hide ────────────────────────────────────────
-    document.getElementById("menu-toggle-header")?.addEventListener("click", async () => {
-        menu.classList.remove("open");
-        try {
-            const data = await chrome.storage.local.get("wh_config");
-            const config = data["wh_config"] || {};
-            const current = config["autoHide"] !== undefined ? config["autoHide"] : true;
-            const newVal = !current;
-            term.write(`config autoHide ${newVal}\r\n`);
-            InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `config autoHide ${newVal}`);
-            
-            // Re-evaluate triad visibility after brief delay to allow config to save
-            setTimeout(() => {
-                import("./header-triad.js").then(m => m.pingTriadVisibility());
-            }, 100);
-        } catch {}
-        term.focus();
-    });
-
-    // ── Reload Active Tab ────────────────────────────────────
-    document.getElementById("menu-reload-tab")?.addEventListener("click", async () => {
-        menu.classList.remove("open");
-        try {
-            const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-            if (tabs[0]) await chrome.tabs.reload(tabs[0].id);
-        } catch {}
-        term.focus();
-    });
-
-    // ── Reload Extension ─────────────────────────────────────
-    document.getElementById("menu-reload-ext")?.addEventListener("click", () => {
-        menu.classList.remove("open");
-        chrome.runtime.reload();
-    });
-
-    // ── Copy Session ─────────────────────────────────────────
-    document.getElementById("menu-clip")?.addEventListener("click", () => {
-        menu.classList.remove("open");
-        InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, "clip");
-        term.focus();
-    });
-
-    // ── About ────────────────────────────────────────────────
-    document.getElementById("menu-about")?.addEventListener("click", () => {
-        menu.classList.remove("open");
-        InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, "about");
-    });
-
-    // ── Theme Selector ──────────────────────────────────────
-    for (const id of Object.keys(THEMES)) {
-        document.getElementById(`menu-theme-${id}`)?.addEventListener("click", () => {
-            menu.classList.remove("open");
-            if (getCurrentTheme() === id) {
-                term.focus();
-                return;
-            }
-            applyTheme(id);
-            term.writeln(`\x1b[32m✓\x1b[0m Theme set to \x1b[33m${THEMES[id].name}\x1b[0m`);
-            term.focus();
-        });
-    }
+    // Initialize submodules
+    initTabsSubmenu(menu);
+    initMenuActions(menu);
+    initMenuDelegation(menu);
 }

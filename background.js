@@ -24,3 +24,13 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 
 setupTabTracker();
 setupRouter();
+
+// ---------------------------------------------------------------------------
+// Keyboard Shortcuts
+// ---------------------------------------------------------------------------
+
+chrome.commands.onCommand.addListener((command) => {
+    if (command === "reload-extension") {
+        chrome.runtime.reload();
+    }
+});

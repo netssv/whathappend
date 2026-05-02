@@ -14,12 +14,12 @@
 
 /* Animation to suggest clicking the logo */
 .pulse-hint {
-    animation: logoGlowSpin 3s infinite ease-in-out;
+    animation: logoBounceHint 2s infinite ease-in-out;
 }
 
-@keyframes logoGlowSpin {
-    0%, 100% { filter: drop-shadow(0 0 2px var(--accent-green, #00ff88)); transform: rotate(0deg); }
-    50% { filter: drop-shadow(0 0 8px var(--accent-green, #00ff88)); transform: rotate(10deg) scale(1.05); }
+@keyframes logoBounceHint {
+    0%, 100% { filter: drop-shadow(0 0 2px var(--accent-green, #00ff88)); transform: translateY(0) scale(1); }
+    50% { filter: drop-shadow(0 0 8px var(--accent-green, #00ff88)); transform: translateY(-4px) scale(1.05); }
 }
 
 /* --- Dropdown ------------------------------------------------------------ */
@@ -28,13 +28,13 @@
     display: none;
     position: absolute; top: 100%; left: 0;
     margin-top: 4px; z-index: 100;
-    min-width: 150px;
+    min-width: 155px;
     background: var(--bg-panel, #111);
     border: 1px solid var(--bg-active-border, #1a3a28);
     border-radius: 6px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
     padding: 4px 0;
-    overflow: hidden;
+    /* NO overflow — submenus must render outside this box */
 }
 
 .logo-menu.open { display: block; animation: menuFadeIn 0.15s ease-out; }
@@ -88,15 +88,90 @@
     font-weight: 700;
 }
 
-.logo-menu-item.active-theme {
-    background: rgba(255, 255, 255, 0.04);
-}
-
 .logo-menu-item.active-theme::after {
     content: "✓";
     margin-left: auto;
     font-size: 10px;
     color: var(--text-dim);
+}
+
+/* --- Nested Submenus (expand to the right) ------------------------------- */
+
+.logo-menu-sub-wrap {
+    position: relative;
+}
+
+.logo-menu-submenu {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    top: -4px;
+    left: calc(100% + 2px);
+    min-width: 140px;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--bg-panel, #111);
+    border: 1px solid var(--bg-active-border, #1a3a28);
+    border-radius: 6px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    padding: 4px 0;
+    z-index: 110;
+    /* Delay HIDE by 350ms — grace period for mouse mistakes */
+    transition: visibility 0s 350ms, opacity 0.15s 200ms;
+}
+
+.logo-menu-sub-wrap:hover > .logo-menu-submenu {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    /* Instant SHOW — no delay */
+    transition: visibility 0s 0s, opacity 0.15s ease-out;
+}
+
+.logo-menu-submenu .logo-menu-item {
+    font-size: 10.5px;
+    padding: 4px 10px;
+}
+
+.logo-menu-has-sub {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: default;
+}
+
+.logo-menu-has-sub:hover {
+    background: transparent;
+}
+
+.logo-menu-sub-arrow {
+    font-size: 9px;
+    opacity: 0.4;
+    margin-left: auto;
+    transition: opacity 0.15s ease;
+}
+.logo-menu-sub-wrap:hover .logo-menu-sub-arrow {
+    opacity: 1;
+}
+
+.logo-menu-disable {
+    color: #ff6b6b;
+}
+.logo-menu-disable:hover {
+    background: rgba(255, 80, 80, 0.12);
+    color: #ff4444;
+}
+
+/* --- Keyboard Shortcut Badge --------------------------------------------- */
+
+.logo-menu-shortcut {
+    margin-left: auto;
+    font-size: 9px;
+    font-family: var(--font-mono);
+    color: var(--text-dark);
+    opacity: 0.5;
+    letter-spacing: 0.5px;
 }
 
 /* --- Block Panel Reload Button ------------------------------------------- */

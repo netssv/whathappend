@@ -188,5 +188,31 @@ export const TRIVIA_QUESTIONS = [
         opts: ["Filter out malware from downloaded files", "Block malicious HTTP traffic like SQLi and XSS", "Encrypt internal database connections", "Serve cached content to speed up websites"],
         ans: 1,
         exp: "A WAF inspects HTTP traffic and blocks malicious payloads targeting web vulnerabilities."
+    },
+
+    // --- WhatHappened Specifics / Recon ---
+    {
+        q: "Which JavaScript property allows you to make the entire webpage visually editable directly in the browser?",
+        opts: ["document.editable", "window.modifyMode", "document.designMode", "document.contentEditable"],
+        ans: 2,
+        exp: "document.designMode='on' makes the entire HTML document editable, acting as the foundation for the 'edit' command."
+    },
+    {
+        q: "When heuristically analyzing a webpage's DOM for client-side malware, which of these is a strong indicator of a hidden payload?",
+        opts: ["Minified CSS files", "Inline JavaScript heavily using eval() and atob()", "Multiple <h2> tags", "console.log() statements"],
+        ans: 1,
+        exp: "Attackers frequently obfuscate malicious scripts (like cryptominers or stealers) using Base64 encoding (atob) and eval() execution."
+    },
+    {
+        q: "Why is it important to filter out strings like 'image@2x.png' when scraping emails from a webpage's raw HTML?",
+        opts: ["Because PNG files are too large", "Because @ is often used in filenames for retina/high-DPI assets, creating false positives", "Because images can contain viruses", "Because .png is a reserved top-level domain"],
+        ans: 1,
+        exp: "Many frontend frameworks use the @ symbol for resolution variants (e.g., @2x, @3x) or NPM package versions, which trick basic email regexes."
+    },
+    {
+        q: "When scraping a webpage for phone numbers, which HTML attribute guarantees that a link is intended to initiate a phone call?",
+        opts: ["rel=\"phone\"", "href=\"call:\"", "href=\"tel:\"", "type=\"number\""],
+        ans: 2,
+        exp: "The 'tel:' URI scheme is the standard way to create clickable phone numbers on the web."
     }
 ];
