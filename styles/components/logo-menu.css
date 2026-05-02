@@ -1,6 +1,10 @@
 /* -------------------------------------------------------------------------
- * Logo Menu — Dropdown utility menu from the favicon/logo
+ * Logo Menu — Core dropdown container and menu items
+ * @see logo-submenu.css  — nested submenu flyout & inline modes
+ * @see logo-utils.css    — shortcut badges, disable state, reload button
  * ------------------------------------------------------------------------- */
+
+/* --- Logo Wrapper -------------------------------------------------------- */
 
 #logo-wrapper {
     position: relative; flex-shrink: 0;
@@ -22,7 +26,7 @@
     50% { filter: drop-shadow(0 0 8px var(--accent-green, #00ff88)); transform: translateY(-4px) scale(1.05); }
 }
 
-/* --- Dropdown ------------------------------------------------------------ */
+/* --- Dropdown Container -------------------------------------------------- */
 
 .logo-menu {
     display: none;
@@ -34,6 +38,7 @@
     border-radius: 6px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
     padding: 4px 0;
+    cursor: default;
     /* NO overflow — submenus must render outside this box */
 }
 
@@ -43,6 +48,8 @@
     from { opacity: 0; transform: translateY(-4px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* --- Menu Items ---------------------------------------------------------- */
 
 .logo-menu-item {
     display: flex; align-items: center; gap: 8px;
@@ -66,12 +73,13 @@
     font-size: 12px; width: 16px; text-align: center; flex-shrink: 0;
 }
 
+/* --- Separators & Group Labels ------------------------------------------- */
+
 .logo-menu-sep {
     height: 1px; margin: 3px 8px;
     background: var(--bg-scrollbar-thumb, #333);
+    cursor: default;
 }
-
-/* --- Theme Group --------------------------------------------------------- */
 
 .logo-menu-theme-group {
     padding: 2px 0;
@@ -86,6 +94,10 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 700;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    cursor: default;
 }
 
 .logo-menu-item.active-theme::after {
@@ -94,100 +106,3 @@
     font-size: 10px;
     color: var(--text-dim);
 }
-
-/* --- Nested Submenus (expand to the right) ------------------------------- */
-
-.logo-menu-sub-wrap {
-    position: relative;
-}
-
-.logo-menu-submenu {
-    visibility: hidden;
-    opacity: 0;
-    pointer-events: none;
-    position: absolute;
-    top: -4px;
-    left: calc(100% + 2px);
-    min-width: 140px;
-    max-height: 70vh;
-    overflow-y: auto;
-    background: var(--bg-panel, #111);
-    border: 1px solid var(--bg-active-border, #1a3a28);
-    border-radius: 6px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
-    padding: 4px 0;
-    z-index: 110;
-    /* Delay HIDE by 350ms — grace period for mouse mistakes */
-    transition: visibility 0s 350ms, opacity 0.15s 200ms;
-}
-
-.logo-menu-sub-wrap:hover > .logo-menu-submenu {
-    visibility: visible;
-    opacity: 1;
-    pointer-events: auto;
-    /* Instant SHOW — no delay */
-    transition: visibility 0s 0s, opacity 0.15s ease-out;
-}
-
-.logo-menu-submenu .logo-menu-item {
-    font-size: 10.5px;
-    padding: 4px 10px;
-}
-
-.logo-menu-has-sub {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: default;
-}
-
-.logo-menu-has-sub:hover {
-    background: transparent;
-}
-
-.logo-menu-sub-arrow {
-    font-size: 9px;
-    opacity: 0.4;
-    margin-left: auto;
-    transition: opacity 0.15s ease;
-}
-.logo-menu-sub-wrap:hover .logo-menu-sub-arrow {
-    opacity: 1;
-}
-
-.logo-menu-disable {
-    color: #ff6b6b;
-}
-.logo-menu-disable:hover {
-    background: rgba(255, 80, 80, 0.12);
-    color: #ff4444;
-}
-
-/* --- Keyboard Shortcut Badge --------------------------------------------- */
-
-.logo-menu-shortcut {
-    margin-left: auto;
-    font-size: 9px;
-    font-family: var(--font-mono);
-    color: var(--text-dark);
-    opacity: 0.5;
-    letter-spacing: 0.5px;
-}
-
-/* --- Block Panel Reload Button ------------------------------------------- */
-
-.block-reload-btn {
-    display: none;
-    width: 22px; height: 18px;
-    border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 4px;
-    background: rgba(0, 255, 136, 0.1);
-    color: var(--accent-green, #00ff88);
-    font-size: 13px; line-height: 1;
-    cursor: pointer;
-    align-items: center; justify-content: center;
-    transition: all 0.15s ease; flex-shrink: 0;
-}
-
-.block-reload-btn.show { display: flex; }
-.block-reload-btn:hover { background: rgba(0, 255, 136, 0.2); transform: rotate(180deg); }
-.block-reload-btn:active { transform: rotate(360deg) scale(0.9); }

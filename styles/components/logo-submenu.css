@@ -1,0 +1,129 @@
+/* -------------------------------------------------------------------------
+ * Logo Submenu — Nested flyout & inline dropdown modes
+ * Companion to logo-menu.css (core dropdown)
+ * ------------------------------------------------------------------------- */
+
+/* --- Flyout Submenus (default — expand RIGHT) ---------------------------- */
+
+.logo-menu-sub-wrap {
+    position: relative;
+}
+
+.logo-menu-submenu {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    top: -4px;
+    left: calc(100% + 2px); /* Fly out to the right */
+    right: auto;
+    min-width: 140px;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--bg-panel, #111);
+    border: 1px solid var(--bg-active-border, #1a3a28);
+    border-radius: 6px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    padding: 4px 0;
+    z-index: 110;
+    /* Delay HIDE by 600ms — grace period for mouse travel */
+    transition: visibility 0s 600ms, opacity 0.2s 400ms;
+}
+
+.logo-menu-sub-wrap:hover > .logo-menu-submenu {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    /* Slight delay before SHOW — prevents accidental opens */
+    transition: visibility 0s 200ms, opacity 0.2s 200ms ease-out;
+}
+
+.logo-menu-submenu .logo-menu-item {
+    font-size: 10.5px;
+    padding: 4px 10px;
+}
+
+/* --- Parent trigger & arrow ---------------------------------------------- */
+
+.logo-menu-has-sub {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* cursor: pointer is inherited from .logo-menu-item */
+}
+
+/* Keep the parent item highlighted when its submenu is open or being hovered */
+.logo-menu-sub-wrap:hover > .logo-menu-has-sub,
+.logo-menu-sub-wrap.sub-expanded > .logo-menu-has-sub {
+    background: rgba(0, 255, 136, 0.08);
+    color: var(--text-bright, #fff);
+}
+
+.logo-menu-sub-arrow {
+    font-size: 13px;
+    opacity: 0.45;
+    margin-left: auto;
+    transition: opacity 0.15s ease, transform 0.2s ease;
+}
+.logo-menu-sub-wrap:hover .logo-menu-sub-arrow {
+    opacity: 1;
+}
+
+/* --- Inline Overlay Mode (narrow side panels) ---------------------------- */
+/* Submenu floats OVER the menu to prevent layout jumps, offset to the right 
+   to leave a "safe lane" over the icons for uninterrupted vertical scrolling */
+
+.submenu-inline .logo-menu-submenu {
+    position: static;
+    right: auto;
+    top: auto;
+    min-width: unset;
+    border-radius: 0;
+    border: none;
+    border-left: 2px solid var(--bg-active-border, #1a3a28);
+    box-shadow: none;
+    margin: 0 0 0 20px;
+    padding: 2px 0;
+    max-height: 0;
+    overflow: hidden;
+    visibility: visible;
+    opacity: 1;
+    pointer-events: none;
+    /* Fast close transition for click */
+    transition: max-height 0.2s ease-out;
+}
+
+.submenu-inline .logo-menu-sub-wrap.sub-expanded > .logo-menu-submenu {
+    max-height: 70vh;
+    overflow-y: auto;
+    pointer-events: auto;
+    /* Fast open transition for click */
+    transition: max-height 0.25s ease-out;
+}
+
+/* Rotate arrow to point downward in inline mode when clicked */
+.submenu-inline .logo-menu-sub-arrow {
+    transform: rotate(0deg);
+    transition: transform 0.2s ease;
+}
+.submenu-inline .logo-menu-sub-wrap.sub-expanded .logo-menu-sub-arrow {
+    transform: rotate(90deg);
+}
+
+/* --- Forced Close (JS exclusive logic) ----------------------------------- */
+/* Instantly hide submenu when a sibling is being hovered                     */
+
+.sub-forced-closed > .logo-menu-submenu {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: none !important;
+}
+
+.submenu-inline .sub-forced-closed > .logo-menu-submenu {
+    max-height: 0 !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: none !important;
+    transition: none !important;
+}

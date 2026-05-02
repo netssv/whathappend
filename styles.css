@@ -13,5 +13,7 @@
 @import url('styles/components/block-panel.css');
 @import url('styles/components/emulation-bar.css');
 @import url('styles/components/logo-menu.css');
+@import url('styles/components/logo-submenu.css');
+@import url('styles/components/logo-utils.css');
 @import url('styles/components/terminal.css');
 @import url('styles/components/scrollbar.css');
