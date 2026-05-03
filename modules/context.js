@@ -25,6 +25,7 @@ export const ContextManager = {
     _domainEl: null,
     _onTargetChanged: null,
     _onTabChanged: null,
+    _onDomainChanged: null,
 
     async init() {
         this._barEl = document.getElementById("context-bar");
@@ -41,16 +42,21 @@ export const ContextManager = {
     },
 
     /**
-     * Register a callback for when the target domain changes.
-     * Used by terminal.js to trigger auto-whois.
+     * Register a callback for when the target domain changes via manual override or startup.
      */
     onTargetChanged(fn) {
         this._onTargetChanged = fn;
     },
 
     /**
+     * Register a callback for when ANY domain change occurs (auto tab switch or manual override).
+     */
+    onDomainChanged(fn) {
+        this._onDomainChanged = fn;
+    },
+
+    /**
      * Register a callback for when the active browser tab changes.
-     * Used by terminal.js to show a discrete tab-switch notification.
      */
     onTabChanged(fn) {
         this._onTabChanged = fn;
@@ -71,7 +77,10 @@ export const ContextManager = {
     },
 
     _setInactive() {
-        this.currentTarget = "restricted";
+        if (this.currentTarget !== "restricted") {
+            this.currentTarget = "restricted";
+            if (typeof this._onDomainChanged === "function") this._onDomainChanged("restricted");
+        }
         if (this._domainEl) {
             this._domainEl.value = "Local Page (Restricted)";
         }
@@ -110,6 +119,9 @@ export const ContextManager = {
                 void this._barEl.offsetWidth;
                 this._barEl.classList.add("pulse");
             }
+            if (typeof this._onDomainChanged === "function") {
+                this._onDomainChanged(domain);
+            }
         }
 
         // Notify tab-change listener (discrete terminal notification)
@@ -119,6 +131,13 @@ export const ContextManager = {
     },
 
     setManualTarget(domain) {
+        if (this.currentTarget !== domain) {
+            this.currentTarget = domain;
+            if (typeof this._onDomainChanged === "function" && domain !== "restricted") {
+                this._onDomainChanged(domain);
+            }
+        }
+        
         this._manualTarget = domain;
         this._isManual = true;
 

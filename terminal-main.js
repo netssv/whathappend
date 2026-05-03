@@ -3,6 +3,7 @@ import { isIPAddress, toApex } from "./modules/formatter.js";
 import { pushHistory, restoreSession, setSessionTarget } from "./modules/state.js";
 import { initTerminalUI, showBanner, writePrompt, term, refitTerminal } from "./modules/terminal/terminal-ui.js";
 import { initHeaderController, clearWhoisFields, showTabSwitch, hideTabSwitch, initBlockPanel, updateBlockState, initLogoMenu } from "./modules/terminal/header-controller.js";
+import { triggerPeekTease } from "./modules/terminal/header/header-triad-ui.js";
 import { handleSessionRestore } from "./modules/terminal/session-restorer.js";
 import { initInputManager } from "./modules/terminal/input/index.js";
 import { InputEvents } from "./modules/terminal/input/events.js";
@@ -19,12 +20,12 @@ async function bootstrap() {
         // 1. Setup the terminal UI visually
         await initTerminalUI("terminal-container");
 
-        // 2. Setup the header logic
+        // 2. Initialize header UI, block panel, logo menu
         initHeaderController(term);
         initBlockPanel();
         initLogoMenu();
 
-        // 3. Setup the input manager (keyboard, paste, execution)
+        // 3. Initialize the input loop and event listeners
         initInputManager();
 
         // 4. Show initial prompt
@@ -37,31 +38,11 @@ async function bootstrap() {
         const initialDomain = await ContextManager.init();
 
         const restored = handleSessionRestore(session, initialDomain);
-        if (!restored && initialDomain) {
+        if (!restored && initialDomain && initialDomain !== "restricted") {
             writePrompt();
-            
-            const autoTriage = await getConfig("auto-triage");
-            if (autoTriage) {
-                ContextManager.setManualTarget(initialDomain);
-            }
-        } else {
+        } else if (!restored) {
             writePrompt();
         }
-
-        const grabFocus = () => {
-            document.body.focus();
-            const textarea = document.querySelector('.xterm-helper-textarea');
-            if (textarea) {
-                textarea.setAttribute('autofocus', 'true');
-                textarea.focus({ preventScroll: true });
-            }
-            term.focus();
-        };
-        
-        // Try multiple times to ensure the side panel catches the focus
-        setTimeout(grabFocus, 100);
-        setTimeout(grabFocus, 300);
-        setTimeout(grabFocus, 600);
 
         // Fallback: auto-focus if user clicks anywhere in the panel background
         document.addEventListener("click", (e) => {
@@ -70,26 +51,7 @@ async function bootstrap() {
             }
         });
 
-        // --- Peek-tab: bounces + teases triad content, click to fully toggle ---
-        const peekTab = document.getElementById("header-peek-tab");
-        const triad = document.getElementById("context-triad");
-        if (peekTab && triad) {
-            // Block auto-show during tease period
-            triad.setAttribute("data-peek-active", "");
-
-            // After a short delay, bounce the tab AND briefly tease-open the triad
-            setTimeout(() => {
-                peekTab.classList.add("peek-bounce");
-                triad.classList.add("peek-tease");
-                // Clean up tease after animation ends — allow normal visibility again
-                setTimeout(() => {
-                    triad.classList.remove("peek-tease");
-                    triad.removeAttribute("data-peek-active");
-                    refitTerminal();
-                }, 2100);
-            }, 400);
-
-        }
+        // initial tease is triggered by onDomainChanged
 
     } catch (err) {
         console.error("[WhatHappened] Bootstrap failed:", err);
@@ -98,15 +60,33 @@ async function bootstrap() {
 }
 
 // ---------------------------------------------------------------------------
-// Fallback UI — visible error when bootstrap fails (prevents blank panel)
+// Internal Execution Bridge
 // ---------------------------------------------------------------------------
 
+/**
+ * Execute a command by simulating it passing through the input loop.
+ */
+function executeCommand(commandName, args = []) {
+    const input = [commandName, ...args].join(" ").trim();
+    InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, input);
+}
+
+// Ensure terminal always grabs focus on open
+function grabFocus() {
+    setTimeout(() => {
+        const textarea = document.querySelector(".xterm-helper-textarea");
+        if (textarea) textarea.focus();
+    }, 50);
+}
+
+window.addEventListener("focus", grabFocus);
+
 function showBootstrapError(err) {
-    const container = document.getElementById("terminal-container");
-    if (container) {
-        container.innerHTML = `
-            <div style="padding:24px;font-family:monospace;color:#ff6b6b;background:#1a1a2e;height:100%;box-sizing:border-box;">
-                <h2 style="color:#e94560;margin:0 0 12px">⚠ WhatHappened failed to start</h2>
+    const termC = document.getElementById("terminal-container");
+    if (termC) {
+        termC.innerHTML = `
+            <div style="padding: 20px; font-family: monospace;">
+                <h3 style="color:#ff3366;margin-top:0">⚠️ Terminal Core Failure</h3>
                 <p style="color:#aaa;margin:0 0 8px">The terminal could not initialize. This is usually caused by a corrupt extension state or a failed module import.</p>
                 <pre style="color:#ff6b6b;background:#0f0f23;padding:12px;border-radius:6px;overflow:auto;max-height:120px;font-size:12px">${err?.message || "Unknown error"}\n${err?.stack || ""}</pre>
                 <p style="color:#888;margin:16px 0 8px">Try one of these fixes:</p>
@@ -121,7 +101,18 @@ function showBootstrapError(err) {
 
 bootstrap();
 
-// Async Header: When a manual target is set, clear stale header badges.
+// Async Header: When ANY target domain changes (auto or manual)
+ContextManager.onDomainChanged((domain) => {
+    if (!domain || domain === "restricted" || isIPAddress(domain)) return;
+    
+    // Clear stale badges immediately — triage resolvers will repopulate
+    clearWhoisFields();
+    
+    // Trigger the bounce and tease animation
+    triggerPeekTease();
+});
+
+// Async Header: When a manual target is set.
 // The progressive triage resolvers in triage-resolvers.js will populate
 // the header triad as each row resolves — single source of truth.
 ContextManager.onTargetChanged(async (domain) => {
@@ -140,12 +131,11 @@ ContextManager.onTargetChanged(async (domain) => {
     // Persist target for session restore
     setSessionTarget(domain);
 
-    // Clear stale badges immediately — triage resolvers will repopulate
-    clearWhoisFields();
-
     // Trigger silent background triage if auto-triage is enabled
     const autoTriage = await getConfig("auto-triage");
     if (autoTriage) {
+        chrome.runtime.sendMessage({ command: "run-triage", domain });
+        // Kick off progressive retries for missing fields after initial resolution
         retryEmptyHeaderFields(domain, toApex(domain), { registrar: null, ns: null, webhost: null, ip: null, myip: null, geo: null, ssl: null, cdn: null, mx: null, dns: null });
     }
 

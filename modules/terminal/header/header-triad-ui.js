@@ -67,6 +67,43 @@ export function refreshTriadVisibility() {
     setTimeout(() => refitTerminal(), 350);
 }
 
+let teaseTimeout = null;
+let teaseCleanupTimeout = null;
+
+export function triggerPeekTease() {
+    const peekTab = document.getElementById("header-peek-tab");
+    if (!peekTab || !contextTriad) return;
+
+    // Reset any running tease
+    if (teaseTimeout) clearTimeout(teaseTimeout);
+    if (teaseCleanupTimeout) clearTimeout(teaseCleanupTimeout);
+    
+    // Clear existing classes to restart animation
+    peekTab.classList.remove("peek-bounce");
+    contextTriad.classList.remove("peek-tease");
+    contextTriad.removeAttribute("data-peek-active");
+    
+    // Force reflow to allow restarting animations
+    void peekTab.offsetWidth;
+    void contextTriad.offsetWidth;
+
+    // Block auto-show during tease period
+    contextTriad.setAttribute("data-peek-active", "");
+
+    // Start tease with a slight delay
+    teaseTimeout = setTimeout(() => {
+        peekTab.classList.add("peek-bounce");
+        contextTriad.classList.add("peek-tease");
+        
+        // Clean up tease after animation ends
+        teaseCleanupTimeout = setTimeout(() => {
+            contextTriad.classList.remove("peek-tease");
+            contextTriad.removeAttribute("data-peek-active");
+            refitTerminal();
+        }, 2100);
+    }, 400);
+}
+
 export function cancelAutoHide() {
     if (hideTimeout) clearTimeout(hideTimeout);
     currentVisibilityCheck++;

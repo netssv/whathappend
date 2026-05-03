@@ -43,7 +43,7 @@ export function showBanner(term) {
         term.writeln("  \x1b[90mOr type a domain (e.g. google.com)\x1b[0m");
     } else {
         // NARROW SCREEN (Large fonts)
-        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.7.2\x1b[0m");
+        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.7.3\x1b[0m");
         term.writeln("  \x1b[90m━━━━━━━━━━━━━━━\x1b[0m");
         term.writeln("  \x1b[35m❯\x1b[0m \x1b[37mstart\x1b[0m\x1b[90m to begin\x1b[0m");
         term.writeln("  \x1b[35m❯\x1b[0m \x1b[37mhelp\x1b[0m\x1b[90m for commands\x1b[0m");
