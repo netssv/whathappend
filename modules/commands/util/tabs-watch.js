@@ -156,7 +156,13 @@ export function createTabWatcher(tabId, label) {
                 `  ${ANSI.white}Cookies${ANSI.reset}  ${d.cookies}`,
                 sep,
                 `  ${ANSI.white}Load${ANSI.reset}     ${d.fullLoad > 0 ? `${(d.fullLoad / 1000).toFixed(2)}s` : `${ANSI.dim}N/A${ANSI.reset}`}  ${ANSI.white}Up${ANSI.reset} ${ANSI.dim}${uptime}${ANSI.reset}`,
+                ``,
                 `${ANSI.dim}  Q to return | Ctrl+C to exit${ANSI.reset}`,
+            ];
+
+            for (const l of lines) {
+                term.write(`\x1b[2K\r${pad(l)}\r\n`);
+            }
 
             tick++;
         } catch {

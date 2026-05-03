@@ -1,7 +1,7 @@
 import { ContextManager } from "./modules/context.js";
 import { isIPAddress, toApex } from "./modules/formatter.js";
 import { pushHistory, restoreSession, setSessionTarget } from "./modules/state.js";
-import { initTerminalUI, showBanner, writePrompt, term } from "./modules/terminal/terminal-ui.js";
+import { initTerminalUI, showBanner, writePrompt, term, refitTerminal } from "./modules/terminal/terminal-ui.js";
 import { initHeaderController, clearWhoisFields, showTabSwitch, hideTabSwitch, initBlockPanel, updateBlockState, initLogoMenu } from "./modules/terminal/header-controller.js";
 import { handleSessionRestore } from "./modules/terminal/session-restorer.js";
 import { initInputManager } from "./modules/terminal/input/index.js";
@@ -69,6 +69,27 @@ async function bootstrap() {
                 grabFocus();
             }
         });
+
+        // --- Peek-tab: bounces + teases triad content, click to fully toggle ---
+        const peekTab = document.getElementById("header-peek-tab");
+        const triad = document.getElementById("context-triad");
+        if (peekTab && triad) {
+            // Block auto-show during tease period
+            triad.setAttribute("data-peek-active", "");
+
+            // After a short delay, bounce the tab AND briefly tease-open the triad
+            setTimeout(() => {
+                peekTab.classList.add("peek-bounce");
+                triad.classList.add("peek-tease");
+                // Clean up tease after animation ends — allow normal visibility again
+                setTimeout(() => {
+                    triad.classList.remove("peek-tease");
+                    triad.removeAttribute("data-peek-active");
+                    refitTerminal();
+                }, 2100);
+            }, 400);
+
+        }
 
     } catch (err) {
         console.error("[WhatHappened] Bootstrap failed:", err);

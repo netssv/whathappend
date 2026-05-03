@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------
  * Context Bar — Active Tab Domain Display + Infrastructure Triad
- * Two-row header: domain on top, REG | NS | HOST on bottom
+ * Starts collapsed; a bouncing peek-tab invites the user to expand.
  * ------------------------------------------------------------------------- */
 
 #context-bar {
@@ -15,8 +15,8 @@
     -webkit-user-select: none;
     user-select: none;
     flex-shrink: 0;
-    transition: background 0.3s ease;
     position: relative;
+    transition: background 0.3s ease, border-color 0.3s ease;
 
     &.active {
         border-bottom-color: var(--bg-active-border);
@@ -63,6 +63,76 @@
 
     &.pulse {
         animation: contextPulse 0.6s ease-out;
+    }
+}
+
+/* --- Peek Tab — bouncing handle with shimmer sweep -------------------- */
+
+#header-peek-tab {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    height: 20px;
+    background: linear-gradient(90deg, rgba(0,255,136,0.04), rgba(0,255,136,0.1), rgba(0,255,136,0.04));
+    border-top: 1px solid rgba(0,255,136,0.12);
+    border-bottom: 1px solid rgba(0,255,136,0.12);
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.2s, border-color 0.2s;
+
+    /* Shimmer light sweep — subtle light that glides across */
+    &::after {
+        content: "";
+        position: absolute;
+        top: 0; left: -100%;
+        width: 100%; height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(0, 255, 136, 0.15),
+            rgba(255, 255, 255, 0.08),
+            rgba(0, 255, 136, 0.15),
+            transparent
+        );
+        animation: peekShimmer 3s ease-in-out 0.5s 3;
+    }
+
+    span.peek-icon {
+        font-size: 10px;
+        color: var(--accent-green);
+        transition: transform 0.3s ease;
+        filter: drop-shadow(0 0 2px rgba(0,255,136,0.5));
+    }
+
+    span.peek-label {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--accent-green);
+        opacity: 0.7;
+        text-shadow: 0 0 6px rgba(0,255,136,0.3);
+    }
+
+    &:hover {
+        background: rgba(0, 255, 136, 0.12);
+        border-color: var(--accent-green);
+
+        .peek-label { opacity: 1; color: var(--text-light); }
+        .peek-icon { filter: drop-shadow(0 0 4px rgba(0,255,136,0.8)); }
+    }
+
+    /* Bounce animation — plays once on load to draw attention */
+    &.peek-bounce {
+        animation: peekBounce 2s cubic-bezier(0.28, 0.84, 0.42, 1);
+    }
+
+    /* Flip caret when header is open */
+    &.peek-open .peek-icon {
+        transform: rotate(180deg);
     }
 }
 
@@ -118,4 +188,21 @@
     0% { background: var(--bg-panel); }
     50% { background: var(--bg-active-border); }
     100% { background: var(--bg-panel); }
+}
+
+/* Bounce: tab peeks down then settles */
+@keyframes peekBounce {
+    0%   { transform: translateY(0); }
+    15%  { transform: translateY(6px); }
+    30%  { transform: translateY(-2px); }
+    45%  { transform: translateY(4px); }
+    60%  { transform: translateY(-1px); }
+    75%  { transform: translateY(2px); }
+    100% { transform: translateY(0); }
+}
+
+/* Shimmer: light sweep glides across the peek tab */
+@keyframes peekShimmer {
+    0%   { left: -100%; }
+    100% { left: 200%; }
 }

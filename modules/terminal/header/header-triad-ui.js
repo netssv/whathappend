@@ -29,16 +29,20 @@ export function setTriadHoverState(state) {
 
 export function refreshTriadVisibility() {
     if (!contextTriad) return;
+
+    // During peek-tease animation, don't auto-show the triad
+    if (contextTriad.hasAttribute("data-peek-active")) return;
+
     const hasAny = ALL_FIELDS.some(el => el?.textContent)
         || contextRegistrar?.classList.contains("retryable")
         || contextNS?.classList.contains("retryable")
         || contextHost?.classList.contains("retryable");
 
-    const handle = document.getElementById("triad-handle");
+    const peekTab = document.getElementById("header-peek-tab");
 
     if (hasAny) {
         contextTriad.classList.add("visible");
-        if (handle) handle.classList.add("visible");
+        if (peekTab) peekTab.classList.add("peek-open");
         if (hideTimeout) clearTimeout(hideTimeout);
         
         const checkId = ++currentVisibilityCheck;
@@ -50,13 +54,14 @@ export function refreshTriadVisibility() {
             if (autoHide && !isHovering && contextTriad.classList.contains("visible")) {
                 hideTimeout = setTimeout(() => {
                     contextTriad.classList.remove("visible");
+                    if (peekTab) peekTab.classList.remove("peek-open");
                     setTimeout(() => refitTerminal(), 350);
                 }, autoHideDelay);
             }
         });
     } else {
         contextTriad.classList.remove("visible");
-        if (handle) handle.classList.remove("visible");
+        if (peekTab) peekTab.classList.remove("peek-open");
     }
     // Re-fit terminal after CSS transition completes
     setTimeout(() => refitTerminal(), 350);

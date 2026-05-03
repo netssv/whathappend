@@ -78,11 +78,16 @@ export function initTriadEvents(api) {
         });
     }
 
-    const triadHandle = document.getElementById("triad-handle");
-    if (triadHandle && contextTriad) {
-        triadHandle.addEventListener("click", () => {
+    const peekTab = document.getElementById("header-peek-tab");
+    if (peekTab && contextTriad) {
+        peekTab.addEventListener("click", () => {
+            // Clear any running tease animation and unlock visibility
+            contextTriad.classList.remove("peek-tease");
+            contextTriad.removeAttribute("data-peek-active");
+            
             cancelAutoHide();
             contextTriad.classList.toggle("visible");
+            peekTab.classList.toggle("peek-open", contextTriad.classList.contains("visible"));
             setTimeout(() => refitTerminal(), 350);
         });
     }
@@ -110,7 +115,7 @@ export function initTriadEvents(api) {
             if (oldAuto === false && newAuto === true) {
                 if (contextTriad) {
                     contextTriad.classList.remove("visible");
-                    if (triadHandle) triadHandle.classList.remove("visible");
+                    if (peekTab) peekTab.classList.remove("peek-open");
                     cancelAutoHide();
                     setTimeout(() => refitTerminal(), 350);
                 }
