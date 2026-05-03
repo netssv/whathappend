@@ -34,18 +34,24 @@ The fastest way to get an answer is to open the side panel and:
 
 ---
 
-## What’s New in v2.7.0?
+## What’s New in v2.7.3? (The UI/UX Update)
 
-We’ve turned the terminal into a professional-grade auditing suite:
+We’ve overhauled the terminal interface to be cleaner, faster, and more visually engaging:
 
-- **Marketing Suite (`audit`)**: Run a comprehensive, sequential audit of your web presence with a single command (combines `seo`, `og`, `alt`, and `schema`).
-- **Security Infrastructure Triage**: Go deep with `csp` (Policy analyzer), `waf` (Firewall detection), `hsts` (Strict transport), and `headers-check`.
-- **Performance & Diagnostics**: Measure connection stability with `jitter`, run local bandwidth checks with `speedtest`, and benchmark with `load`.
-- **Developer Utilities**: Compare domains with `diff`, validate `schema` (JSON-LD), and check asset `minify` status.
-- **External Consolidation**: Quickly generate standard external reports via the unified `ext` command (`ext ssl`, `ext bl`, `ext headers`).
-- **Intelligent Auto-Hide**: The infrastructure header now intelligently fades out after a delay to save space, but briefly "pings" back whenever you type a command.
-- **Hard Reboot**: Use `reload` to instantly flush memory and restart the extension context.
-- **100% English Diagnostics**: Completed the transition to a unified, professional English-only engine.
+- **Bouncing "SITE INTEL" Tab**: The infrastructure triad is now collapsed by default to maximize terminal space. A new, premium tab labeled **SITE INTEL** serves as the interaction hub.
+- **Domain-Change Tease**: Every time you switch domains or active tabs, the header briefly "peeks" open with a subtle bounce, giving you a glimpse of the new infrastructure data before tucking away.
+- **Micro-Animation Suite**: Added a high-end **shimmer light sweep** that glides across the tab, combined with green glow effects and smooth caret rotations.
+- **Attention Hook**: The initial "call to action" bounce now triggers on every new scan, ensuring you never miss a context update.
+
+---
+
+## Key Features
+
+- **Marketing Suite (`audit`)**: Run a comprehensive audit (SEO, OG, Schema) with a single command.
+- **Security Triage**: Deep-dive tools like `csp`, `waf`, `hsts`, and `headers-check`.
+- **Performance**: Connection stability with `jitter` and bandwidth checks with `speedtest`.
+- **Privacy First**: 100% local execution. No servers, no tracking.
+- **Authentic Terminal**: High-performance xterm.js engine.
 
 ---
 
