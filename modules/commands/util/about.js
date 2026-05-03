@@ -53,13 +53,6 @@ export async function cmdAbout() {
     const themeId = getCurrentTheme();
     const themeName = THEMES[themeId]?.name || themeId;
 
-    // Network
-    let netInfo = "Unknown";
-    if (navigator.connection) {
-        const type = (navigator.connection.type || "broadband").toUpperCase();
-        netInfo = `${type === "UNKNOWN" ? "BROADBAND" : type} (~${navigator.connection.downlink} Mbps)`;
-    }
-
     // Open tabs
     let tabCount = "?";
     try {
@@ -114,7 +107,6 @@ export async function cmdAbout() {
 
     // System info block
     out += `  ${C}Node IP${R}    ${Y}${publicIp}${R}\n`;
-    out += `  ${C}Network${R}    ${W}${netInfo}${R}\n`;
     out += `  ${C}Tabs${R}       ${W}${tabCount} open${R}\n`;
     out += `  ${C}Memory${R}     ${W}${memInfo}${R}\n`;
     out += `  ${C}Storage${R}    ${W}${storageInfo}${R}\n`;

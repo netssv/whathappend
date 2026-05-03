@@ -62,25 +62,23 @@ export function initTerminalUI(containerId) {
     initThemeEngine(term);
 
     let resizeTimeout;
+    const doResize = () => {
+        if (term && fitAddon) {
+            fitAddon.fit();
+            setTermCols(term.cols);
+            term.refresh(0, Math.max(0, term.rows - 1));
+        }
+    };
+
     window.addEventListener("resize", () => {
         clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            if (term && fitAddon) {
-                fitAddon.fit();
-                setTermCols(term.cols);
-            }
-        }, 50);
+        resizeTimeout = setTimeout(doResize, 150);
     });
 
     // Watch for header geometry changes (triad/tab-switch bar show/hide)
     const observer = new ResizeObserver(() => {
         clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(() => {
-            if (term && fitAddon) {
-                fitAddon.fit();
-                setTermCols(term.cols);
-            }
-        }, 50);
+        resizeTimeout = setTimeout(doResize, 150);
     });
     observer.observe(container);
 

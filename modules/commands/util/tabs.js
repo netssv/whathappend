@@ -52,8 +52,97 @@ async function resolveTabId(input) {
 export async function cmdTabs(args) {
     const sub = args[0]?.toLowerCase();
 
+    // ── INTERACTIVE MENU ─────────────────────────────────────────
+    if (!sub) {
+        return {
+            __watch: true,
+            watcher: {
+                onDataDisposable: null,
+                start: function(term, doneCallback) {
+                    let tabsList = [];
+                    let message = "";
+                    
+                    const fetchAndDraw = () => {
+                        chrome.tabs.query({}, (tabs) => {
+                            tabsList = tabs;
+                            term.write('\x1b[2J\x1b[H');
+                            let out = `\n  ${ANSI.bold}${ANSI.cyan}/// TAB MANAGER ///${ANSI.reset}  ${ANSI.dim}${tabs.length} open${ANSI.reset}\n\n`;
+                            
+                            for (let i = 0; i < Math.min(tabs.length, 9); i++) {
+                                const tab = tabs[i];
+                                let title = tab.title || "Untitled";
+                                if (title.length > 30) title = title.substring(0, 29) + "…";
+                                
+                                out += `    ${ANSI.bold}[${i+1}]${ANSI.reset} ${icon(tab)} ${title}\n`;
+                            }
+                            
+                            if (tabs.length > 9) {
+                                out += `    ${ANSI.dim}...and ${tabs.length - 9} more tabs.${ANSI.reset}\n`;
+                            }
+                            
+                            if (message) {
+                                out += `\n  ${ANSI.yellow}${message}${ANSI.reset}\n`;
+                                message = "";
+                            } else {
+                                out += `\n`;
+                            }
+                            
+                            out += `  ${ANSI.dim}Press 1-9 to focus. 'C'+num to close. 'Q' to quit.${ANSI.reset}\n`;
+                            term.write(out);
+                        });
+                    };
+
+                    let closingMode = false;
+
+                    this.onDataDisposable = term.onData(e => {
+                        const lower = e.toLowerCase();
+                        if (lower === 'q' || e === '\x03' || e === '\r' || e === '\n') {
+                            doneCallback();
+                            return;
+                        }
+                        if (lower === 'c') {
+                            closingMode = true;
+                            message = "Close mode: press 1-9 to close a tab.";
+                            fetchAndDraw();
+                            return;
+                        }
+                        
+                        const num = parseInt(lower);
+                        if (num >= 1 && num <= 9 && num <= tabsList.length) {
+                            const tabId = tabsList[num - 1].id;
+                            if (closingMode) {
+                                chrome.tabs.remove(tabId, () => {
+                                    closingMode = false;
+                                    message = `Closed tab ${num}.`;
+                                    fetchAndDraw();
+                                });
+                            } else {
+                                chrome.tabs.update(tabId, { active: true });
+                                chrome.windows.update(tabsList[num-1].windowId, { focused: true });
+                                message = `Focused tab ${num}.`;
+                                fetchAndDraw();
+                            }
+                        } else {
+                            closingMode = false;
+                            fetchAndDraw();
+                        }
+                    });
+
+                    fetchAndDraw();
+                },
+                stop: function(term) {
+                    if (this.onDataDisposable) {
+                        this.onDataDisposable.dispose();
+                        this.onDataDisposable = null;
+                    }
+                    if (term) term.write(`\n\n  ${ANSI.dim}[Tabs manager exited]${ANSI.reset}\n`);
+                }
+            }
+        };
+    }
+
     // ── LIST ─────────────────────────────────────────────────────
-    if (!sub || sub === "list") {
+    if (sub === "list") {
         return new Promise((resolve) => {
             chrome.tabs.query({}, (tabs) => {
                 if (!tabs?.length) {
@@ -102,19 +191,22 @@ export async function cmdTabs(args) {
         const tabId = await resolveTabId(args[1]);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
 
-        const confirmed = args[2]?.toLowerCase() === "yes";
-
         try {
             const tab = await chrome.tabs.get(tabId);
             let title = tab.title || "Untitled";
             if (title.length > 30) title = title.substring(0, 29) + "…";
 
+            const { showConfirm } = await import("../../terminal/modal.js");
+            const confirmed = await showConfirm({
+                title: "❌ Close Tab",
+                message: `Close tab <strong style="color:#ffd740">${title}</strong>?<br><span style="color:#888">${tab.url}</span>`,
+                confirmLabel: "Close",
+                cancelLabel: "Cancel",
+                danger: true
+            });
+
             if (!confirmed) {
-                let o = `\n${ANSI.yellow}[CONFIRM]${ANSI.reset} Close this tab?\n`;
-                o += `  ${ANSI.white}${title}${ANSI.reset}\n`;
-                o += `  ${ANSI.dim}${tab.url}${ANSI.reset}\n`;
-                o += `\n${ANSI.dim}Run ${ANSI.white}tabs close ${args[1]} yes${ANSI.dim} to confirm.${ANSI.reset}`;
-                return o;
+                return `${ANSI.dim}Cancelled.${ANSI.reset}`;
             }
 
             return new Promise((resolve) => {

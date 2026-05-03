@@ -31,31 +31,67 @@ export async function cmdIP(args) {
     return resolveDomainIP(domain);
 }
 
-// ── Show local user's public IP ─────────────────────────────────────
+// ── Show both local IP + active page IP ──────────────────────────────
 
 async function showPublicIP() {
     let o = `> curl -s https://api.ipify.org\n`;
     o += `${ANSI.dim}Fetching public IP...${ANSI.reset}\n\n`;
 
-    const resp = await chrome.runtime.sendMessage({ command: "get-public-ip" });
-    if (!resp) return o + workerError();
-    if (resp.error) return o + cmdError(resp.error);
+    // Resolve both in parallel
+    const [pubResp, pageIP] = await Promise.allSettled([
+        chrome.runtime.sendMessage({ command: "get-public-ip" }),
+        resolveActivePageIP(),
+    ]);
 
-    const ip = resp.data.ip;
-    o += `  ${ANSI.white}Local Public IP:${ANSI.reset}  ${ANSI.green}${ip}${ANSI.reset}\n`;
-
-    // Resolve ISP via RDAP
-    const isp = await resolveProvider(ip);
-    if (isp) {
-        o += `  ${ANSI.white}ISP:${ANSI.reset}        ${ANSI.cyan}${isp}${ANSI.reset}\n`;
+    // Local IP
+    const pub = pubResp.status === "fulfilled" ? pubResp.value : null;
+    if (!pub || pub.error) {
+        o += `  ${ANSI.white}Your IP:${ANSI.reset}      ${ANSI.dim}Unavailable${ANSI.reset}\n`;
+    } else {
+        const ip = pub.data?.ip || pub.ip;
+        o += `  ${ANSI.white}Your IP:${ANSI.reset}      ${ANSI.green}${ip}${ANSI.reset}\n`;
+        const isp = await resolveProvider(ip);
+        if (isp) o += `  ${ANSI.white}ISP:${ANSI.reset}          ${ANSI.cyan}${isp}${ANSI.reset}\n`;
     }
 
-    const ins = [
-        { level: "INFO", text: `IP WHOIS: https://rdap.org/ip/${ip}` },
-        { level: "INFO", text: `External Check: https://whatismyipaddress.com/` },
-    ];
+    // Active page IP
+    const siteIP = pageIP.status === "fulfilled" ? pageIP.value : null;
+    if (siteIP) {
+        o += `  ${ANSI.white}Active Web IP:${ANSI.reset}  ${ANSI.green}${siteIP.ip}${ANSI.reset}`;
+        if (siteIP.domain) o += ` ${ANSI.dim}(${siteIP.domain})${ANSI.reset}`;
+        o += `\n`;
+        if (siteIP.provider) o += `  ${ANSI.white}Host:${ANSI.reset}         ${ANSI.cyan}${siteIP.provider}${ANSI.reset}\n`;
+    }
+
+    const userIP = pub?.data?.ip || pub?.ip || "";
+    const ins = [];
+    if (userIP) ins.push({ level: "INFO", text: `IP WHOIS: https://rdap.org/ip/${userIP}` });
+    if (siteIP?.ip) ins.push({ level: "INFO", text: `Site WHOIS: https://rdap.org/ip/${siteIP.ip}` });
+    ins.push({ level: "INFO", text: `External Check: https://whatismyipaddress.com/` });
     o += insights(ins);
     return o;
+}
+
+async function resolveActivePageIP() {
+    try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab?.url) return null;
+        const url = new URL(tab.url);
+        const domain = url.hostname;
+        if (!domain || isIPAddress(domain) || domain === "localhost") return null;
+
+        const aResp = await chrome.runtime.sendMessage({
+            command: "dns", payload: { domain, type: "A" },
+        });
+        const aRecord = aResp?.data?.Answer?.find(r => r.type === 1);
+        if (!aRecord?.data) return null;
+
+        const ip = aRecord.data.trim();
+        const provider = await resolveProvider(ip);
+        return { ip, domain, provider };
+    } catch (_) {
+        return null;
+    }
 }
 
 // ── Resolve domain → A record → provider ────────────────────────────

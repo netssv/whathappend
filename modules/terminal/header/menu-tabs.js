@@ -27,7 +27,7 @@ export function initTabsSubmenu(menu) {
                 const btn = document.createElement("button");
                 btn.className = "logo-menu-item";
                 if (tab.active) btn.classList.add("active-theme");
-                btn.dataset.cmd = `switch ${host}`;
+                btn.dataset.cmd = `tab_menu:${tab.id}:${host}`;
                 btn.innerHTML = `<span>${tab.active ? "●" : " "}</span>${title}`;
                 btn.title = tab.url;
                 tabsSub.appendChild(btn);

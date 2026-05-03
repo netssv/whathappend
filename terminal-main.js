@@ -2,7 +2,8 @@ import { ContextManager } from "./modules/context.js";
 import { isIPAddress, toApex } from "./modules/formatter.js";
 import { pushHistory, restoreSession, setSessionTarget } from "./modules/state.js";
 import { initTerminalUI, showBanner, writePrompt, term } from "./modules/terminal/terminal-ui.js";
-import { initHeaderController, updateWhoisFields, updateNSField, updateHostField, clearWhoisFields, showTabSwitch, hideTabSwitch, initBlockPanel, updateBlockState, initLogoMenu } from "./modules/terminal/header-controller.js";
+import { initHeaderController, clearWhoisFields, showTabSwitch, hideTabSwitch, initBlockPanel, updateBlockState, initLogoMenu } from "./modules/terminal/header-controller.js";
+import { handleSessionRestore } from "./modules/terminal/session-restorer.js";
 import { initInputManager } from "./modules/terminal/input/index.js";
 import { InputEvents } from "./modules/terminal/input/events.js";
 import { setKeyboardLock } from "./modules/terminal/input/keyboard-events.js";
@@ -35,68 +36,8 @@ async function bootstrap() {
         // 6. Context Manager Init + Initial Auto-Analysis
         const initialDomain = await ContextManager.init();
 
-        if (session.target && session.history.length > 0) {
-            // Resume previous session — replay history + restore target
-            ContextManager.setManualTarget(session.target);
-
-            // Restore header triad immediately (no re-fetch needed)
-            if (session.triad) {
-                const domain = session.target;
-                const apex = toApex(domain);
-                if (session.triad.registrar) updateWhoisFields(session.triad.registrar, `https://www.whois.com/whois/${apex}`);
-                if (session.triad.ns) updateNSField(session.triad.ns, `https://intodns.com/${domain}`);
-                if (session.triad.host) updateHostField(session.triad.host, `https://ipinfo.io/${domain}`);
-            }
-
-            // Replay saved command/output pairs into the terminal
-            for (const entry of session.history) {
-                if (entry.command) {
-                    term.writeln(`\x1b[90m~\x1b[0m`);
-                    term.writeln(`\x1b[35m❯\x1b[0m ${entry.command}`);
-                }
-                if (entry.output) {
-                    const lines = entry.output.split("\n");
-                    for (const line of lines) {
-                        term.writeln(line);
-                    }
-                }
-            }
-
-            term.writeln(`\x1b[90m── Session restored (${session.history.length} cmd) → \x1b[36m${session.target}\x1b[90m ──\x1b[0m`);
-            writePrompt();
-
-            // If active tab differs from restored target, suggest switching
-            if (initialDomain && initialDomain !== "restricted" && toApex(initialDomain) !== toApex(session.target)) {
-                showTabSwitch(initialDomain, (newDomain) => {
-                    ContextManager.setManualTarget(newDomain);
-                    writePrompt();
-                    term.write(newDomain + "\r\n");
-                    InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, newDomain);
-                });
-            }
-        } else if (session.target) {
-            // Target exists but no history
-            ContextManager.setManualTarget(session.target);
-            if (session.triad) {
-                const domain = session.target;
-                const apex = toApex(domain);
-                if (session.triad.registrar) updateWhoisFields(session.triad.registrar, `https://www.whois.com/whois/${apex}`);
-                if (session.triad.ns) updateNSField(session.triad.ns, `https://intodns.com/${domain}`);
-                if (session.triad.host) updateHostField(session.triad.host, `https://ipinfo.io/${domain}`);
-            }
-            term.writeln(`\x1b[90m── Session restored → \x1b[36m${session.target}\x1b[90m ──\x1b[0m`);
-            writePrompt();
-
-            // If active tab differs from restored target, suggest switching
-            if (initialDomain && initialDomain !== "restricted" && toApex(initialDomain) !== toApex(session.target)) {
-                showTabSwitch(initialDomain, (newDomain) => {
-                    ContextManager.setManualTarget(newDomain);
-                    writePrompt();
-                    term.write(newDomain + "\r\n");
-                    InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, newDomain);
-                });
-            }
-        } else if (initialDomain) {
+        const restored = handleSessionRestore(session, initialDomain);
+        if (!restored && initialDomain) {
             writePrompt();
             
             const autoTriage = await getConfig("auto-triage");
@@ -107,13 +48,27 @@ async function bootstrap() {
             writePrompt();
         }
 
-        // 7. Ensure terminal captures keyboard focus
-        setTimeout(() => {
-            window.focus();
+        const grabFocus = () => {
+            document.body.focus();
             const textarea = document.querySelector('.xterm-helper-textarea');
-            if (textarea) textarea.focus();
+            if (textarea) {
+                textarea.setAttribute('autofocus', 'true');
+                textarea.focus({ preventScroll: true });
+            }
             term.focus();
-        }, 150);
+        };
+        
+        // Try multiple times to ensure the side panel catches the focus
+        setTimeout(grabFocus, 100);
+        setTimeout(grabFocus, 300);
+        setTimeout(grabFocus, 600);
+
+        // Fallback: auto-focus if user clicks anywhere in the panel background
+        document.addEventListener("click", (e) => {
+            if (e.target.tagName !== "BUTTON" && e.target.tagName !== "INPUT" && e.target.tagName !== "A") {
+                grabFocus();
+            }
+        });
 
     } catch (err) {
         console.error("[WhatHappened] Bootstrap failed:", err);
@@ -170,7 +125,7 @@ ContextManager.onTargetChanged(async (domain) => {
     // Trigger silent background triage if auto-triage is enabled
     const autoTriage = await getConfig("auto-triage");
     if (autoTriage) {
-        retryEmptyHeaderFields(domain, toApex(domain), { registrar: null, ns: null, webhost: null });
+        retryEmptyHeaderFields(domain, toApex(domain), { registrar: null, ns: null, webhost: null, ip: null, myip: null, geo: null, ssl: null, cdn: null, mx: null, dns: null });
     }
 
     // Sync content-block shield state for new domain

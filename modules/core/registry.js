@@ -10,7 +10,7 @@ import { cmdSecurityTxt } from "../commands/web/security-txt.js";
 import { cmdVitals } from "../commands/web/vitals.js";
 import { cmdFlush } from "../commands/web/flush.js";
 import { cmdRevDNS, cmdPortScan, cmdFTPCheck, cmdExport } from "../commands/native/index.js";
-import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdConfig, cmdTabs, cmdReload, cmdClip, cmdMatrix, cmdCoffee, cmdSudo, cmdDog, cmdSnake, cmdHack, cmdBTC, cmdSignal, cmdUserAgent, cmdMobile, cmdThrottle, cmdGeo, cmdBlock } from "../commands/util/index.js";
+import { cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdConfig, cmdTabs, cmdReload, cmdClip, cmdMatrix, cmdCoffee, cmdSudo, cmdDog, cmdSnake, cmdHack, cmdBTC, cmdSignal, cmdUserAgent, cmdMobile, cmdThrottle, cmdGeo, cmdBlock, cmdFullscreen } from "../commands/util/index.js";
 import { cmdStack } from "../commands/stack/index.js";
 
 export const COMMAND_REGISTRY = {
@@ -93,7 +93,7 @@ export const COMMAND_REGISTRY = {
     sudo: () => cmdSudo(),
     dog: () => cmdDog(),
     snake: () => cmdSnake(),
-    hack: () => cmdHack(),
+    hack: (args) => cmdHack(args),
     btc: () => cmdBTC(),
     signal: () => cmdSignal(),
     useragent: (args) => cmdUserAgent(args),
@@ -102,5 +102,6 @@ export const COMMAND_REGISTRY = {
     geo: (args) => cmdGeo(args),
     block: (args) => cmdBlock(args),
     tabs: (args) => cmdTabs(args),
-    reload: () => cmdReload()
+    reload: () => cmdReload(),
+    fullscreen: () => cmdFullscreen()
 };

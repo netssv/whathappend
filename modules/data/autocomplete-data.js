@@ -33,10 +33,10 @@ export const AVAILABLE_COMMANDS = [
     "ext", "blacklist", "ssllabs", "securityheaders", "whois-ext",
 
     // UTIL
-    "start", "switch", "export", "clip", "matrix", "coffee", "sudo", "dog", "hack", "signal", "target", "tabs", "reload", "config", "about", "info", "errors", "clear", "flush", "diff", "exit", "help", "useragent", "mobile", "throttle", "geo", "block", "edit",
+    "start", "switch", "export", "clip", "matrix", "coffee", "sudo", "dog", "hack", "signal", "target", "tabs", "reload", "config", "about", "info", "errors", "clear", "flush", "diff", "exit", "help", "useragent", "mobile", "throttle", "geo", "block", "edit", "fullscreen",
 
     // ALIASES
-    "dns", "record", "lookup", "mail", "http", "headers", "ssl", "cert", "tls", "domain", "reg", "registrar", "provider", "webhost", "crt", "ranking", "traffic", "latency", "redirect", "follow", "sitemap", "src", "archive", "tracking", "trackers", "pixel", "ads", "social", "tech", "wappalyzer", "techstack", "meta", "tags", "thaks", "opengraph", "a11y", "images", "jsonld", "structured", "microdata", "min", "assets", "perf", "timing", "performance", "pagespeed", "cwv", "web-vitals", "core-vitals", "sec-txt", "securitytxt", "marketing", "scan", "security", "xss", "firewall", "cdn-check", "strict", "secure-transport", "hcheck", "upcheck", "down", "downcheck", "status", "latency-test", "bandwidth", "nettest", "rdns", "ptr", "ports", "nmap", "portscan", "ftp", "myip", "public-ip", "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann", "run", "go", "begin", "analyze", "actual", "current", "here", "sw", "dump", "save", "report", "tablist", "close", "tab", "restart", "reboot", "settings", "set", "prefs", "telemetry", "error", "error-list", "cls", "reset", "clearcache", "clear-cache", "note", "memo", "annotation", "quit", "ls", "commands", "man", "copy", "clipboard", "rain", "break", "pomodoro", "su", "global", "resolve", "optimiza", "optimiza-mail", "perro", "mascota", "pet", "trivia", "quiz", "ua", "agent", "spoof", "mob", "responsive", "iphone", "slow", "lag", "network", "gps", "location", "spoof-geo", "ban", "deny", "drop", "typography", "type", "colors", "theme", "hidden", "wordpress", "fingerprint", "virus", "heuristics", "designmode", "modify", "scrape-emails", "contacts", "scrape-phones", "numbers", "journey", "flow", "dns-map", "path"
+    "dns", "record", "lookup", "mail", "http", "headers", "ssl", "cert", "tls", "domain", "reg", "registrar", "provider", "webhost", "crt", "ranking", "traffic", "latency", "redirect", "follow", "sitemap", "src", "archive", "tracking", "trackers", "pixel", "ads", "social", "tech", "wappalyzer", "techstack", "meta", "tags", "thaks", "opengraph", "a11y", "images", "jsonld", "structured", "microdata", "min", "assets", "perf", "timing", "performance", "pagespeed", "cwv", "web-vitals", "core-vitals", "sec-txt", "securitytxt", "marketing", "scan", "security", "xss", "firewall", "cdn-check", "strict", "secure-transport", "hcheck", "upcheck", "down", "downcheck", "status", "latency-test", "bandwidth", "nettest", "rdns", "ptr", "ports", "nmap", "portscan", "ftp", "myip", "public-ip", "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann", "run", "go", "begin", "analyze", "actual", "current", "here", "sw", "dump", "save", "report", "tablist", "close", "tab", "restart", "reboot", "settings", "set", "prefs", "telemetry", "error", "error-list", "cls", "reset", "clearcache", "clear-cache", "note", "memo", "annotation", "quit", "ls", "commands", "man", "copy", "clipboard", "rain", "break", "pomodoro", "su", "global", "resolve", "optimiza", "optimiza-mail", "perro", "mascota", "pet", "trivia", "quiz", "ua", "agent", "spoof", "mob", "responsive", "iphone", "slow", "lag", "network", "gps", "location", "spoof-geo", "ban", "deny", "drop", "typography", "type", "colors", "theme", "hidden", "wordpress", "fingerprint", "virus", "heuristics", "designmode", "modify", "scrape-emails", "contacts", "scrape-phones", "numbers", "journey", "flow", "dns-map", "path", "fs", "f11"
 ];
 
 // Commands that accept a domain parameter (for auto-filling)
@@ -91,8 +91,9 @@ const SPEEDTEST_KEYS = ["10", "25", "50", "90"];
 const UA_KEYS = ["reset", "clear", "off"];
 const MOBILE_KEYS = ["reset", "off", "desktop"];
 const THROTTLE_KEYS = ["5g", "4g", "fast3g", "slow3g", "edge", "offline", "reset", "off", "none", "disable"];
-const GEO_KEYS = ["london", "nyc", "india", "tokyo", "mexico", "brazil", "italy", "philippines", "reset", "clear", "off"];
+const GEO_KEYS = ["london", "nyc", "india", "tokyo", "mexico", "brazil", "italy", "philippines", "add", "remove", "list", "reset", "clear", "off"];
 const BLOCK_KEYS = ["--list", "--clear", "list", "clear"];
+const HACK_KEYS = ["junior", "mid", "senior", "random", "--timer"];
 export const SUBCOMMAND_MAP = {
     config:   CONFIG_KEYS,
     settings: CONFIG_KEYS,
@@ -121,4 +122,7 @@ export const SUBCOMMAND_MAP = {
     ban:       BLOCK_KEYS,
     deny:      BLOCK_KEYS,
     drop:      BLOCK_KEYS,
+    hack:      HACK_KEYS,
+    trivia:    HACK_KEYS,
+    quiz:      HACK_KEYS,
 };

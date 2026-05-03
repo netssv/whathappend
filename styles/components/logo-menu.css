@@ -16,6 +16,21 @@
 #logo-wrapper:hover #context-logo { transform: scale(1.1); }
 #logo-wrapper:active #context-logo { transform: scale(0.95); }
 
+.logo-caret {
+    font-size: 12px;
+    color: var(--text-dark, #555);
+    margin-left: 4px;
+    margin-right: 4px;
+    margin-top: -2px;
+    transition: transform 0.2s ease, color 0.2s ease;
+    user-select: none;
+}
+#logo-wrapper:hover .logo-caret { color: var(--accent-green, #00ff88); }
+#logo-wrapper.menu-active .logo-caret {
+    transform: rotate(180deg);
+    color: var(--accent-green, #00ff88);
+}
+
 /* Animation to suggest clicking the logo */
 .pulse-hint {
     animation: logoBounceHint 2s infinite ease-in-out;
@@ -77,7 +92,7 @@
 
 .logo-menu-sep {
     height: 1px; margin: 3px 8px;
-    background: var(--bg-scrollbar-thumb, #333);
+    background: var(--bg-scrollbar-thumb-hover, #404040);
     cursor: default;
 }
 
@@ -90,7 +105,7 @@
     padding: 3px 12px 2px;
     font-size: 9px;
     font-family: var(--font-mono);
-    color: var(--text-dark);
+    color: var(--text-dim, #737373);
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: 700;

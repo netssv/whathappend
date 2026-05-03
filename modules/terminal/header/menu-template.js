@@ -42,7 +42,7 @@ export const MENU_HTML = `
     </div>
     <div class="logo-menu-sub-wrap">
         <button class="logo-menu-item logo-menu-has-sub">
-            <span>⏱</span> Network <span class="logo-menu-sub-arrow">▸</span>
+            <span>⏱</span> Network Throttle <span class="logo-menu-sub-arrow">▸</span>
         </button>
         <div class="logo-menu-submenu">
             <button class="logo-menu-item" data-cmd="throttle 5g"><span></span>5G / Fiber</button>
@@ -55,11 +55,11 @@ export const MENU_HTML = `
             <button class="logo-menu-item logo-menu-disable" data-cmd="throttle reset"><span>✕</span>Reset</button>
         </div>
     </div>
-    <div class="logo-menu-sub-wrap">
+    <div class="logo-menu-sub-wrap" id="menu-geo-wrap">
         <button class="logo-menu-item logo-menu-has-sub">
             <span>📍</span> Location <span class="logo-menu-sub-arrow">▸</span>
         </button>
-        <div class="logo-menu-submenu">
+        <div class="logo-menu-submenu" id="menu-geo-sub">
             <button class="logo-menu-item" data-cmd="geo london"><span></span>London</button>
             <button class="logo-menu-item" data-cmd="geo nyc"><span></span>New York</button>
             <button class="logo-menu-item" data-cmd="geo tokyo"><span></span>Tokyo</button>
@@ -68,7 +68,9 @@ export const MENU_HTML = `
             <button class="logo-menu-item" data-cmd="geo india"><span></span>India</button>
             <button class="logo-menu-item" data-cmd="geo italy"><span></span>Italy</button>
             <button class="logo-menu-item" data-cmd="geo philippines"><span></span>Philippines</button>
+            <div id="menu-geo-custom"></div>
             <div class="logo-menu-sep"></div>
+            <button class="logo-menu-item" id="menu-geo-add" title="Save a custom location"><span>＋</span>Add Location</button>
             <button class="logo-menu-item logo-menu-disable" data-cmd="geo reset"><span>✕</span>Reset</button>
         </div>
     </div>
@@ -141,9 +143,19 @@ export const MENU_HTML = `
     <button class="logo-menu-item" data-cmd="info" title="System diagnostics and telemetry">
         <span>📊</span> App Diagnostics
     </button>
-    <button class="logo-menu-item" id="menu-toggle-header" title="Toggle Auto-Hide Behavior">
-        <span>◫</span> Auto-Hide Header
-    </button>
+    <div class="logo-menu-sub-wrap">
+        <button class="logo-menu-item logo-menu-has-sub">
+            <span>⚙️</span> Header Settings <span class="logo-menu-sub-arrow">▸</span>
+        </button>
+        <div class="logo-menu-submenu">
+            <button class="logo-menu-item" id="menu-toggle-header" title="Auto-hide the infrastructure triage badges">
+                <span>◫</span> Auto-Hide Triage
+            </button>
+            <button class="logo-menu-item" id="menu-toggle-blocker" title="Auto-hide the content blocker panel">
+                <span>🛡</span> Auto-Hide Blocker
+            </button>
+        </div>
+    </div>
     <button class="logo-menu-item" id="menu-reload-ext" title="Reload this extension (Ctrl+Shift+,)">
         <span>⟳</span> Reboot Extension <span class="logo-menu-shortcut">Ctrl+⇧+,</span>
     </button>

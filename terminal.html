@@ -20,8 +20,9 @@
     <!-- Active tab context display with logo -->
     <div id="context-bar">
         <div class="context-row context-top">
-            <div id="logo-wrapper">
+            <div id="logo-wrapper" title="Main Menu">
                 <img id="context-logo" class="pulse-hint" src="icons/icon.svg" alt="WH" width="16" height="16" />
+                <span class="logo-caret">▾</span>
                 <!-- Logo dropdown menu (Injected dynamically via header-logo-menu.js) -->
                 <div id="logo-menu" class="logo-menu"></div>
             </div>
@@ -30,23 +31,66 @@
                 <button id="font-decrease" title="Decrease font size (min 10px)">−</button>
                 <button id="font-increase" title="Increase font size (max 20px)">+</button>
             </div>
-            <span id="context-version">v2.7.1</span>
+            <span id="context-version">v2.7.2</span>
             <button id="shield-btn" class="shield-btn" title="Content Blocking">
                 <span id="shield-icon">🛡</span>
             </button>
         </div>
         <div id="context-triad">
-            <div class="triad-col" title="Domain Registrar">
-                <span class="triad-label">REG</span>
-                <span id="context-registrar" class="triad-value"></span>
+            <!-- Row 1: Status -->
+            <div class="triad-row">
+                <div class="triad-col" title="HTTP Response Code">
+                    <span class="triad-label triad-label--http">HTTP</span>
+                    <span id="context-http" class="triad-value"></span>
+                </div>
+                <div class="triad-col" title="SSL Certificate Status">
+                    <span class="triad-label triad-label--sec">SSL</span>
+                    <span id="context-ssl" class="triad-value"></span>
+                </div>
             </div>
-            <div class="triad-col" title="Nameserver Provider">
-                <span class="triad-label">NS</span>
-                <span id="context-ns" class="triad-value"></span>
+            <!-- Row 2: Registration -->
+            <div class="triad-row">
+                <div class="triad-col" title="Domain Registrar">
+                    <span class="triad-label">REG</span>
+                    <span id="context-registrar" class="triad-value"></span>
+                </div>
+                <div class="triad-col" title="Nameserver Provider">
+                    <span class="triad-label">NS</span>
+                    <span id="context-ns" class="triad-value"></span>
+                </div>
             </div>
-            <div class="triad-col" title="Web Hosting Provider">
-                <span class="triad-label">HOST</span>
-                <span id="context-host" class="triad-value"></span>
+            <!-- Row 3: Hosting -->
+            <div class="triad-row">
+                <div class="triad-col" title="Web Hosting Provider">
+                    <span class="triad-label triad-label--host">HOST</span>
+                    <span id="context-host" class="triad-value"></span>
+                </div>
+                <div class="triad-col" title="Technology Stack / WAF Detection">
+                    <span class="triad-label triad-label--host">STACK</span>
+                    <span class="triad-value" id="context-cdn"></span>
+                </div>
+            </div>
+            <!-- Row 4: Network -->
+            <div class="triad-row">
+                <div class="triad-col" title="Server IP Address">
+                    <span class="triad-label triad-label--net">IP</span>
+                    <span id="context-ip" class="triad-value"></span>
+                </div>
+                <div class="triad-col" title="Server Geolocation">
+                    <span class="triad-label triad-label--net">GEO</span>
+                    <span id="context-geo" class="triad-value"></span>
+                </div>
+            </div>
+            <!-- Row 5: Mail & Client -->
+            <div class="triad-row">
+                <div class="triad-col" title="Mail Exchange Record">
+                    <span class="triad-label triad-label--mail">MX</span>
+                    <span id="context-mx" class="triad-value"></span>
+                </div>
+                <div class="triad-col" title="Your Public IP">
+                    <span class="triad-label triad-label--my">MY</span>
+                    <span id="context-myip" class="triad-value"></span>
+                </div>
             </div>
         </div>
         <!-- Handle to toggle triad -->
@@ -81,6 +125,18 @@
         <span id="tab-switch-domain"></span>
         <button id="tab-switch-btn" title="Switch target to this domain">Switch</button>
         <button id="tab-switch-dismiss" title="Keep current target">✕</button>
+    </div>
+
+    <!-- Reusable internal popup dialog -->
+    <div id="wh-modal-overlay" class="wh-modal-overlay">
+        <div id="wh-modal" class="wh-modal">
+            <div class="wh-modal-header">
+                <span id="wh-modal-title" class="wh-modal-title"></span>
+                <button id="wh-modal-close" class="wh-modal-close" title="Close">✕</button>
+            </div>
+            <div id="wh-modal-body" class="wh-modal-body"></div>
+            <div id="wh-modal-footer" class="wh-modal-footer"></div>
+        </div>
     </div>
 
     <div id="terminal-container"></div>

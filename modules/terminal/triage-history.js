@@ -29,7 +29,7 @@ import { ROW_KEYS, ROW_LABELS } from "./progressive-renderer.js";
  */
 export function buildTriageHistory(resolved, providers) {
     const lines = [];
-    lines.push(`\n${ANSI.cyan}${ANSI.bold}[INFO] Domain Delegation:${ANSI.reset}`);
+    lines.push(`\n${ANSI.cyan}${ANSI.bold}[INFO] Infrastructure Triage:${ANSI.reset}`);
 
     for (const key of ROW_KEYS) {
         const val = resolved[key] || "N/A";

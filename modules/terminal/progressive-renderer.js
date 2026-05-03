@@ -20,18 +20,25 @@ import { RenderQueue } from "./render-queue.js";
 // Delegates all terminal writes to RenderQueue for atomic batching.
 // ===================================================================
 
-const ROW_KEYS = ["registrar", "ns", "webhost"];
+const ROW_KEYS = ["registrar", "ns", "webhost", "cdn", "ip", "myip", "geo", "ssl", "mx"];
 
 const ROW_LABELS = {
     registrar: `${ANSI.white}Registrar${ANSI.reset}`,
     ns:        `${ANSI.white}NameSrvs${ANSI.reset} `,
     webhost:   `${ANSI.white}Web Host${ANSI.reset} `,
+    cdn:       `${ANSI.white}CDN/WAF${ANSI.reset}  `,
+    ip:        `${ANSI.white}IP Addr${ANSI.reset}  `,
+    myip:      `${ANSI.white}My IP${ANSI.reset}    `,
+    geo:       `${ANSI.white}Location${ANSI.reset} `,
+    ssl:       `${ANSI.white}SSL${ANSI.reset}      `,
+    mx:        `${ANSI.white}Mail MX${ANSI.reset}  `,
 };
 
 const LOADING = `${ANSI.dim}⏳ loading...${ANSI.reset}`;
 const NA      = `${ANSI.dim}N/A${ANSI.reset}`;
 
-const BASE_OFFSET = { registrar: 4, ns: 3, webhost: 2 };
+// Offset from the bottom of the skeleton (empty line + N rows)
+const BASE_OFFSET = { registrar: 10, ns: 9, webhost: 8, cdn: 7, ip: 6, myip: 5, geo: 4, ssl: 3, mx: 2 };
 const SUMMARY_OFFSET = 1;
 
 export { ROW_KEYS, ROW_LABELS };
@@ -53,7 +60,7 @@ export class ProgressiveRenderer {
     renderSkeleton() {
         if (this._cancelled) return;
         const t = this._term;
-        t.writeln(`\n${ANSI.cyan}${ANSI.bold}[INFO] Domain Delegation:${ANSI.reset}`);
+        t.writeln(`\n${ANSI.cyan}${ANSI.bold}[INFO] Infrastructure Triage:${ANSI.reset}`);
         for (const key of ROW_KEYS) {
             t.writeln(this._formatRow(key, LOADING));
         }

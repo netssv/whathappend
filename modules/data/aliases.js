@@ -161,7 +161,9 @@ export const CMD_ALIASES = {
     "scrape-emails": "emails", "contacts": "emails",
     "scrape-phones": "phones", "numbers": "phones",
     // map
-    "journey": "map", "flow": "map", "dns-map": "map", "path": "map"
+    "journey": "map", "flow": "map", "dns-map": "map", "path": "map",
+    // fullscreen
+    "f11": "fullscreen", "fs": "fullscreen"
 };
 
 export const ALL_KNOWN_CMDS = [
@@ -176,5 +178,5 @@ export const ALL_KNOWN_CMDS = [
     "registrar", "hosting", "exit", "switch", "reload",
     "start", "config", "isup", "jitter", "speedtest", "clip", "matrix", "coffee",
     "ip", "security-txt", "vitals", "flush", "tabs", "actual", "current", "here",
-    "useragent", "mobile", "throttle", "geo", "block", "fonts", "palette", "comments", "cms", "malware", "edit", "emails", "phones", "map"
+    "useragent", "mobile", "throttle", "geo", "block", "fonts", "palette", "comments", "cms", "malware", "edit", "emails", "phones", "map", "fullscreen"
 ].filter(c => /^[a-z]/i.test(c));

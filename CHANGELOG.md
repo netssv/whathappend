@@ -14,11 +14,12 @@ If you are extending the terminal or adding new commands, you MUST verify the fo
 6. `modules/core/registry.js`: Add your function to the command registry map.
 7. `modules/commands/.../index.js`: Ensure your function is exported from its domain folder.
 
-## [2.7.1] - 2026-05-02
+## [] - 2026-05-02
 
 **The "UX & Menu Polish" Update**
 
 ### Bug Fixes & UX
+
 - **Menu Architecture**: Fixed the "Accordion Hover Trap" in narrow viewports by replacing jittery hover animations with a solid click-to-expand system for inline menus.
 - **Safe Hover Lane**: Re-engineered the menu overlay logic to prevent submenus from physically blocking navigation paths.
 - **Visual Clarity**: Updated nested menu indicators to native `▸`/`▾` arrows with smooth rotation states, and disabled false-click interactions on category headers.

@@ -32,16 +32,73 @@ async function attachDebugger(tabId) {
 
 export async function cmdBlock(args) {
     if (args.length === 0) {
-        return `\n${ANSI.cyan}${ANSI.bold}  Network Blocker${ANSI.reset}
-${ANSI.dim}  Blocks network requests using CDP Network.setBlockedURLs.${ANSI.reset}
-${ANSI.dim}  Useful for identifying resources impacting LCP or security.${ANSI.reset}
+        return {
+            __watch: true,
+            watcher: {
+                onDataDisposable: null,
+                start: function(term, doneCallback) {
+                    const draw = async () => {
+                        const tabId = await getActiveTabId();
+                        let currentPatterns = [];
+                        if (tabId) {
+                            currentPatterns = blockedPatternsByTab.get(tabId) || [];
+                        }
 
-${ANSI.bold}  Usage:${ANSI.reset}
-  ${ANSI.white}block <pattern>${ANSI.dim}       · Add a blocking pattern (e.g. *.js, *analytics*, *.png)${ANSI.reset}
-  ${ANSI.white}block --list${ANSI.dim}          · List active blocked patterns for current tab${ANSI.reset}
-  ${ANSI.white}block --clear${ANSI.dim}         · Clear all blocks for current tab${ANSI.reset}
+                        term.write('\x1b[2J\x1b[H');
+                        let out = `\n  ${ANSI.bold}${ANSI.cyan}/// NETWORK BLOCKER ///${ANSI.reset}\n\n`;
+                        
+                        if (currentPatterns.length === 0) {
+                            out += `    ${ANSI.dim}No active rules.${ANSI.reset}\n\n`;
+                        } else {
+                            out += `    ${ANSI.bold}Active Rules:${ANSI.reset}\n`;
+                            currentPatterns.forEach(p => out += `      ${ANSI.red}✗${ANSI.reset} ${p}\n`);
+                            out += `\n`;
+                        }
+                        
+                        out += `    ${ANSI.bold}[1]${ANSI.reset} Block Analytics (*analytics*)\n`;
+                        out += `    ${ANSI.bold}[2]${ANSI.reset} Block Images (*.png, *.jpg)\n`;
+                        out += `    ${ANSI.bold}[3]${ANSI.reset} Block Scripts (*.js)\n`;
+                        out += `    ${ANSI.bold}[4]${ANSI.reset} Block Trackers (*tracker*)\n`;
+                        out += `    ${ANSI.bold}[C]${ANSI.reset} Clear all rules\n`;
+                        
+                        out += `\n  ${ANSI.dim}Press 1-4 to block, 'C' to clear, 'Q' to quit.${ANSI.reset}\n`;
+                        term.write(out);
+                    };
 
-${ANSI.dim}  Check the Network tab in DevTools to see 'Blocked by Inspector'.${ANSI.reset}`;
+                    this.onDataDisposable = term.onData(async e => {
+                        const lower = e.toLowerCase();
+                        if (lower === 'q' || e === '\x03' || e === '\r' || e === '\n') {
+                            doneCallback();
+                            return;
+                        }
+                        
+                        if (lower === 'c') {
+                            await cmdBlock(["--clear"]);
+                            draw();
+                            return;
+                        }
+                        
+                        if (lower === '1') await cmdBlock(["*analytics*"]);
+                        if (lower === '2') await cmdBlock(["*.png"]);
+                        if (lower === '3') await cmdBlock(["*.js"]);
+                        if (lower === '4') await cmdBlock(["*tracker*"]);
+                        
+                        if (['1', '2', '3', '4'].includes(lower)) {
+                            draw();
+                        }
+                    });
+
+                    draw();
+                },
+                stop: function(term) {
+                    if (this.onDataDisposable) {
+                        this.onDataDisposable.dispose();
+                        this.onDataDisposable = null;
+                    }
+                    if (term) term.write(`\n\n  ${ANSI.dim}[Block manager exited]${ANSI.reset}\n`);
+                }
+            }
+        };
     }
 
     const sub = args[0].toLowerCase();

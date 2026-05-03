@@ -78,10 +78,64 @@ export function initBlockPanel() {
     const panel = document.getElementById("block-panel");
     const reloadBtn = document.getElementById("block-reload");
 
+    let blockHideTimeout = null;
+
+    function scheduleAutoHide(delay) {
+        if (blockHideTimeout) clearTimeout(blockHideTimeout);
+        blockHideTimeout = setTimeout(() => {
+            panel?.classList.remove("visible");
+            setTimeout(() => refitTerminal(), 280);
+        }, delay);
+    }
+
+    // On init: if autoHideBlocker is OFF, show the panel immediately
+    chrome.storage.local.get("wh_config").then(data => {
+        const config = data["wh_config"] || {};
+        const autoHide = config["autoHideBlocker"] !== undefined ? config["autoHideBlocker"] : false;
+        if (!autoHide) {
+            panel?.classList.add("visible");
+            setTimeout(() => refitTerminal(), 280);
+        }
+    }).catch(() => {});
+
+    // Shield button always toggles the panel
     shieldBtn?.addEventListener("click", () => {
         panel?.classList.toggle("visible");
-        // Delay refit to let CSS transition complete
         setTimeout(() => refitTerminal(), 280);
+
+        if (blockHideTimeout) clearTimeout(blockHideTimeout);
+
+        // If panel is now open AND autoHide is ON, schedule auto-hide
+        if (panel?.classList.contains("visible")) {
+            chrome.storage.local.get("wh_config").then(data => {
+                const config = data["wh_config"] || {};
+                const autoHide = config["autoHideBlocker"] || false;
+                const delay = config["autoHideDelay"] || 5000;
+                if (autoHide) scheduleAutoHide(delay);
+            }).catch(() => {});
+        }
+    });
+
+    // React immediately when the config changes from the menu
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === "local" && changes["wh_config"]) {
+            const oldVal = changes["wh_config"].oldValue?.["autoHideBlocker"];
+            const newVal = changes["wh_config"].newValue?.["autoHideBlocker"];
+            if (oldVal !== newVal && newVal !== undefined) {
+                if (blockHideTimeout) clearTimeout(blockHideTimeout);
+                if (!newVal) {
+                    // OFF → show panel immediately and keep it
+                    panel?.classList.add("visible");
+                    setTimeout(() => refitTerminal(), 280);
+                } else {
+                    // ON → if panel is open, start auto-hide countdown
+                    if (panel?.classList.contains("visible")) {
+                        const delay = changes["wh_config"].newValue?.["autoHideDelay"] || 5000;
+                        scheduleAutoHide(delay);
+                    }
+                }
+            }
+        }
     });
 
     // Reload active tab button

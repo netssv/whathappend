@@ -20,7 +20,7 @@
 
 let commandOutputHistory = [];
 let _lastTarget = null;
-let _triad = { registrar: null, ns: null, host: null };
+let _triad = { registrar: null, ns: null, host: null, ip: null, myip: null, geo: null, ssl: null, cdn: null, mx: null, dns: null };
 let _notes = [];
 
 // ---------------------------------------------------------------------------
@@ -104,7 +104,7 @@ export async function restoreSession() {
 export async function clearSession() {
     commandOutputHistory = [];
     _lastTarget = null;
-    _triad = { registrar: null, ns: null, host: null };
+    _triad = { registrar: null, ns: null, host: null, ip: null, myip: null, geo: null, ssl: null, cdn: null, mx: null, dns: null };
     _notes = [];
     try {
         await chrome.storage.session.remove(["wh_history", "wh_target", "wh_triad", "wh_notes"]);

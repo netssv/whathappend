@@ -27,6 +27,19 @@ export async function cmdFlush(args) {
     const domain = resolveTargetDomain(args[0]);
     if (!domain) return cmdUsage("flush", "<domain>");
 
+    const { showConfirm } = await import("../../terminal/modal.js");
+    const confirmed = await showConfirm({
+        title: "🧹 Flush Domain Data",
+        message: `Clear cookies and cache for <strong style="color:#ffd740">${domain}</strong>?<br><br><span style="color:#888">Active sessions on this domain will be lost.</span>`,
+        confirmLabel: "Flush",
+        cancelLabel: "Cancel",
+        danger: true,
+    });
+
+    if (!confirmed) {
+        return `${ANSI.dim}Flush cancelled.${ANSI.reset}`;
+    }
+
     const origin = `https://${domain}`;
     let o = `> chrome.browsingData.remove({origins: ["${origin}"]})\n`;
     o += `${ANSI.dim}Clearing cookies and cache for ${domain}...${ANSI.reset}\n\n`;

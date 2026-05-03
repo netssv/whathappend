@@ -8,9 +8,9 @@ import { refitTerminal } from "../terminal-ui.js";
 
 export function initTriadEvents(api) {
     const {
-        contextTriad, contextRegistrar, contextNS, contextHost,
+        contextTriad, ALL_FIELDS,
         setTriadValue, refreshTriadVisibility,
-        cancelAutoHide, setAutoHide
+        cancelAutoHide, setAutoHide, setTriadHoverState
     } = api;
 
     if (contextTriad) {
@@ -18,10 +18,21 @@ export function initTriadEvents(api) {
             // Handle retry clicks on empty fields
             const retryTarget = e.target.closest(".triad-value.retryable");
             if (retryTarget) {
+                const fieldMap = {};
+                ALL_FIELDS.forEach(el => {
+                    if (el?.id) fieldMap[el.id] = el;
+                });
                 let type;
-                if (retryTarget === contextRegistrar) type = "registrar";
-                else if (retryTarget === contextNS) type = "ns";
-                else if (retryTarget === contextHost) type = "host";
+                if (retryTarget.id === "context-registrar") type = "registrar";
+                else if (retryTarget.id === "context-http") type = "http";
+                else if (retryTarget.id === "context-ns") type = "ns";
+                else if (retryTarget.id === "context-host") type = "host";
+                else if (retryTarget.id === "context-ip") type = "ip";
+                else if (retryTarget.id === "context-myip") type = "myip";
+                else if (retryTarget.id === "context-geo") type = "geo";
+                else if (retryTarget.id === "context-ssl") type = "ssl";
+                else if (retryTarget.id === "context-cdn") type = "cdn";
+                else if (retryTarget.id === "context-mx") type = "mx";
                 if (type) handleTriadRetryClick(retryTarget, type, setTriadValue);
                 return;
             }
@@ -29,6 +40,40 @@ export function initTriadEvents(api) {
             const target = e.target.closest(".triad-value[data-href]");
             if (target?.dataset.href) {
                 chrome.tabs.create({ url: target.dataset.href });
+            }
+        });
+
+        // Right-click on any triad value → copy to clipboard
+        contextTriad.addEventListener("contextmenu", (e) => {
+            const target = e.target.closest(".triad-value");
+            if (target && target.textContent) {
+                e.preventDefault();
+                const text = target.textContent.trim();
+                navigator.clipboard.writeText(text).then(() => {
+                    // Visual feedback: brief flash
+                    const original = target.style.color;
+                    target.style.color = "var(--accent-green)";
+                    target.title = `Copied: ${text}`;
+                    setTimeout(() => {
+                        target.style.color = original;
+                    }, 800);
+                }).catch(() => {});
+            }
+        });
+
+        contextTriad.addEventListener("mouseenter", () => {
+            setTriadHoverState(true);
+            cancelAutoHide();
+        });
+        
+        contextTriad.addEventListener("mouseleave", () => {
+            setTriadHoverState(false);
+            if (contextTriad.classList.contains("visible")) {
+                chrome.storage.local.get("wh_config").then(data => {
+                    const config = data["wh_config"] || {};
+                    const autoHide = config["autoHide"] !== undefined ? config["autoHide"] : true;
+                    if (autoHide) setAutoHide(config["autoHideDelay"] || 5000);
+                });
             }
         });
     }

@@ -28,6 +28,8 @@ import { cmdDig } from "../commands/dns/index.js";
 import { cmdRevDNS } from "../commands/native/index.js";
 import { suggestCommand } from "./parser.js";
 import { resolveRegistrarRow, resolveNSRow, resolveWebHostRow } from "./triage-resolvers.js";
+import { resolveIPGeoRow, resolveSSLCDNRow } from "./triage-resolvers-ext.js";
+import { resolveMyIPRow, resolveMXRow } from "./triage-resolvers-mail.js";
 import { term } from "../terminal/terminal-ui.js";
 import { ProgressiveRenderer } from "../terminal/progressive-renderer.js";
 import { buildTriageHistory } from "../terminal/triage-history.js";
@@ -95,7 +97,7 @@ export async function handleAutoTarget(cmd, args, opts, flags = []) {
 
             if (!isGo) {
                 // Silent Mode — Just resolve the Triad in the background
-                retryEmptyHeaderFields(cleanCmd, apexDomain, { registrar: null, ns: null, webhost: null });
+                retryEmptyHeaderFields(cleanCmd, apexDomain, { registrar: null, ns: null, webhost: null, ip: null, myip: null, geo: null, ssl: null, cdn: null, mx: null, dns: null });
                 return { output, backgroundTriage: false, chainedCommand };
             }
 
@@ -126,6 +128,10 @@ export async function handleAutoTarget(cmd, args, opts, flags = []) {
                 resolveRegistrarRow(renderer, apexDomain, isSubdomain),
                 resolveNSRow(renderer, cleanCmd, opts),
                 resolveWebHostRow(renderer, cleanCmd, opts),
+                resolveIPGeoRow(renderer, cleanCmd, opts),
+                resolveSSLCDNRow(renderer, cleanCmd),
+                resolveMyIPRow(renderer),
+                resolveMXRow(renderer, apexDomain),
             ]);
             clearTimeout(bannerTimer);
 

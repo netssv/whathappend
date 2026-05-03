@@ -10,7 +10,7 @@ import { THEMES } from "../../data/themes.js";
 import { ContextManager } from "../../context.js";
 
 export function initMenuDelegation(menu) {
-    menu.addEventListener("click", (e) => {
+    menu.addEventListener("click", async (e) => {
         const btn = e.target.closest("[data-cmd]");
         if (!btn) return;
         e.stopPropagation();
@@ -25,56 +25,78 @@ export function initMenuDelegation(menu) {
                 applyTheme(themeId);
                 term.writeln(`\x1b[32m✓\x1b[0m Theme set to \x1b[33m${THEMES[themeId]?.name || themeId}\x1b[0m`);
             }
-        // Flush command requires 2-step confirmation
+
+        // Flush command — modal confirmation
         } else if (cmd.startsWith("flush:")) {
             const targetType = cmd.split(":")[1];
+            menu.classList.remove("open");
+            closeLogo();
 
-            if (!btn.classList.contains("confirm-flush")) {
-                e.stopPropagation();
-                btn.classList.add("confirm-flush");
-                btn.dataset.originalHtml = btn.innerHTML;
-                
-                btn.innerHTML = `<span style="color:#ff6b6b">⚠️</span> <span style="color:#ff6b6b">Clears logins! Sure?</span>`;
-                btn.style.background = "rgba(255, 100, 100, 0.15)";
-                
-                setTimeout(() => {
-                    if (!btn.classList.contains("confirm-flush")) return;
-                    btn.classList.remove("confirm-flush");
-                    btn.innerHTML = btn.dataset.originalHtml;
-                    btn.style.background = "";
-                }, 3000);
+            let host = "";
+            if (targetType === "tab") {
+                const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+                if (tabs[0] && tabs[0].url.startsWith("http")) {
+                    host = new URL(tabs[0].url).hostname.replace(/^www\./, "");
+                }
+            } else if (targetType === "target") {
+                const d = ContextManager.getDomain();
+                if (d) host = d.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+            }
+
+            if (!host) {
+                term.writeln(`\x1b[31m[ERROR] No valid domain found to flush.\x1b[0m`);
+                term.focus();
                 return;
             }
 
-            menu.classList.remove("open");
-            btn.classList.remove("confirm-flush");
-            btn.innerHTML = btn.dataset.originalHtml;
-            btn.style.background = "";
+            const { showConfirm } = await import("../modal.js");
+            const confirmed = await showConfirm({
+                title: "⚠️ Flush Cache",
+                message: `This will clear <strong style="color:#ff5252">all cookies, cache, and saved logins</strong> for:<br><br><strong style="color:#fff">${host}</strong><br><br><span style="color:#888">You will be logged out of this site.</span>`,
+                confirmLabel: "Flush",
+                cancelLabel: "Cancel",
+                danger: true,
+            });
 
-            if (targetType === "tab") {
-                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                    if (tabs[0] && tabs[0].url.startsWith("http")) {
-                        const host = new URL(tabs[0].url).hostname.replace(/^www\./, "");
-                        term.writeln(`\x1b[90m> Initiating cache flush for ${host}...\x1b[0m`);
-                        InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `flush ${host}`);
-                    } else {
-                        term.writeln(`\x1b[31m[ERROR] Cannot flush cache: No valid active tab found.\x1b[0m`);
-                    }
-                });
-            } else if (targetType === "target") {
-                const targetDomain = ContextManager.getDomain();
-                if (targetDomain) {
-                    const host = targetDomain.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-                    term.writeln(`\x1b[90m> Initiating cache flush for ${host}...\x1b[0m`);
-                    InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `flush ${host}`);
-                } else {
-                    term.writeln(`\x1b[31m[ERROR] Cannot flush cache: No active target domain set.\x1b[0m`);
-                }
+            if (confirmed) {
+                term.writeln(`\x1b[90m> Flushing cache for ${host}...\x1b[0m`);
+                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `flush ${host}`);
             }
+
+        } else if (cmd.startsWith("tab_menu:")) {
+            const parts = cmd.split(":");
+            const tabId = parts[1];
+            const host = parts.slice(2).join(":") || "internal";
+            
+            menu.classList.remove("open");
+            closeLogo();
+
+            const { showChoice } = await import("../modal.js");
+            const choice = await showChoice({
+                title: "🌐 Tab Action",
+                message: `What would you like to do with <strong style="color:#ffd740">${host}</strong>?`,
+                choices: [
+                    { label: "Target Domain", value: "target" },
+                    { label: "Go To Tab", value: "switch", primary: true }
+                ]
+            });
+
+            if (choice === "target") {
+                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `target ${host}`);
+            } else if (choice === "switch") {
+                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `tabs focus ${tabId}`);
+            }
+
         } else {
             menu.classList.remove("open");
+            closeLogo();
             InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, cmd);
         }
         term.focus();
     });
+}
+
+function closeLogo() {
+    const logo = document.getElementById("logo-wrapper");
+    if (logo) logo.classList.remove("menu-active");
 }

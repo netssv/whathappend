@@ -43,7 +43,7 @@ export async function handleSSL({ domain, abortId }) {
                 });
                 const headers = {};
                 resp.headers.forEach((v, k) => { headers[k] = v; });
-                return { ok: true, headers };
+                return { ok: true, headers, status: resp.status };
             })(),
             // Certificate Transparency lookup (CertSpotter is much faster than crt.sh)
             (async () => {
@@ -81,12 +81,13 @@ export async function handleSSL({ domain, abortId }) {
 
         const connectivity = connectResult.status === "fulfilled" && connectResult.value?.ok;
         const serverHeaders = connectivity ? connectResult.value.headers : {};
+        const httpStatus = connectivity ? connectResult.value.status : null;
         const certData = crtResult.status === "fulfilled" ? crtResult.value : null;
 
         completeAbort(abortId);
         return {
             success: true,
-            data: { domain, connectivity, certificate: certData, serverHeaders },
+            data: { domain, connectivity, certificate: certData, serverHeaders, httpStatus },
         };
     } catch (err) {
         if (err.name === "AbortError") return { error: "CONNECTION_TIMEOUT" };

@@ -11,7 +11,7 @@
 
 import { ANSI } from "../../formatter.js";
 import { applyTheme } from "../../terminal/theme-engine.js";
-import { THEMES, DEFAULT_THEME_ID } from "../../data/themes.js";
+import { CONFIG_SCHEMA, loadConfig, saveConfig, resolveValue, validateAndParse } from "./config-schema.js";
 
 // ===================================================================
 //  config — User preferences via chrome.storage.local
@@ -21,129 +21,20 @@ import { THEMES, DEFAULT_THEME_ID } from "../../data/themes.js";
 //    config <key>              → Show value for a specific key
 //    config <key> <value>      → Set a key-value pair
 //    config reset              → Reset all settings to defaults
-//
-//  Schema: All keys and validation rules are defined in CONFIG_SCHEMA.
-//  Security: Timeout values are numeric-only, capped at 10s (10000ms).
 // ===================================================================
 
-const CONFIG_SCHEMA = {
-    timeout: {
-        default: 3500,
-        type: "number",
-        min: 500,
-        max: 10000,
-        unit: "ms",
-        desc: "Network request timeout",
-    },
-    "retry-timeout": {
-        default: 8000,
-        type: "number",
-        min: 1000,
-        max: 10000,
-        unit: "ms",
-        desc: "Background header retry timeout",
-    },
-    "auto-triage": {
-        default: true,
-        type: "boolean",
-        desc: "Auto-analyze on panel open",
-    },
-    "tab-notify": {
-        default: true,
-        type: "boolean",
-        desc: "Show tab-switch notification bar",
-    },
-    "autoHide": {
-        default: true,
-        type: "boolean",
-        desc: "Auto-hide header panels when data loaded",
-    },
-    "autoHideDelay": {
-        default: 5000,
-        type: "number",
-        min: 1000,
-        max: 30000,
-        unit: "ms",
-        desc: "Delay before header auto-hides",
-    },
-    "expert-mode": {
-        default: false,
-        type: "boolean",
-        desc: "Show raw technical data in diagnostics",
-    },
-    "theme": {
-        default: DEFAULT_THEME_ID,
-        type: "enum",
-        options: Object.keys(THEMES),
-        desc: "Visual theme (WhOS, amber, matrix)",
-    },
-};
-
-const STORAGE_KEY = "wh_config";
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
-async function loadConfig() {
-    try {
-        const data = await chrome.storage.local.get(STORAGE_KEY);
-        return data[STORAGE_KEY] || {};
-    } catch (_) {
-        return {};
-    }
-}
-
-async function saveConfig(config) {
-    try {
-        await chrome.storage.local.set({ [STORAGE_KEY]: config });
-    } catch (_) { }
-}
-
-function resolveValue(key, stored) {
-    const schema = CONFIG_SCHEMA[key];
-    if (!schema) return undefined;
-    return stored[key] !== undefined ? stored[key] : schema.default;
-}
-
-function validateAndParse(key, rawValue) {
-    const schema = CONFIG_SCHEMA[key];
-    if (!schema) return { error: `Unknown config key: '${key}'` };
-
-    if (schema.type === "number") {
-        const num = Number(rawValue);
-        if (isNaN(num) || !Number.isFinite(num)) {
-            return { error: `'${key}' must be a number. Got: '${rawValue}'` };
-        }
-        if (num < schema.min || num > schema.max) {
-            return { error: `'${key}' must be between ${schema.min}–${schema.max}${schema.unit || ""}. Got: ${num}` };
-        }
-        return { value: Math.round(num) };
-    }
-
-    if (schema.type === "boolean") {
-        const lower = String(rawValue).toLowerCase();
-        if (["true", "1", "on", "yes"].includes(lower)) return { value: true };
-        if (["false", "0", "off", "no"].includes(lower)) return { value: false };
-        return { error: `'${key}' must be true/false. Got: '${rawValue}'` };
-    }
-
-    if (schema.type === "enum") {
-        const lower = String(rawValue).toLowerCase();
-        if (schema.options.includes(lower)) return { value: lower };
-        return { error: `'${key}' must be one of: ${schema.options.join(", ")}. Got: '${rawValue}'` };
-    }
-
-    return { value: rawValue };
-}
-
-// ---------------------------------------------------------------------------
-// Public command handler
-// ---------------------------------------------------------------------------
-
 export async function cmdConfig(args) {
-    // config reset — restore defaults
+    // config reset — restore defaults (with confirmation)
     if (args[0] === "reset") {
+        const { showConfirm } = await import("../../terminal/modal.js");
+        const confirmed = await showConfirm({
+            title: "⚙️ Reset Configuration",
+            message: `This will restore <strong style="color:#ffd740">all settings</strong> to their default values.<br><br><span style="color:#888">Timeout, theme, auto-hide, and all other preferences will be reset.</span>`,
+            confirmLabel: "Reset All",
+            cancelLabel: "Cancel",
+            danger: true,
+        });
+        if (!confirmed) return `${ANSI.dim}Reset cancelled.${ANSI.reset}`;
         await saveConfig({});
         return `${ANSI.green}✓ All settings reset to defaults.${ANSI.reset}`;
     }
@@ -152,6 +43,116 @@ export async function cmdConfig(args) {
 
     // config (no args) or config list — show all settings
     if (args.length === 0 || args[0] === "list") {
+        if (args.length === 0) {
+            // Interactive Mode
+            return {
+                __watch: true,
+                watcher: {
+                    onDataDisposable: null,
+                    start: function(term, doneCallback) {
+                        const keys = Object.keys(CONFIG_SCHEMA);
+                        const draw = () => {
+                            term.write('\x1b[2J\x1b[H');
+                            let out = `\n  ${ANSI.bold}${ANSI.cyan}/// CONFIGURATION ///${ANSI.reset}\n\n`;
+                            
+                            for (let i = 0; i < keys.length; i++) {
+                                const key = keys[i];
+                                const schema = CONFIG_SCHEMA[key];
+                                const val = resolveValue(key, stored);
+                                const color = stored[key] !== undefined ? ANSI.yellow : ANSI.green;
+                                
+                                let displayVal = val;
+                                if (schema.type === 'boolean') {
+                                    displayVal = val ? 'ON' : 'OFF';
+                                } else {
+                                    displayVal = `${val}${schema.unit || ''}`;
+                                }
+                                
+                                out += `    ${ANSI.bold}[${i + 1}]${ANSI.reset} ${key}: ${color}${displayVal}${ANSI.reset}\n`;
+                            }
+                            
+                            out += `\n  ${ANSI.dim}Press number to toggle/edit. 'R' to reset. 'Q' to quit.${ANSI.reset}\n`;
+                            term.write(out);
+                        };
+
+                        this.onDataDisposable = term.onData(async e => {
+                            e = e.toLowerCase();
+                            if (e === 'q' || e === '\x03' || e === '\r' || e === '\n') {
+                                doneCallback();
+                                return;
+                            }
+                            if (e === 'r') {
+                                const { showConfirm } = await import("../../terminal/modal.js");
+                                const ok = await showConfirm({ 
+                                    title: "⚙️ Reset Configuration", 
+                                    message: "Restore all settings to their default values?", 
+                                    confirmLabel: "Reset", 
+                                    danger: true 
+                                });
+                                if (ok) {
+                                    for(const k of keys) delete stored[k];
+                                    await saveConfig({});
+                                    draw();
+                                }
+                                return;
+                            }
+                            
+                            const num = parseInt(e);
+                            if (num >= 1 && num <= keys.length) {
+                                const key = keys[num - 1];
+                                const schema = CONFIG_SCHEMA[key];
+                                let val = resolveValue(key, stored);
+                                
+                                if (schema.type === 'boolean') {
+                                    stored[key] = !val;
+                                    await saveConfig(stored);
+                                    draw();
+                                } else if (schema.type === 'enum') {
+                                    const idx = schema.options.indexOf(val);
+                                    const nextIdx = (idx + 1) % schema.options.length;
+                                    stored[key] = schema.options[nextIdx];
+                                    await saveConfig(stored);
+                                    if (key === "theme") {
+                                        applyTheme(stored[key]);
+                                    }
+                                    draw();
+                                } else if (schema.type === 'number') {
+                                    this.onDataDisposable.dispose();
+                                    this.onDataDisposable = null;
+                                    
+                                    const { showModal } = await import("../../terminal/modal.js");
+                                    const res = await showModal({
+                                        title: `Edit ${key}`,
+                                        fields: [{ id: "val", label: schema.desc, type: "number", value: val }]
+                                    });
+                                    
+                                    if (res && res.val) {
+                                        const parsed = validateAndParse(key, res.val);
+                                        if (!parsed.error) {
+                                            stored[key] = parsed.value;
+                                            await saveConfig(stored);
+                                        }
+                                    }
+                                    
+                                    this.start(term, doneCallback);
+                                }
+                            }
+                        });
+
+                        draw();
+                    },
+                    stop: function(term) {
+                        if (this.onDataDisposable) {
+                            this.onDataDisposable.dispose();
+                            this.onDataDisposable = null;
+                        }
+                        if (term) term.write(`\n\n  ${ANSI.dim}[Config exited]${ANSI.reset}\n`);
+                    }
+                }
+            };
+        }
+
+        // List Mode
         let out = `\n${ANSI.white}${ANSI.bold}  Configuration${ANSI.reset}\n`;
         out += `  ${ANSI.dim}${"━".repeat(28)}${ANSI.reset}\n`;
 

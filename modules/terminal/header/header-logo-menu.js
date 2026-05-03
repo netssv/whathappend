@@ -25,16 +25,51 @@ export function initLogoMenu() {
     logo.addEventListener("click", async (e) => {
         e.stopPropagation();
         
-        // Update Auto-Hide text before opening
+        // Update Header Settings labels before opening
         try {
             const data = await chrome.storage.local.get("wh_config");
             const config = data["wh_config"] || {};
-            const isAutoHidden = config["autoHide"] !== undefined ? config["autoHide"] : true;
-            const btn = document.getElementById("menu-toggle-header");
-            if (btn) btn.innerHTML = `<span>◫</span> Auto-Hide: ${isAutoHidden ? "ON" : "OFF"}`;
+            
+            const isAutoHide = config["autoHide"] !== undefined ? config["autoHide"] : true;
+            const btnHide = document.getElementById("menu-toggle-header");
+            if (btnHide) btnHide.innerHTML = `<span>◫</span> Triage: ${isAutoHide ? "ON" : "OFF"}`;
+
+            const isBlockerHidden = config["autoHideBlocker"] !== undefined ? config["autoHideBlocker"] : false;
+            const btnBlocker = document.getElementById("menu-toggle-blocker");
+            if (btnBlocker) btnBlocker.innerHTML = `<span>🛡</span> Blocker: ${isBlockerHidden ? "ON" : "OFF"}`;
+        } catch {}
+
+        // Populate custom geo locations dynamically
+        try {
+            const geoData = await chrome.storage.local.get("wh_geo_custom");
+            const customLocs = geoData["wh_geo_custom"] || {};
+            const container = document.getElementById("menu-geo-custom");
+            if (container) {
+                container.innerHTML = "";
+                const keys = Object.keys(customLocs);
+                if (keys.length > 0) {
+                    const sep = document.createElement("div");
+                    sep.className = "logo-menu-sep";
+                    container.appendChild(sep);
+
+                    const label = document.createElement("div");
+                    label.className = "logo-menu-group-label";
+                    label.textContent = "Custom";
+                    container.appendChild(label);
+
+                    for (const key of keys) {
+                        const btn = document.createElement("button");
+                        btn.className = "logo-menu-item";
+                        btn.dataset.cmd = `geo ${key}`;
+                        btn.innerHTML = `<span>📌</span>${customLocs[key].label || key}`;
+                        container.appendChild(btn);
+                    }
+                }
+            }
         } catch {}
 
         menu.classList.toggle("open");
+        logo.classList.toggle("menu-active");
 
         // Detect space: if the menu's left edge is too close to the viewport
         // boundary, flyout submenus will be clipped → switch to inline mode
@@ -73,17 +108,12 @@ export function initLogoMenu() {
         if (icon) icon.classList.remove("pulse-hint");
     });
 
-    // Close menu on outside click — with a short grace delay
-    let _closeTimer = null;
+    // Close menu immediately on outside click
     document.addEventListener("click", (e) => {
         if (!menu.contains(e.target) && !logo.contains(e.target)) {
-            _closeTimer = setTimeout(() => menu.classList.remove("open"), 300);
+            menu.classList.remove("open");
+            logo.classList.remove("menu-active");
         }
-    });
-
-    // Cancel pending close when mouse re-enters the menu
-    menu.addEventListener("mouseenter", () => {
-        if (_closeTimer) { clearTimeout(_closeTimer); _closeTimer = null; }
     });
 
     // Initialize submodules

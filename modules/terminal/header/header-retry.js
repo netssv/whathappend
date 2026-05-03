@@ -16,6 +16,8 @@ import { ContextManager } from "../../context.js";
 import { toApex } from "../../formatter.js";
 import { resolveProvider, isRdapMaintainer, getProviderFromCNAME } from "../../utils.js";
 import { setSessionTriad } from "../../state.js";
+import { resolveIPGeoRow, resolveSSLCDNRow } from "../../core/triage-resolvers-ext.js";
+import { resolveMyIPRow, resolveMXRow } from "../../core/triage-resolvers-mail.js";
 
 // ===================================================================
 // Header Retry Logic — Async fetches for empty triad fields
@@ -102,6 +104,35 @@ export async function handleTriadRetryClick(el, type, setTriadValue) {
             if (finalProv) {
                 setTriadValue(el, finalProv, ip ? `https://ipinfo.io/${ip}` : `https://intodns.com/${domain}`);
                 setSessionTriad("host", finalProv);
+                return;
+            }
+
+        } else if (type === "ip" || type === "geo") {
+            const res = await resolveIPGeoRow(null, domain);
+            if (el.textContent || (res && !res.error)) {
+                el.classList.remove("retrying");
+                if (!el.textContent) setTriadValue(el, "N/A", null);
+                return;
+            }
+        } else if (type === "ssl" || type === "cdn" || type === "http") {
+            const res = await resolveSSLCDNRow(null, domain);
+            if (el.textContent || (res && !res.error)) {
+                el.classList.remove("retrying");
+                if (!el.textContent) setTriadValue(el, "N/A", null);
+                return;
+            }
+        } else if (type === "myip") {
+            const res = await resolveMyIPRow(null);
+            if (el.textContent || (res && !res.error)) {
+                el.classList.remove("retrying");
+                if (!el.textContent) setTriadValue(el, "N/A", null);
+                return;
+            }
+        } else if (type === "mx") {
+            const res = await resolveMXRow(null, apexDomain);
+            if (el.textContent || (res && !res.error)) {
+                el.classList.remove("retrying");
+                if (!el.textContent) setTriadValue(el, "N/A", null);
                 return;
             }
         }

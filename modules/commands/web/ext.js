@@ -11,7 +11,56 @@ import { ANSI, insights, resolveTargetDomain, isIPAddress, cmdUsage, cmdError } 
 
 export function cmdExt(args) {
     if (args.length === 0) {
-        return cmdUsage("ext", "<ssl|bl|headers|whois> <domain|ip>");
+        return {
+            __watch: true,
+            watcher: {
+                onDataDisposable: null,
+                start: function(term, doneCallback) {
+                    const draw = () => {
+                        const target = resolveTargetDomain(undefined, {});
+                        const displayTarget = target || "(No active target)";
+                        
+                        term.write('\x1b[2J\x1b[H');
+                        let out = `\n  ${ANSI.bold}${ANSI.cyan}/// EXTERNAL TOOLS ///${ANSI.reset}  ${ANSI.dim}Target: ${ANSI.yellow}${displayTarget}${ANSI.reset}\n\n`;
+                        
+                        out += `    ${ANSI.bold}[1]${ANSI.reset} 🔒 SSL Labs (Deep TLS Audit)\n`;
+                        out += `    ${ANSI.bold}[2]${ANSI.reset} 🛡️ Security Headers (CSP, HSTS)\n`;
+                        out += `    ${ANSI.bold}[3]${ANSI.reset} 🚫 Blacklist Check (Spamhaus, MXToolbox)\n`;
+                        out += `    ${ANSI.bold}[4]${ANSI.reset} 🌐 Extended WHOIS (ICANN, DomainTools)\n\n`;
+                        
+                        out += `  ${ANSI.dim}Press 1-4 to select. 'Q' to quit.${ANSI.reset}\n`;
+                        term.write(out);
+                    };
+
+                    this.onDataDisposable = term.onData(e => {
+                        e = e.toLowerCase();
+                        if (e === 'q' || e === '\x03' || e === '\r' || e === '\n') {
+                            doneCallback();
+                            return;
+                        }
+                        
+                        const target = resolveTargetDomain(undefined, {});
+                        if (!target && ['1', '2', '3', '4'].includes(e)) {
+                            term.write(`\n  ${ANSI.red}[ERROR] No target domain set.${ANSI.reset}\n`);
+                            return;
+                        }
+
+                        if (e === '1') { term.write('\n' + cmdSSLLabs([target]) + '\n'); doneCallback(); }
+                        if (e === '2') { term.write('\n' + cmdSecurityHeaders([target]) + '\n'); doneCallback(); }
+                        if (e === '3') { term.write('\n' + cmdBlacklist([target]) + '\n'); doneCallback(); }
+                        if (e === '4') { term.write('\n' + cmdWhoisExt([target]) + '\n'); doneCallback(); }
+                    });
+
+                    draw();
+                },
+                stop: function(term) {
+                    if (this.onDataDisposable) {
+                        this.onDataDisposable.dispose();
+                        this.onDataDisposable = null;
+                    }
+                }
+            }
+        };
     }
 
     const sub = args[0].toLowerCase();
