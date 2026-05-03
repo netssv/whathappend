@@ -42,6 +42,9 @@ export function cmdHelp(args = []) {
         const sep = ANSI.dim + "━".repeat(Math.min(50, Math.max(10, sepLen))) + ANSI.reset;
 
         o += `\n${ANSI.white}${ANSI.bold}  EXPLORE COMMANDS${ANSI.reset}\n  ${sep}\n`;
+        o += `  ${ANSI.cyan}help${ANSI.reset}         Show this menu (alias: ls, ?)\n`;
+        o += `  ${ANSI.cyan}nav${ANSI.reset}          Interactive platform explorer menu (alias: menu)\n`;
+        o += `  ${ANSI.cyan}target${ANSI.reset}       Set or view the active target domain\n`;
         o += `  ${ANSI.dim}Type ${ANSI.white}help <category>${ANSI.dim} to view commands:${ANSI.reset}\n\n`;
 
         const categories = [

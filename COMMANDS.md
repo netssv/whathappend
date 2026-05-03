@@ -140,6 +140,7 @@ Control the terminal environment itself.
 | `matrix` | Code rain visual overlay (katakana + hex). | `rain` |
 | `hack` | 10-question technical trivia: DNS, SEO, Web Security. | `trivia`, `quiz` |
 | `sudo` | Attempts root escalation. Receives a firm but witty rejection. | `su` |
+| `nav` | Interactive platform explorer menu for discovering commands. | `menu`, `gui`, `explorer` |
 
 ---
 

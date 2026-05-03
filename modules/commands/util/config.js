@@ -52,7 +52,7 @@ export async function cmdConfig(args) {
                     start: function(term, doneCallback) {
                         const keys = Object.keys(CONFIG_SCHEMA);
                         const draw = () => {
-                            term.write('\x1b[2J\x1b[H');
+                            term.write('\x1b[2J\x1b[3J\x1b[H');
                             let out = `\n  ${ANSI.bold}${ANSI.cyan}/// CONFIGURATION ///${ANSI.reset}\n\n`;
                             
                             for (let i = 0; i < keys.length; i++) {

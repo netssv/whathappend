@@ -34,7 +34,7 @@ The fastest way to get an answer is to open the side panel and:
 
 ---
 
-## What’s New in v2.7.3? (The UI/UX Update)
+## What’s New in v2.7.4? (The UI/UX Update)
 
 We’ve overhauled the terminal interface to be cleaner, faster, and more visually engaging:
 

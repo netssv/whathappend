@@ -3,7 +3,7 @@
  * @description OOP Rendering Engine for Signal Interception minigame.
  */
 
-import { ANSI } from "/modules/formatter.js";
+import { ANSI } from "../../../../formatter.js";
 
 export const DM = "\x1b[38;2;30;80;55m";
 export const RS = ANSI.reset;

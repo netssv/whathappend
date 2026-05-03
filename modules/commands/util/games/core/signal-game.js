@@ -3,8 +3,8 @@
  * @description OOP Core engine for the Signal Interception minigame.
  */
 
-import { ANSI } from "/modules/formatter.js";
-import { SIGNAL_LEVELS } from "/data/signal-data.js";
+import { ANSI } from "../../../../formatter.js";
+import { SIGNAL_LEVELS } from "../../../../data/signal-data.js";
 import { SignalUI, DM, RS, LOCK_NEED } from "./signal-ui.js";
 
 export class SignalGame {

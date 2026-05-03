@@ -163,7 +163,9 @@ export const CMD_ALIASES = {
     // map
     "journey": "map", "flow": "map", "dns-map": "map", "path": "map",
     // fullscreen
-    "f11": "fullscreen", "fs": "fullscreen"
+    "f11": "fullscreen", "fs": "fullscreen",
+    // nav
+    "menu": "nav", "gui": "nav", "explorer": "nav"
 };
 
 export const ALL_KNOWN_CMDS = [
@@ -178,5 +180,5 @@ export const ALL_KNOWN_CMDS = [
     "registrar", "hosting", "exit", "switch", "reload",
     "start", "config", "isup", "jitter", "speedtest", "clip", "matrix", "coffee",
     "ip", "security-txt", "vitals", "flush", "tabs", "actual", "current", "here",
-    "useragent", "mobile", "throttle", "geo", "block", "fonts", "palette", "comments", "cms", "malware", "edit", "emails", "phones", "map", "fullscreen"
+    "useragent", "mobile", "throttle", "geo", "block", "fonts", "palette", "comments", "cms", "malware", "edit", "emails", "phones", "map", "fullscreen", "nav"
 ].filter(c => /^[a-z]/i.test(c));

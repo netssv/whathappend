@@ -40,7 +40,7 @@ export const CONFIG_SCHEMA = {
         desc: "Auto-hide header panels when data loaded",
     },
     "autoHideBlocker": {
-        default: false,
+        default: true,
         type: "boolean",
         desc: "Auto-hide content blocker button and panel",
     },

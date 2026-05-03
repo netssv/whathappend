@@ -35,3 +35,4 @@ export { cmdThrottle }  from "./throttle.js";
 export { cmdGeo }       from "./geo.js";
 export { cmdBlock }     from "./block.js";
 export { cmdFullscreen } from "./fullscreen.js";
+export { cmdNavMenu }   from "./menu.js";
