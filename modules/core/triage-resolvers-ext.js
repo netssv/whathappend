@@ -124,7 +124,7 @@ export async function resolveSSLCDNRow(renderer, originalDomain) {
             }
 
             // Extract HTTP Status
-            if (resp.data.httpStatus) {
+            if (resp.data.httpStatus != null) {
                 updateHttpField(resp.data.httpStatus, `https://${originalDomain}`);
                 setSessionTriad("http", resp.data.httpStatus);
             } else {

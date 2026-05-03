@@ -39,7 +39,7 @@ export async function handleSSL({ domain, abortId }) {
             // Fast connectivity check (HEAD)
             (async () => {
                 const resp = await fetch(`https://${domain}`, {
-                    method: "HEAD", redirect: "manual", signal,
+                    method: "HEAD", redirect: "follow", signal,
                 });
                 const headers = {};
                 resp.headers.forEach((v, k) => { headers[k] = v; });
@@ -79,9 +79,10 @@ export async function handleSSL({ domain, abortId }) {
             })(),
         ]);
 
-        const connectivity = connectResult.status === "fulfilled" && connectResult.value?.ok;
-        const serverHeaders = connectivity ? connectResult.value.headers : {};
-        const httpStatus = connectivity ? connectResult.value.status : null;
+        const connectOk = connectResult.status === "fulfilled" && connectResult.value;
+        const connectivity = connectOk && (connectResult.value.ok || connectResult.value.status < 400);
+        const serverHeaders = connectOk ? connectResult.value.headers : {};
+        const httpStatus = connectOk ? connectResult.value.status : null;
         const certData = crtResult.status === "fulfilled" ? crtResult.value : null;
 
         completeAbort(abortId);

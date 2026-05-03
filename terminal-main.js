@@ -40,6 +40,11 @@ async function bootstrap() {
         const restored = handleSessionRestore(session, initialDomain);
         if (!restored && initialDomain && initialDomain !== "restricted") {
             writePrompt();
+            // Trigger initial triage if auto-triage is enabled
+            const autoTriage = await getConfig("auto-triage");
+            if (autoTriage) {
+                ContextManager.setManualTarget(initialDomain);
+            }
         } else if (!restored) {
             writePrompt();
         }
@@ -134,9 +139,8 @@ ContextManager.onTargetChanged(async (domain) => {
     // Trigger silent background triage if auto-triage is enabled
     const autoTriage = await getConfig("auto-triage");
     if (autoTriage) {
-        chrome.runtime.sendMessage({ command: "run-triage", domain });
-        // Kick off progressive retries for missing fields after initial resolution
-        retryEmptyHeaderFields(domain, toApex(domain), { registrar: null, ns: null, webhost: null, ip: null, myip: null, geo: null, ssl: null, cdn: null, mx: null, dns: null });
+        // Kick off progressive retries for all fields (they resolve via background handlers)
+        retryEmptyHeaderFields(domain, toApex(domain), { registrar: null, ns: null, webhost: null, ip: null, myip: null, geo: null, ssl: null, cdn: null, http: null, mx: null });
     }
 
     // Sync content-block shield state for new domain
