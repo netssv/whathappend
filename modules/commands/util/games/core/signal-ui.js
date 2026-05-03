@@ -3,7 +3,11 @@
  * @description OOP Rendering Engine for Signal Interception minigame.
  */
 
-import { DM, RS, LOCK_NEED } from "./signal-game.js";
+import { ANSI } from "/modules/formatter.js";
+
+export const DM = "\x1b[38;2;30;80;55m";
+export const RS = ANSI.reset;
+export const LOCK_NEED = 30;
 
 const TC  = "\x1b[38;2;0;230;180m";   // Teal
 const PC  = "\x1b[38;2;255;200;50m";  // Yellow
