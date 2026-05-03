@@ -32,7 +32,6 @@ import {
 } from "./command-runner.js";
 
 import { term, writePrompt } from "../terminal-ui.js";
-import { pingTriadVisibility } from "../header/header-triad.js";
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -48,7 +47,6 @@ export function initInputManager() {
 
     // 2. Orchestrate Sub-Module Events
     InputEvents.on(InputEvents.EV_COMMAND_SUBMIT, async (input) => {
-        pingTriadVisibility();
         if (!input || input.trim() === "") {
             writePrompt();
             return;

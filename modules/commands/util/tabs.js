@@ -61,10 +61,16 @@ export async function cmdTabs(args) {
                 start: function(term, doneCallback) {
                     let tabsList = [];
                     let message = "";
+                    let currentMode = "focus";
                     
                     const fetchAndDraw = () => {
                         chrome.tabs.query({}, (tabs) => {
                             tabsList = tabs;
+                            // Ensure _indexMap is populated so we can just call cmdTabs
+                            _indexMap = [];
+                            let idx = 1;
+                            for (const tab of tabs) { _indexMap[idx++] = tab.id; }
+                            
                             term.write('\x1b[2J\x1b[H');
                             let out = `\n  ${ANSI.bold}${ANSI.cyan}/// TAB MANAGER ///${ANSI.reset}  ${ANSI.dim}${tabs.length} open${ANSI.reset}\n\n`;
                             
@@ -80,6 +86,16 @@ export async function cmdTabs(args) {
                                 out += `    ${ANSI.dim}...and ${tabs.length - 9} more tabs.${ANSI.reset}\n`;
                             }
                             
+                            const modeMap = {
+                                focus: "Focus (Switch)",
+                                close: "Close (Kill)",
+                                info: "Info (Metadata)",
+                                diag: "Diag (Health)",
+                                watch: "Watch (Live)",
+                                block: "Block (Network)",
+                                sleep: "Sleep (Memory)"
+                            };
+                            
                             if (message) {
                                 out += `\n  ${ANSI.yellow}${message}${ANSI.reset}\n`;
                                 message = "";
@@ -87,55 +103,111 @@ export async function cmdTabs(args) {
                                 out += `\n`;
                             }
                             
-                            out += `  ${ANSI.dim}Press 1-9 to focus. 'C'+num to close. 'Q' to quit.${ANSI.reset}\n`;
+                            out += `  ${ANSI.bold}Mode: ${ANSI.yellow}${modeMap[currentMode]}${ANSI.reset}\n`;
+                            out += `  ${ANSI.dim}Actions: [F]ocus [C]lose [I]nfo [D]iag [W]atch [B]lock [S]leep${ANSI.reset}\n`;
+                            out += `  ${ANSI.dim}Press 1-9 to apply. 'Q' to quit.${ANSI.reset}\n`;
                             term.write(out);
                         });
                     };
 
-                    let closingMode = false;
-
-                    this.onDataDisposable = term.onData(e => {
+                    this.onDataDisposable = term.onData(async e => {
                         const lower = e.toLowerCase();
                         if (lower === 'q' || e === '\x03' || e === '\r' || e === '\n') {
                             doneCallback();
                             return;
                         }
-                        if (lower === 'c') {
-                            closingMode = true;
-                            message = "Close mode: press 1-9 to close a tab.";
+                        
+                        // Mode switching
+                        const modeSwitches = {
+                            'f': 'focus', 'c': 'close', 'i': 'info', 
+                            'd': 'diag', 'w': 'watch', 'b': 'block', 's': 'sleep'
+                        };
+                        
+                        if (modeSwitches[lower]) {
+                            currentMode = modeSwitches[lower];
                             fetchAndDraw();
                             return;
                         }
                         
                         const num = parseInt(lower);
                         if (num >= 1 && num <= 9 && num <= tabsList.length) {
-                            const tabId = tabsList[num - 1].id;
-                            if (closingMode) {
-                                chrome.tabs.remove(tabId, () => {
-                                    closingMode = false;
-                                    message = `Closed tab ${num}.`;
-                                    fetchAndDraw();
-                                });
-                            } else {
+                            // Focus or Close can be fast without exiting the menu for fluidity
+                            if (currentMode === "focus") {
+                                const tabId = tabsList[num - 1].id;
                                 chrome.tabs.update(tabId, { active: true });
                                 chrome.windows.update(tabsList[num-1].windowId, { focused: true });
                                 message = `Focused tab ${num}.`;
                                 fetchAndDraw();
+                                return;
+                            } else if (currentMode === "close") {
+                                const tabId = tabsList[num - 1].id;
+                                chrome.tabs.remove(tabId, () => {
+                                    message = `Closed tab ${num}.`;
+                                    fetchAndDraw();
+                                });
+                                return;
                             }
-                        } else {
-                            closingMode = false;
-                            fetchAndDraw();
+
+                            // For other commands (info, diag, watch, block, sleep), run them via cmdTabs and exit menu
+                            this.onDataDisposable.dispose();
+                            this.onDataDisposable = null;
+                            
+                            term.write(`\n\n  ${ANSI.dim}Running: tabs ${currentMode} ${num}...${ANSI.reset}\n`);
+                            
+                            try {
+                                const res = await cmdTabs([currentMode, num.toString()]);
+                                if (typeof res === "object" && res.__watch) {
+                                    // Hand off to the new watcher
+                                    this._subWatcher = res.watcher;
+                                    res.watcher.start(term);
+                                    
+                                    // Listen for Q or Ctrl+C to exit sub-watcher and return to menu
+                                    this.onDataDisposable = term.onData(subEvent => {
+                                        const subLower = subEvent.toLowerCase();
+                                        if (subLower === 'q' || subEvent === '\x03') {
+                                            if (this._subWatcher) {
+                                                this._subWatcher.stop(term);
+                                                this._subWatcher = null;
+                                            }
+                                            this.onDataDisposable.dispose();
+                                            this.onDataDisposable = null;
+                                            this.start(term, doneCallback);
+                                        }
+                                    });
+                                } else {
+                                    // Print result and wait for a keypress to return
+                                    term.write(`\n${res}\n`);
+                                    term.write(`\n  ${ANSI.dim}Press ANY KEY to return to Tabs Menu...${ANSI.reset}`);
+                                    
+                                    this.onDataDisposable = term.onData(() => {
+                                        this.onDataDisposable.dispose();
+                                        this.onDataDisposable = null;
+                                        this.start(term, doneCallback);
+                                    });
+                                }
+                            } catch (err) {
+                                term.write(`\n${ANSI.red}[ERROR] ${err.message}${ANSI.reset}\n`);
+                                term.write(`\n  ${ANSI.dim}Press ANY KEY to return to Tabs Menu...${ANSI.reset}`);
+                                this.onDataDisposable = term.onData(() => {
+                                    this.onDataDisposable.dispose();
+                                    this.onDataDisposable = null;
+                                    this.start(term, doneCallback);
+                                });
+                            }
                         }
                     });
 
                     fetchAndDraw();
                 },
                 stop: function(term) {
+                    if (this._subWatcher) {
+                        this._subWatcher.stop(term);
+                        this._subWatcher = null;
+                    }
                     if (this.onDataDisposable) {
                         this.onDataDisposable.dispose();
                         this.onDataDisposable = null;
                     }
-                    if (term) term.write(`\n\n  ${ANSI.dim}[Tabs manager exited]${ANSI.reset}\n`);
                 }
             }
         };
