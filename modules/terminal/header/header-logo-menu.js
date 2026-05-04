@@ -11,6 +11,7 @@
 import { initTabsSubmenu } from "./menu-tabs.js";
 import { initMenuActions } from "./menu-actions.js";
 import { initMenuDelegation } from "./menu-delegation.js";
+import { initMenuKeyboard } from "./menu-keyboard.js";
 import { MENU_HTML } from "./menu-template.js";
 
 export function initLogoMenu() {
@@ -71,6 +72,12 @@ export function initLogoMenu() {
 
         menu.classList.toggle("open");
         logo.classList.toggle("menu-active");
+        
+        if (menu.classList.contains("open")) {
+            // Shift focus out of xterm so document can catch keyboard events
+            const firstItem = menu.querySelector(".logo-menu-item");
+            if (firstItem) setTimeout(() => firstItem.focus({ preventScroll: true }), 10);
+        }
 
         // Detect space: if the menu's left edge is too close to the viewport
         // boundary, flyout submenus will be clipped → switch to inline mode
@@ -121,6 +128,7 @@ export function initLogoMenu() {
     initTabsSubmenu(menu);
     initMenuActions(menu);
     initMenuDelegation(menu);
+    initMenuKeyboard(menu, logo);
 
     // --- Accordion Logic & Exclusive Submenus ----------------------------
     const subWraps = menu.querySelectorAll(".logo-menu-sub-wrap");

@@ -83,7 +83,7 @@
     border-left: 2px solid var(--bg-active-border, #1a3a28);
     box-shadow: none;
     margin: 0 0 0 20px;
-    padding: 2px 0;
+    padding: 0;
     max-height: 0;
     overflow: hidden;
     visibility: visible;
@@ -95,6 +95,7 @@
 
 .submenu-inline .logo-menu-sub-wrap.sub-expanded > .logo-menu-submenu {
     max-height: 70vh;
+    padding: 2px 0;
     overflow-y: auto;
     pointer-events: auto;
     /* Fast open transition for click */

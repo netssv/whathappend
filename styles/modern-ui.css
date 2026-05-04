@@ -57,75 +57,109 @@
 
 /* --- Logo Wrapper: Smooth interactions ----------------------------------- */
 
-[data-theme="modern"] #logo-wrapper:hover #context-logo {
-    filter: drop-shadow(0 0 4px rgba(48, 209, 88, 0.4));
-}
+[data-theme="modern"] #logo-wrapper:hover #context-logo { filter: drop-shadow(0 0 4px rgba(48, 209, 88, 0.4)); }
+[data-theme="modern"] #context-version { color: rgba(255, 255, 255, 0.45) !important; }
 
 /* --- Logo Menu ----------------------------------------------------------- */
 
 [data-theme="modern"] .logo-menu {
-    background: #2c2c2e;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 10px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-    padding: 6px 4px;
+    background: #000000; /* Pure black for Android feel */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid #303030;
+    border-radius: 28px; /* Android large corner radius */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    padding: 16px 12px;
     max-width: calc(100vw - 16px);
 }
 
 [data-theme="modern"] .logo-menu-submenu {
-    background: #2c2c2e;
+    background: #000000;
 }
 
 [data-theme="modern"] .logo-menu:not(.submenu-inline) .logo-menu-submenu {
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 10px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-    padding: 4px;
+    border: 1px solid #303030;
+    border-radius: 28px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    padding: 12px;
 }
 
 [data-theme="modern"] .logo-menu-item {
-    border-radius: 6px;
-    transition: background 0.15s ease, color 0.15s ease;
+    border-radius: 28px; /* Pill shape */
+    transition: background 0.2s cubic-bezier(0.2, 0, 0, 1), color 0.2s ease, transform 0.1s ease;
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #e3e3e3;
+    background: #303030; /* Inactive pill background */
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
 }
 
-[data-theme="modern"] .logo-menu-item:hover {
-    background: rgba(48, 209, 88, 0.1);
+[data-theme="modern"] .logo-menu-item:last-child {
+    margin-bottom: 0;
+}
+
+[data-theme="modern"] .logo-menu-submenu .logo-menu-item {
+    font-size: 13.5px;
+    padding: 12px 18px;
+    margin-bottom: 4px;
+}
+
+[data-theme="modern"] .logo-menu-item span:first-child { 
+    font-size: 20px; 
+    width: 32px; 
+    text-align: left; 
+}
+
+/* Material You Active/Hover State */
+[data-theme="modern"] .logo-menu-item:hover,
+[data-theme="modern"] .logo-menu-item:focus,
+[data-theme="modern"] .logo-menu-sub-wrap:hover > .logo-menu-has-sub,
+[data-theme="modern"] .logo-menu-sub-wrap.sub-expanded > .logo-menu-has-sub {
+    background: #d3e3fd; /* Light blue */
+    color: #041e49; /* Deep blue text */
+    outline: none;
+    transform: scale(0.98); /* slight press effect */
+}
+
+/* Submenu Arrow in Active state */
+[data-theme="modern"] .logo-menu-sub-wrap:hover .logo-menu-sub-arrow,
+[data-theme="modern"] .logo-menu-sub-wrap.sub-expanded .logo-menu-sub-arrow {
+    color: #041e49; 
+    opacity: 0.8;
 }
 
 [data-theme="modern"] .logo-menu-sep {
-    display: none;
+    display: block;
+    height: 0px;
+    background: transparent;
+    margin: 8px 0;
 }
 
 [data-theme="modern"] .logo-menu-group-label {
-    color: var(--text-dark);
-    font-size: 9px;
-    letter-spacing: 1.2px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    letter-spacing: 0.5px;
     white-space: normal;
     line-height: 1.4;
-    margin-top: 8px;
-    padding-bottom: 2px;
+    margin-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 18px;
+    font-weight: 600;
+    text-transform: uppercase;
 }
 
 /* --- Peek Tab ------------------------------------------------------------ */
 
-[data-theme="modern"] #header-peek-tab {
-    height: 28px;
-    background: rgba(48, 209, 88, 0.03);
-    border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    transition: background 0.2s ease;
-}
+[data-theme="modern"] #header-peek-tab { height: 28px; background: rgba(48, 209, 88, 0.03); border: none; border-top: 1px solid rgba(255, 255, 255, 0.06); transition: background 0.2s ease; }
 
 [data-theme="modern"] #header-peek-tab:hover {
     background: rgba(48, 209, 88, 0.08);
 }
 
-[data-theme="modern"] .peek-label {
-    font-size: 11px !important;
-    font-weight: 800 !important;
-    letter-spacing: 3px !important;
-    color: var(--accent-green) !important;
-}
+[data-theme="modern"] .peek-label { font-size: 11px !important; font-weight: 800 !important; letter-spacing: 3px !important; color: var(--accent-green) !important; }
 
 /* --- Terminal Container -------------------------------------------------- */
 
@@ -174,11 +208,7 @@
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
 }
 
-[data-theme="modern"] .wh-modal-header {
-    background: rgba(48, 209, 88, 0.04);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 14px 14px 0 0;
-}
+[data-theme="modern"] .wh-modal-header { background: rgba(48, 209, 88, 0.04); border-bottom: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px 14px 0 0; }
 
 [data-theme="modern"] .wh-modal-btn-primary,
 [data-theme="modern"] .wh-modal-btn-cancel {

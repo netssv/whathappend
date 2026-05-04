@@ -6,27 +6,33 @@
 import { term, showBanner } from "../terminal-ui.js";
 import { InputEvents } from "../input/events.js";
 
-function closeMenuAndExecute(menu, command) {
+function closeMenuAndExecute(e, menu, command) {
+    if (e) e.stopPropagation();
     menu.classList.remove("open");
+    document.getElementById("logo-wrapper")?.classList.remove("menu-active");
     if (command) InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, command);
     term.focus();
 }
 
 export function initMenuActions(menu) {
-    document.getElementById("menu-start")?.addEventListener("click", () => closeMenuAndExecute(menu, "start"));
-    document.getElementById("menu-export")?.addEventListener("click", () => closeMenuAndExecute(menu, "export"));
-    document.getElementById("menu-clip")?.addEventListener("click", () => closeMenuAndExecute(menu, "clip"));
-    document.getElementById("menu-about")?.addEventListener("click", () => closeMenuAndExecute(menu, "about"));
+    document.getElementById("menu-start")?.addEventListener("click", (e) => closeMenuAndExecute(e, menu, "start"));
+    document.getElementById("menu-export")?.addEventListener("click", (e) => closeMenuAndExecute(e, menu, "export"));
+    document.getElementById("menu-clip")?.addEventListener("click", (e) => closeMenuAndExecute(e, menu, "clip"));
+    document.getElementById("menu-about")?.addEventListener("click", (e) => closeMenuAndExecute(e, menu, "about"));
 
-    document.getElementById("menu-clear")?.addEventListener("click", () => {
+    document.getElementById("menu-clear")?.addEventListener("click", (e) => {
+        e.stopPropagation();
         menu.classList.remove("open");
+        document.getElementById("logo-wrapper")?.classList.remove("menu-active");
         term.clear();
         showBanner();
         term.focus();
     });
 
-    document.getElementById("menu-toggle-header")?.addEventListener("click", async () => {
+    document.getElementById("menu-toggle-header")?.addEventListener("click", async (e) => {
+        e.stopPropagation();
         menu.classList.remove("open");
+        document.getElementById("logo-wrapper")?.classList.remove("menu-active");
         try {
             const data = await chrome.storage.local.get("wh_config");
             const config = data["wh_config"] || {};
@@ -37,8 +43,10 @@ export function initMenuActions(menu) {
         term.focus();
     });
 
-    document.getElementById("menu-toggle-blocker")?.addEventListener("click", async () => {
+    document.getElementById("menu-toggle-blocker")?.addEventListener("click", async (e) => {
+        e.stopPropagation();
         menu.classList.remove("open");
+        document.getElementById("logo-wrapper")?.classList.remove("menu-active");
         try {
             const data = await chrome.storage.local.get("wh_config");
             const config = data["wh_config"] || {};
@@ -48,8 +56,10 @@ export function initMenuActions(menu) {
         term.focus();
     });
 
-    document.getElementById("menu-reload-tab")?.addEventListener("click", async () => {
+    document.getElementById("menu-reload-tab")?.addEventListener("click", async (e) => {
+        e.stopPropagation();
         menu.classList.remove("open");
+        document.getElementById("logo-wrapper")?.classList.remove("menu-active");
         try {
             const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
             if (tabs[0]) await chrome.tabs.reload(tabs[0].id);
@@ -57,14 +67,18 @@ export function initMenuActions(menu) {
         term.focus();
     });
 
-    document.getElementById("menu-reload-ext")?.addEventListener("click", () => {
+    document.getElementById("menu-reload-ext")?.addEventListener("click", (e) => {
+        e.stopPropagation();
         menu.classList.remove("open");
+        document.getElementById("logo-wrapper")?.classList.remove("menu-active");
         chrome.runtime.reload();
     });
 
     // "Add Location" — opens a modal dialog for inputting custom geo coordinates
-    document.getElementById("menu-geo-add")?.addEventListener("click", async () => {
+    document.getElementById("menu-geo-add")?.addEventListener("click", async (e) => {
+        e.stopPropagation();
         menu.classList.remove("open");
+        document.getElementById("logo-wrapper")?.classList.remove("menu-active");
         const logo = document.getElementById("logo-wrapper");
         if (logo) logo.classList.remove("menu-active");
 

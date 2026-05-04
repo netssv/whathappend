@@ -1,14 +1,4 @@
 export const MENU_HTML = `
-    <!-- Core Actions -->
-    <button class="logo-menu-item" id="menu-start" title="Run a full baseline analysis on the active tab">
-        <span>▶</span> Analyze Active Tab
-    </button>
-    <button class="logo-menu-item" data-cmd="stack" title="Discover what technologies the site is built with">
-        <span>🔍</span> Detect Tech Stack
-    </button>
-    
-    <div class="logo-menu-sep"></div>
-    
     <!-- Emulation Tools -->
     <div class="logo-menu-group-label">Emulation</div>
     <div class="logo-menu-sub-wrap">
@@ -89,11 +79,18 @@ export const MENU_HTML = `
     </div>
     <div class="logo-menu-sub-wrap">
         <button class="logo-menu-item logo-menu-has-sub">
-            <span>🧹</span> Flush Cache <span class="logo-menu-sub-arrow">▸</span>
+            <span>📑</span> Active Tab <span class="logo-menu-sub-arrow">▸</span>
         </button>
         <div class="logo-menu-submenu">
-            <button class="logo-menu-item" data-cmd="flush:tab"><span></span>Active Tab</button>
-            <button class="logo-menu-item" data-cmd="flush:target"><span></span>Target Domain</button>
+            <button class="logo-menu-item" id="menu-start" title="Run diagnostic triage">
+                <span>▶</span> Analyze
+            </button>
+            <button class="logo-menu-item" id="menu-stack" title="Fingerprint page technologies">
+                <span>🔍</span> Detect Tech Stack
+            </button>
+            <div class="logo-menu-sep"></div>
+            <button class="logo-menu-item" data-cmd="flush:tab"><span>🧹</span>Flush Active Tab</button>
+            <button class="logo-menu-item" data-cmd="flush:target"><span>🧹</span>Flush Target Domain</button>
         </div>
     </div>
     <button class="logo-menu-item" id="menu-reload-tab" title="Reload the active tab">
@@ -104,15 +101,22 @@ export const MENU_HTML = `
 
     <!-- Terminal Tools -->
     <div class="logo-menu-group-label">Terminal Tools</div>
-    <button class="logo-menu-item" id="menu-clear" title="Clear terminal screen">
-        <span>⌧</span> Clear Terminal
-    </button>
-    <button class="logo-menu-item" id="menu-clip" title="Copy session to clipboard as Markdown">
-        <span>📋</span> Copy Session
-    </button>
-    <button class="logo-menu-item" id="menu-export" title="Export full report as JSON">
-        <span>💾</span> Export Data
-    </button>
+    <div class="logo-menu-sub-wrap">
+        <button class="logo-menu-item logo-menu-has-sub">
+            <span>🗃️</span> Session Data <span class="logo-menu-sub-arrow">▸</span>
+        </button>
+        <div class="logo-menu-submenu">
+            <button class="logo-menu-item" id="menu-clear" title="Clear terminal screen">
+                <span>⌧</span> Clear Terminal
+            </button>
+            <button class="logo-menu-item" id="menu-clip" title="Copy session to clipboard as Markdown">
+                <span>📋</span> Copy Session
+            </button>
+            <button class="logo-menu-item" id="menu-export" title="Export full report as JSON">
+                <span>💾</span> Export Data
+            </button>
+        </div>
+    </div>
     <div class="logo-menu-sub-wrap">
         <button class="logo-menu-item logo-menu-has-sub">
             <span>☕</span> Break Timer <span class="logo-menu-sub-arrow">▸</span>
