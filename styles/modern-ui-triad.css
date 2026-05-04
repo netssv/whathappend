@@ -1,0 +1,105 @@
+/* =========================================================================
+ * Modern UI Theme — Triad Dashboard Cards
+ * Scoped: [data-theme="modern"]
+ * 
+ * Transforms the flat triad grid into color-coded dashboard cards
+ * with vertical accent bars per infrastructure category.
+ * Companion: modern-ui.css (layout & chrome)
+ * ========================================================================= */
+
+/* --- Triad Container ----------------------------------------------------- */
+
+[data-theme="modern"] #context-triad {
+    gap: 6px;
+    padding: 0 10px;
+}
+
+[data-theme="modern"] #context-triad.visible {
+    padding: 10px;
+    background: linear-gradient(180deg, rgba(48, 209, 88, 0.04) 0%, transparent 100%);
+}
+
+/* --- Card Rows & Columns ------------------------------------------------- */
+
+[data-theme="modern"] .triad-row {
+    gap: 6px;
+}
+
+[data-theme="modern"] .triad-col {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 5px 8px 5px 12px;
+    position: relative;
+    overflow: hidden;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    transition: background 0.2s ease;
+}
+
+[data-theme="modern"] .triad-col:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+/* --- Vertical Accent Bars (color-coded) ---------------------------------- */
+
+[data-theme="modern"] .triad-col::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    height: 100%; width: 3px;
+    background: var(--accent-green);
+    opacity: 0.8;
+}
+
+/* Row 1: Status — HTTP (blue) + SSL (red) */
+[data-theme="modern"] .triad-row:nth-child(1) .triad-col:nth-child(1)::before {
+    background: #0a84ff;
+}
+[data-theme="modern"] .triad-row:nth-child(1) .triad-col:nth-child(2)::before {
+    background: #ff453a;
+}
+
+/* Row 2: Registration — REG (cyan) + NS (purple) */
+[data-theme="modern"] .triad-row:nth-child(2) .triad-col:nth-child(1)::before {
+    background: #64d2ff;
+}
+[data-theme="modern"] .triad-row:nth-child(2) .triad-col:nth-child(2)::before {
+    background: #bf5af2;
+}
+
+/* Row 3: Hosting — green */
+[data-theme="modern"] .triad-row:nth-child(3) .triad-col::before {
+    background: #30d158;
+}
+
+/* Row 4: Network — orange */
+[data-theme="modern"] .triad-row:nth-child(4) .triad-col::before {
+    background: #ff9f0a;
+}
+
+/* Row 5: Mail — yellow */
+[data-theme="modern"] .triad-row:nth-child(5) .triad-col::before {
+    background: #ffd60a;
+}
+
+/* --- Labels: Transparent badges ------------------------------------------ */
+
+[data-theme="modern"] .triad-label {
+    width: auto;
+    background: transparent !important;
+    color: var(--text-dark);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 0;
+    text-align: left;
+}
+
+/* --- Values -------------------------------------------------------------- */
+
+[data-theme="modern"] .triad-value {
+    font-size: 12px;
+    font-weight: 500;
+}

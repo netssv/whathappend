@@ -80,6 +80,9 @@ function applyThemeInternal(id, persist) {
         root.style.setProperty(prop, value);
     }
 
+    // 1b. Set data-theme attribute for CSS-scoped overrides
+    root.setAttribute("data-theme", id);
+
     // 2. Apply xterm.js palette
     if (_termRef) {
         _termRef.options.theme = theme.xterm;

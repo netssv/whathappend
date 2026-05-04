@@ -130,9 +130,10 @@ export const MENU_HTML = `
             <span>🎨</span> Theme <span class="logo-menu-sub-arrow">▸</span>
         </button>
         <div class="logo-menu-submenu">
-            <button class="logo-menu-item" data-cmd="theme:WhOS"><span>●</span>WhOS</button>
-            <button class="logo-menu-item" data-cmd="theme:amber"><span>●</span>Classic Amber</button>
-            <button class="logo-menu-item" data-cmd="theme:matrix"><span>●</span>Matrix</button>
+            <button class="logo-menu-item" id="menu-theme-WhOS" data-cmd="theme:WhOS"><span>●</span>WhOS</button>
+            <button class="logo-menu-item" id="menu-theme-amber" data-cmd="theme:amber"><span>●</span>Classic Amber</button>
+            <button class="logo-menu-item" id="menu-theme-matrix" data-cmd="theme:matrix"><span>●</span>Matrix</button>
+            <button class="logo-menu-item" id="menu-theme-modern" data-cmd="theme:modern"><span>●</span>Modern UI</button>
         </div>
     </div>
 
