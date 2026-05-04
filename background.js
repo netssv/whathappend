@@ -29,8 +29,29 @@ setupRouter();
 // Keyboard Shortcuts
 // ---------------------------------------------------------------------------
 
-chrome.commands.onCommand.addListener((command, tab) => {
+/** Map manifest command IDs → terminal commands */
+const SHORTCUT_COMMANDS = {
+    "run-start": "start",
+    "run-flush": "flush",
+    "run-watch": "watch",
+    "run-clear": "clear",
+    "run-clip":  "clip",
+};
+
+chrome.commands.onCommand.addListener((command) => {
     if (command === "reload-extension") {
         chrome.runtime.reload();
+        return;
+    }
+
+    const termCmd = SHORTCUT_COMMANDS[command];
+    if (termCmd) {
+        // Forward to side panel terminal
+        chrome.runtime.sendMessage({
+            type: "shortcut-command",
+            command: termCmd,
+        }).catch(() => {
+            // Side panel may not be open — silently ignore
+        });
     }
 });

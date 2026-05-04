@@ -42,7 +42,7 @@ export function initMenuActions(menu) {
         try {
             const data = await chrome.storage.local.get("wh_config");
             const config = data["wh_config"] || {};
-            const current = config["autoHideBlocker"] !== undefined ? config["autoHideBlocker"] : false;
+            const current = config["autoHideBlocker"] !== undefined ? config["autoHideBlocker"] : true;
             InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `config autoHideBlocker ${!current}`);
         } catch {}
         term.focus();

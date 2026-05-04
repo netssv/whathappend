@@ -91,7 +91,7 @@ export function initBlockPanel() {
     // On init: if autoHideBlocker is OFF, show the panel immediately
     chrome.storage.local.get("wh_config").then(data => {
         const config = data["wh_config"] || {};
-        const autoHide = config["autoHideBlocker"] !== undefined ? config["autoHideBlocker"] : false;
+        const autoHide = config["autoHideBlocker"] !== undefined ? config["autoHideBlocker"] : true;
         if (!autoHide) {
             panel?.classList.add("visible");
             setTimeout(() => refitTerminal(), 280);
@@ -109,7 +109,7 @@ export function initBlockPanel() {
         if (panel?.classList.contains("visible")) {
             chrome.storage.local.get("wh_config").then(data => {
                 const config = data["wh_config"] || {};
-                const autoHide = config["autoHideBlocker"] || false;
+                const autoHide = config["autoHideBlocker"] !== undefined ? config["autoHideBlocker"] : true;
                 const delay = config["autoHideDelay"] || 5000;
                 if (autoHide) scheduleAutoHide(delay);
             }).catch(() => {});

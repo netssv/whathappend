@@ -29,7 +29,7 @@ export function showBanner(term) {
         term.writeln("  \x1b[35m❯\x1b[0m \x1b[1m\x1b[37mhelp\x1b[0m\x1b[90m  — Full command list\x1b[0m");
         term.writeln("");
         term.writeln("  \x1b[33m[!]\x1b[0m \x1b[90mPreliminary triage only. Verify data per internal policies.\x1b[0m");
-        term.writeln("  \x1b[90mTip: Map a toggle shortcut (Ctrl+Shift+.) at chrome://extensions/shortcuts\x1b[0m");
+        term.writeln("  \x1b[90mTip: Bind shortcuts for start, flush, watch at chrome://extensions/shortcuts\x1b[0m");
     } else if (cols >= 45) {
         // MEDIUM SCREEN
         term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.7.5\x1b[0m");

@@ -165,5 +165,5 @@ export const MENU_HTML = `
     </button>
 
     <div class="logo-menu-sep"></div>
-    <div class="logo-menu-group-label">Shortcuts: Ctrl+⇧+. Panel · Ctrl+⇧+, Reload</div>
+    <div class="logo-menu-group-label">⌨ Customize shortcuts: chrome://extensions/shortcuts</div>
 `;

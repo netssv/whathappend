@@ -2,7 +2,8 @@
  * Modern UI Theme — Layout & Chrome overrides
  * Scoped: [data-theme="modern"]
  * 
- * Handles: Context bar, domain input, peek tab, terminal container.
+ * Handles: Context bar, domain input, peek tab, terminal container,
+ *          menus, modals, emulation pills.
  * Companion: modern-ui-triad.css (dashboard cards & accent bars)
  * ========================================================================= */
 
@@ -18,11 +19,13 @@
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
     overflow: visible;   /* CRITICAL — allows logo-menu to render outside */
     z-index: 10;         /* CRITICAL — paints above #terminal-container */
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 [data-theme="modern"] #context-bar.active {
     border-color: rgba(48, 209, 88, 0.2);
     background: rgba(30, 40, 34, 0.9);
+    box-shadow: 0 2px 16px rgba(48, 209, 88, 0.06);
 }
 
 /* --- Top Row ------------------------------------------------------------- */
@@ -30,7 +33,7 @@
 [data-theme="modern"] .context-row.context-top {
     padding: 8px 10px;
     height: auto;
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.025);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 10px 10px 0 0;
 }
@@ -42,29 +45,47 @@
     padding: 4px 8px;
     font-size: 13px;
     color: var(--text-bright);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 [data-theme="modern"] #context-domain:focus,
 [data-theme="modern"] #context-domain.editing {
     border-color: var(--accent-green);
     background: var(--bg-input-focus);
-    box-shadow: 0 0 0 2px rgba(48, 209, 88, 0.2);
+    box-shadow: 0 0 0 2px rgba(48, 209, 88, 0.15);
 }
 
-/* --- Logo Menu: Match warm palette --------------------------------------- */
+/* --- Logo Wrapper: Smooth interactions ----------------------------------- */
+
+[data-theme="modern"] #logo-wrapper:hover #context-logo {
+    filter: drop-shadow(0 0 4px rgba(48, 209, 88, 0.4));
+}
+
+/* --- Logo Menu ----------------------------------------------------------- */
 
 [data-theme="modern"] .logo-menu {
     background: #2c2c2e;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 10px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    padding: 6px 4px;
+    max-width: calc(100vw - 16px);
 }
 
 [data-theme="modern"] .logo-menu-submenu {
     background: #2c2c2e;
+}
+
+[data-theme="modern"] .logo-menu:not(.submenu-inline) .logo-menu-submenu {
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 10px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    padding: 4px;
+}
+
+[data-theme="modern"] .logo-menu-item {
+    border-radius: 6px;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
 [data-theme="modern"] .logo-menu-item:hover {
@@ -72,24 +93,31 @@
 }
 
 [data-theme="modern"] .logo-menu-sep {
-    background: rgba(255, 255, 255, 0.08);
+    display: none;
 }
 
 [data-theme="modern"] .logo-menu-group-label {
     color: var(--text-dark);
+    font-size: 9px;
+    letter-spacing: 1.2px;
+    white-space: normal;
+    line-height: 1.4;
+    margin-top: 8px;
+    padding-bottom: 2px;
 }
 
 /* --- Peek Tab ------------------------------------------------------------ */
 
 [data-theme="modern"] #header-peek-tab {
     height: 28px;
-    background: rgba(48, 209, 88, 0.04);
+    background: rgba(48, 209, 88, 0.03);
     border: none;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
+    transition: background 0.2s ease;
 }
 
 [data-theme="modern"] #header-peek-tab:hover {
-    background: rgba(48, 209, 88, 0.1);
+    background: rgba(48, 209, 88, 0.08);
 }
 
 [data-theme="modern"] .peek-label {
@@ -99,50 +127,42 @@
     color: var(--accent-green) !important;
 }
 
-/* --- Terminal Container: No CRT scanlines -------------------------------- */
+/* --- Terminal Container -------------------------------------------------- */
 
 [data-theme="modern"] #terminal-container {
     margin: 4px 6px 6px 6px;
     border-radius: 10px;
     background: var(--bg-main);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* Kill the retro CRT scanline overlay */
-[data-theme="modern"] #terminal-container::after {
-    display: none;
-}
-
-/* --- Font Controls ------------------------------------------------------- */
+[data-theme="modern"] #terminal-container::after { display: none; }
 
 [data-theme="modern"] #font-controls button {
     border: 1px solid transparent;
-    border-radius: 4px;
 }
-
+[data-theme="modern"] #font-controls button,
+[data-theme="modern"] .shield-btn {
+    border-radius: 5px;
+    transition: all 0.15s ease;
+}
 [data-theme="modern"] #font-controls button:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.12);
-}
-
-/* --- Shield Button ------------------------------------------------------- */
-
-[data-theme="modern"] .shield-btn {
-    border-radius: 5px;
+    color: var(--accent-green);
 }
 
 /* --- Block Panel --------------------------------------------------------- */
 
-[data-theme="modern"] #block-panel {
-    background: rgba(0, 0, 0, 0.1);
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
+[data-theme="modern"] #block-panel { background: rgba(0, 0, 0, 0.1); border-top: 1px solid rgba(255, 255, 255, 0.06); }
 
 /* --- Tab Switch Bar ------------------------------------------------------ */
 
 [data-theme="modern"] #tab-switch-bar {
     background: linear-gradient(135deg, rgba(10, 132, 255, 0.06), rgba(10, 132, 255, 0.02));
+    border-bottom-color: rgba(10, 132, 255, 0.12);
 }
 
 /* --- Modal Dialog -------------------------------------------------------- */
@@ -157,23 +177,24 @@
 [data-theme="modern"] .wh-modal-header {
     background: rgba(48, 209, 88, 0.04);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px 14px 0 0;
 }
 
-[data-theme="modern"] .wh-modal-btn-primary { border-radius: 8px; }
-[data-theme="modern"] .wh-modal-btn-cancel  { border-radius: 8px; }
+[data-theme="modern"] .wh-modal-btn-primary,
+[data-theme="modern"] .wh-modal-btn-cancel {
+    border-radius: 8px;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
 
 /* --- Emulation Pills ----------------------------------------------------- */
 
-[data-theme="modern"] .emu-pill { border-radius: 6px; }
-
-[data-theme="modern"] .emu-dropdown {
-    background: #2c2c2e;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 10px;
+[data-theme="modern"] .emu-pill {
+    border-radius: 8px;
+    transition: all 0.2s ease;
 }
+
+[data-theme="modern"] .emu-dropdown { background: #2c2c2e; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; }
 
 /* --- Scrollbar ----------------------------------------------------------- */
 
-[data-theme="modern"] .xterm-viewport::-webkit-scrollbar-track {
-    background: transparent;
-}
+[data-theme="modern"] .xterm-viewport::-webkit-scrollbar-track { background: transparent; }

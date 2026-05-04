@@ -60,6 +60,21 @@
                 "mac": "Command+Shift+Comma"
             },
             "description": "Reload WhatHappened extension"
+        },
+        "run-start": {
+            "description": "Run full triage on active tab"
+        },
+        "run-flush": {
+            "description": "Flush cache for active domain"
+        },
+        "run-watch": {
+            "description": "Start network traffic watcher"
+        },
+        "run-clear": {
+            "description": "Clear terminal screen"
+        },
+        "run-clip": {
+            "description": "Copy session to clipboard"
         }
     }
 }

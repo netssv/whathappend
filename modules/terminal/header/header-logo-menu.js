@@ -27,16 +27,17 @@ export function initLogoMenu() {
         
         // Update Header Settings labels before opening
         try {
-            const data = await chrome.storage.local.get("wh_config");
-            const config = data["wh_config"] || {};
-            
-            const isAutoHide = config["autoHide"] !== undefined ? config["autoHide"] : true;
-            const btnHide = document.getElementById("menu-toggle-header");
-            if (btnHide) btnHide.innerHTML = `<span>◫</span> Triage: ${isAutoHide ? "ON" : "OFF"}`;
-
-            const isBlockerHidden = config["autoHideBlocker"] !== undefined ? config["autoHideBlocker"] : false;
-            const btnBlocker = document.getElementById("menu-toggle-blocker");
-            if (btnBlocker) btnBlocker.innerHTML = `<span>🛡</span> Blocker: ${isBlockerHidden ? "ON" : "OFF"}`;
+            chrome.storage.local.get("wh_config").then(data => {
+                const config = data["wh_config"] || {};
+                const isHidden = config["autoHide"] !== undefined ? config["autoHide"] : true;
+                const isBlockerHidden = config["autoHideBlocker"] !== undefined ? config["autoHideBlocker"] : true;
+                
+                const btnHide = document.getElementById("menu-toggle-header");
+                if (btnHide) btnHide.innerHTML = `<span>◫</span> Triage: ${isHidden ? "ON" : "OFF"}`;
+                
+                const btnBlocker = document.getElementById("menu-toggle-blocker");
+                if (btnBlocker) btnBlocker.innerHTML = `<span>🛡</span> Blocker: ${isBlockerHidden ? "ON" : "OFF"}`;
+            });
         } catch {}
 
         // Populate custom geo locations dynamically

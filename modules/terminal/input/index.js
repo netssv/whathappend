@@ -82,6 +82,13 @@ export function initInputManager() {
             writePrompt();
         }
     });
+
+    // 3. Listen for keyboard shortcuts forwarded by the background worker
+    chrome.runtime.onMessage.addListener((msg) => {
+        if (msg?.type === "shortcut-command" && msg.command) {
+            InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, msg.command);
+        }
+    });
 }
 
 export function isCommandProcessing() {
