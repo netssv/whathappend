@@ -59,11 +59,19 @@ export function buildGeoMenu(cmdGeo) {
                 this.onDataDisposable = term.onData(async e => {
                     const lower = e.toLowerCase();
                     if (lower === 'q' || e === '\x03' || e === '\r' || e === '\n') {
+                        if (this.onDataDisposable) {
+                            this.onDataDisposable.dispose();
+                            this.onDataDisposable = null;
+                        }
                         doneCallback();
                         return;
                     }
                     
                     if (lower === 'r') {
+                        if (this.onDataDisposable) {
+                            this.onDataDisposable.dispose();
+                            this.onDataDisposable = null;
+                        }
                         const res = await cmdGeo(["reset"]);
                         term.write(`\n\n  ${res}\n`);
                         setTimeout(() => doneCallback(), 1500);
@@ -102,6 +110,10 @@ export function buildGeoMenu(cmdGeo) {
                     else if (lower === '0') targetIdx = 9;
 
                     if (targetIdx >= 0 && targetIdx < this._keys.length) {
+                        if (this.onDataDisposable) {
+                            this.onDataDisposable.dispose();
+                            this.onDataDisposable = null;
+                        }
                         const selectedKey = this._keys[targetIdx];
                         const res = await cmdGeo([selectedKey]);
                         term.write(`\n\n  ${res}\n`);

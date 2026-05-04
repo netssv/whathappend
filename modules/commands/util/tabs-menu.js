@@ -3,32 +3,45 @@
  * @description Interactive full-screen tab manager (TUI mode).
  *              Returned as a __watch watcher object consumed by the engine.
  *
+ * Architecture:
+ *   tabs-menu.js         — Controller (this file): state machine + input routing
+ *   tabs-menu-ui.js      — View: pure rendering functions (no side effects)
+ *   tabs-menu-actions.js — Actions: Chrome API calls + modal confirmations
+ *
  * @connections
- * - Imports: ANSI from '../../formatter.js', icon from './tabs-utils.js', cmdTabs from './tabs.js'
+ * - Imports: ANSI, renderTabList, renderActionMenu, MODE_KEYS,
+ *            handleFocus, handleClose, handleDelegatedAction
  * - Exports: createTabMenu
- * - Layer: Command Layer (Util) — stateful UI controller, no Chrome API calls except via cmdTabs.
+ * - Layer: Command Layer (Util) — stateful UI controller.
  */
 
 import { ANSI } from "../../formatter.js";
-import { icon, truncate } from "./tabs-utils.js";
+import { renderTabList, renderActionMenu, MODE_KEYS } from "./tabs-menu-ui.js";
+import { handleFocus, handleClose, handleDelegatedAction } from "./tabs-menu-actions.js";
 
-/** @typedef {"focus"|"close"|"info"|"diag"|"watch"|"block"|"sleep"} TabMode */
+// ── Exit keys ────────────────────────────────────────────────────────
+const isQuitKey = (e) => e === "q" || e === "Q" || e === "\x03" || e === "\r" || e === "\n";
 
-const MODE_LABELS = {
-    focus: "Focus (Switch)",
-    close: "Close (Kill)",
-    info:  "Info (Metadata)",
-    diag:  "Diag (Health)",
-    watch: "Watch (Live)",
-    block: "Block (Network)",
-    sleep: "Sleep (Memory)",
-};
+// ── Helper: safely dispose listener ──────────────────────────────────
+function disposeListener(watcher) {
+    if (watcher.onDataDisposable) {
+        watcher.onDataDisposable.dispose();
+        watcher.onDataDisposable = null;
+    }
+}
 
-const MODE_KEYS = { f: "focus", c: "close", i: "info", d: "diag", w: "watch", b: "block", s: "sleep" };
+// ── Helper: wait for any key, then restart the menu ──────────────────
+function waitForKeyThenRestart(watcher, term, doneCallback) {
+    term.write(`\n  ${ANSI.dim}Press ANY KEY to return to Tabs Menu...${ANSI.reset}`);
+    watcher.onDataDisposable = term.onData(() => {
+        disposeListener(watcher);
+        watcher.start(term, doneCallback);
+    });
+}
 
 /**
  * Builds the interactive watcher object for the tabs TUI menu.
- * @param {Function} cmdTabs - Reference to the main tabs dispatcher (injected to avoid circular import).
+ * @param {Function} cmdTabs - Reference to the main tabs dispatcher.
  * @returns {{ __watch: true, watcher: object }}
  */
 export function createTabMenu(cmdTabs) {
@@ -40,129 +53,124 @@ export function createTabMenu(cmdTabs) {
             _subWatcher: null,
 
             start(term, doneCallback) {
+                /** @type {chrome.tabs.Tab[]} */
                 let tabsList = [];
-                let message  = "";
-                /** @type {TabMode} */
-                let currentMode = "focus";
+                let message = "";
+                let selectedTabIndex = null;
 
-                const fetchAndDraw = () => {
+                // ── Draw: query tabs → render the appropriate screen ─
+                const draw = () => {
                     chrome.tabs.query({}, (tabs) => {
                         tabsList = tabs;
-                        term.write("\x1b[2J\x1b[H");
+                        term.write("\x1b[2J\x1b[H"); // clear screen
 
-                        let out = `\n  ${ANSI.bold}${ANSI.cyan}/// TAB MANAGER ///${ANSI.reset}  ${ANSI.dim}${tabs.length} open${ANSI.reset}\n\n`;
-
-                        for (let i = 0; i < Math.min(tabs.length, 9); i++) {
-                            const tab = tabs[i];
-                            out += `    ${ANSI.bold}[${i + 1}]${ANSI.reset} ${icon(tab)} ${truncate(tab.title, 30)}\n`;
+                        if (selectedTabIndex === null) {
+                            term.write(renderTabList(tabs, message));
+                        } else {
+                            const tab = tabs[selectedTabIndex];
+                            if (!tab) { selectedTabIndex = null; draw(); return; }
+                            term.write(renderActionMenu(tab, message));
                         }
-
-                        if (tabs.length > 9) {
-                            out += `    ${ANSI.dim}...and ${tabs.length - 9} more tabs.${ANSI.reset}\n`;
-                        }
-
-                        out += message
-                            ? `\n  ${ANSI.yellow}${message}${ANSI.reset}\n`
-                            : `\n`;
 
                         message = "";
-
-                        out += `  ${ANSI.bold}Mode: ${ANSI.yellow}${MODE_LABELS[currentMode]}${ANSI.reset}\n`;
-                        out += `  ${ANSI.dim}Actions: [F]ocus [C]lose [I]nfo [D]iag [W]atch [B]lock [S]leep${ANSI.reset}\n`;
-                        out += `  ${ANSI.dim}Press 1-9 to apply. 'Q' to quit.${ANSI.reset}\n`;
-                        term.write(out);
                     });
                 };
 
+                // ── Input router ─────────────────────────────────────
                 this.onDataDisposable = term.onData(async (e) => {
                     const lower = e.toLowerCase();
 
-                    // Quit
-                    if (lower === "q" || e === "\x03" || e === "\r" || e === "\n") {
+                    // Global quit
+                    if (isQuitKey(lower)) {
+                        disposeListener(this);
                         doneCallback();
                         return;
                     }
 
-                    // Mode switch
-                    if (MODE_KEYS[lower]) {
-                        currentMode = MODE_KEYS[lower];
-                        fetchAndDraw();
+                    // ── Level 1: Tab Selection ───────────────────────
+                    if (selectedTabIndex === null) {
+                        const num = parseInt(lower);
+                        if (num >= 1 && num <= 9 && num <= tabsList.length) {
+                            selectedTabIndex = num - 1;
+                            draw();
+                        }
                         return;
                     }
 
-                    const num = parseInt(lower);
-                    if (num >= 1 && num <= 9 && num <= tabsList.length) {
-                        // Fast in-menu actions (no full exit)
-                        if (currentMode === "focus") {
-                            const tabId = tabsList[num - 1].id;
-                            chrome.tabs.update(tabId, { active: true });
-                            chrome.windows.update(tabsList[num - 1].windowId, { focused: true });
-                            message = `Focused tab ${num}.`;
-                            fetchAndDraw();
-                            return;
-                        }
-                        if (currentMode === "close") {
-                            chrome.tabs.remove(tabsList[num - 1].id, () => {
-                                message = `Closed tab ${num}.`;
-                                fetchAndDraw();
-                            });
-                            return;
-                        }
+                    // ── Level 2: Action Selection ────────────────────
 
-                        // All other modes — exit menu, run sub-command, offer return
-                        this.onDataDisposable.dispose();
-                        this.onDataDisposable = null;
-                        term.write(`\n\n  ${ANSI.dim}Running: tabs ${currentMode} ${num}...${ANSI.reset}\n`);
+                    // Back to tab list
+                    if (lower === "b") {
+                        selectedTabIndex = null;
+                        draw();
+                        return;
+                    }
 
-                        try {
-                            const res = await cmdTabs([currentMode, num.toString()]);
+                    const mode = MODE_KEYS[lower];
+                    if (!mode) return;
 
-                            if (typeof res === "object" && res?.__watch) {
-                                // Hand off to sub-watcher (e.g. tabs watch)
-                                this._subWatcher = res.watcher;
-                                res.watcher.start(term);
+                    const tab = tabsList[selectedTabIndex];
+                    const label = (selectedTabIndex + 1).toString();
 
-                                this.onDataDisposable = term.onData((subEvent) => {
-                                    const subLower = subEvent.toLowerCase();
-                                    if (subLower === "q" || subEvent === "\x03") {
-                                        this._subWatcher?.stop(term);
-                                        this._subWatcher = null;
-                                        this.onDataDisposable.dispose();
-                                        this.onDataDisposable = null;
-                                        this.start(term, doneCallback);
-                                    }
-                                });
-                            } else {
-                                // Print result and wait for any key to return
-                                term.write(`\n${res}\n`);
-                                term.write(`\n  ${ANSI.dim}Press ANY KEY to return to Tabs Menu...${ANSI.reset}`);
-                                this.onDataDisposable = term.onData(() => {
-                                    this.onDataDisposable.dispose();
-                                    this.onDataDisposable = null;
+                    // ── Fast actions (stay in menu) ──────────────────
+                    if (mode === "focus") {
+                        const result = await handleFocus(tab, label);
+                        message = result.message;
+                        selectedTabIndex = null;
+                        draw();
+                        return;
+                    }
+
+                    // ── Modal actions (pause input) ──────────────────
+                    if (mode === "close") {
+                        disposeListener(this);
+                        await handleClose(tab);
+                        this.start(term, doneCallback);
+                        return;
+                    }
+
+                    // ── Delegated actions (sub-commands) ─────────────
+                    disposeListener(this);
+                    term.write(`\n\n  ${ANSI.dim}Running: tabs ${mode} ${label}...${ANSI.reset}\n`);
+
+                    const result = await handleDelegatedAction(cmdTabs, mode, label);
+
+                    switch (result.type) {
+                        case "delegate-watch":
+                            this._subWatcher = result.watcher;
+                            result.watcher.start(term);
+
+                            this.onDataDisposable = term.onData((subEvent) => {
+                                const subLower = subEvent.toLowerCase();
+                                if (subLower === "q" || subEvent === "\x03") {
+                                    this._subWatcher?.stop(term);
+                                    this._subWatcher = null;
+                                    disposeListener(this);
                                     this.start(term, doneCallback);
-                                });
-                            }
-                        } catch (err) {
-                            term.write(`\n${ANSI.red}[ERROR] ${err.message}${ANSI.reset}\n`);
-                            term.write(`\n  ${ANSI.dim}Press ANY KEY to return to Tabs Menu...${ANSI.reset}`);
-                            this.onDataDisposable = term.onData(() => {
-                                this.onDataDisposable.dispose();
-                                this.onDataDisposable = null;
-                                this.start(term, doneCallback);
+                                }
                             });
-                        }
+                            break;
+
+                        case "delegate-output":
+                            term.write(result.output);
+                            waitForKeyThenRestart(this, term, doneCallback);
+                            break;
+
+                        case "error":
+                            term.write(result.output);
+                            waitForKeyThenRestart(this, term, doneCallback);
+                            break;
                     }
                 });
 
-                fetchAndDraw();
+                draw();
             },
 
             stop(term) {
                 this._subWatcher?.stop(term);
                 this._subWatcher = null;
-                this.onDataDisposable?.dispose();
-                this.onDataDisposable = null;
-            }
-        }
+                disposeListener(this);
+            },
+        },
     };
 }

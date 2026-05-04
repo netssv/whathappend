@@ -29,7 +29,7 @@ setupRouter();
 // Keyboard Shortcuts
 // ---------------------------------------------------------------------------
 
-chrome.commands.onCommand.addListener((command) => {
+chrome.commands.onCommand.addListener((command, tab) => {
     if (command === "reload-extension") {
         chrome.runtime.reload();
     }

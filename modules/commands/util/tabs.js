@@ -28,7 +28,7 @@ import { tabBlock }        from "./tabs-block.js";
 import { resolveTabId }    from "./tabs-resolver.js";
 import { createTabMenu }   from "./tabs-menu.js";
 
-const USAGE = `${ANSI.red}Try: tabs · list · close · info · diag · watch · block · sleep · focus${ANSI.reset}`;
+const USAGE = `${ANSI.red}Try: tabs · list · close · info · diag · watch · block · sleep · focus · flush${ANSI.reset}`;
 
 /**
  * Main entry point for the `tabs` command family.
@@ -129,6 +129,26 @@ export async function cmdTabs(args) {
         const tabId = await resolveTabId(args[1]);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
         return await tabBlock(tabId, args[1], args.slice(2));
+    }
+
+    // ── FLUSH ────────────────────────────────────────────────────
+    if (sub === "flush" || sub === "clear") {
+        if (args.length < 2) return `${ANSI.red}Usage: tabs flush <#>${ANSI.reset}`;
+        const tabId = await resolveTabId(args[1]);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
+        
+        try {
+            const tab = await chrome.tabs.get(tabId);
+            if (!tab.url || tab.url.startsWith("chrome://")) {
+                return `${ANSI.red}[ERROR] Cannot flush data for chrome:// URLs${ANSI.reset}`;
+            }
+            const url = new URL(tab.url);
+            const { cmdFlush } = await import("../web/flush.js");
+            // cmdFlush handles the confirmation modal natively
+            return await cmdFlush([url.hostname]);
+        } catch (err) {
+            return `${ANSI.red}[ERROR] ${err.message}${ANSI.reset}`;
+        }
     }
 
     return USAGE;

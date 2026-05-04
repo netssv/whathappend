@@ -7,11 +7,12 @@ Control the terminal environment itself.
 | `start` | Analyzes the active tab (implicitly runs with `-go` flag). | `run`, `go`, `begin` |
 | `switch` | Switches target to the active browser tab. | `actual`, `current`, `here`, `sw` |
 | `target` | Sets the target domain silently. | - |
-| `tabs` | List, close, sleep, or inspect tabs. `diag` scans for health issues. | `tab`, `close`, `info`, `diag`, `sleep` |
+| `tabs` | List, close, sleep, flush, or inspect tabs. `diag` scans for health issues. | `tab`, `close`, `info`, `diag`, `sleep`, `flush` |
 | `reload` | Hard reboots the extension context (clears memory). | `restart`, `reboot` |
 | `config` | View or change user preferences (`config timeout 5000`). | `settings`, `set` |
 | `export` | Saves the entire session output as a JSON file. | `dump`, `save` |
 | `flush` | Clears cookies and cache for a specific domain. | `clearcache` |
+| `watch` | Live network waterfall for the active tab. Use `watch raw` for compact dashboard. | `monitor`, `live`, `netwatch` |
 | `notes` | Add session annotations (included in JSON export). | `note`, `memo` |
 | `clip` | Copies the last output or terminal selection to the clipboard. | `copy` |
 | `fullscreen`| Toggles fullscreen mode for the terminal. | `f11`, `fs` |

@@ -16,6 +16,7 @@ Native DNS queries using Google's DNS-over-HTTPS.
 | `isup` | Compares local reachability vs Google's global DNS to check for downtime. | `upcheck`, `down` |
 | `jitter` | Latency jitter test (performs 5 sequential HEAD requests). | `latency-test` |
 | `speedtest` | Local bandwidth test to Cloudflare's speed endpoint. | `bandwidth` |
+| `watch` | Live network waterfall for the active tab. Shows resource timing bars, type labels, and sizes. Use `watch raw` for a compact dashboard. | `monitor`, `live`, `netwatch`, `waterfall` |
 
 ### DNS Shortcuts
 

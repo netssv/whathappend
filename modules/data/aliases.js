@@ -165,7 +165,9 @@ export const CMD_ALIASES = {
     // fullscreen
     "f11": "fullscreen", "fs": "fullscreen",
     // nav
-    "menu": "nav", "gui": "nav", "explorer": "nav"
+    "menu": "nav", "gui": "nav", "explorer": "nav",
+    // watch
+    "monitor": "watch", "waterfall": "watch", "live": "watch", "netwatch": "watch"
 };
 
 export const ALL_KNOWN_CMDS = [
@@ -180,5 +182,5 @@ export const ALL_KNOWN_CMDS = [
     "registrar", "hosting", "exit", "switch", "reload",
     "start", "config", "isup", "jitter", "speedtest", "clip", "matrix", "coffee",
     "ip", "security-txt", "vitals", "flush", "tabs", "actual", "current", "here",
-    "useragent", "mobile", "throttle", "geo", "block", "fonts", "palette", "comments", "cms", "malware", "edit", "emails", "phones", "map", "fullscreen", "nav"
+    "useragent", "mobile", "throttle", "geo", "block", "fonts", "palette", "comments", "cms", "malware", "edit", "emails", "phones", "map", "fullscreen", "nav", "watch"
 ].filter(c => /^[a-z]/i.test(c));

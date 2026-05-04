@@ -148,6 +148,10 @@ export function buildTriviaWatcher(levelKey, timerSeconds) {
 
                     if (state === 'end') {
                         if (e === '\r' || e === 'q' || e === '\n') {
+                            if (this.onDataDisposable) {
+                                this.onDataDisposable.dispose();
+                                this.onDataDisposable = null;
+                            }
                             doneCallback();
                         } else if (e === 'r') {
                             restartGame();

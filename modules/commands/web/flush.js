@@ -20,12 +20,12 @@ import { ANSI, insights, resolveTargetDomain, cmdUsage, cmdError } from "../../f
 // ===================================================================
 
 export async function cmdFlush(args) {
-    if (args.length === 0) {
-        return cmdUsage("flush", "<domain>") + `\n${ANSI.dim}Explicit domain required for safety.${ANSI.reset}`;
+    // If no args provided, resolveTargetDomain(null) auto-targets current tab.
+    const domain = resolveTargetDomain(args.length > 0 ? args[0] : null);
+    
+    if (!domain) {
+        return cmdError("No active domain found. Provide a domain explicitly: flush <domain>");
     }
-
-    const domain = resolveTargetDomain(args[0]);
-    if (!domain) return cmdUsage("flush", "<domain>");
 
     const { showConfirm } = await import("../../terminal/modal.js");
     const confirmed = await showConfirm({

@@ -96,5 +96,6 @@ export const COMMAND_REGISTRY = {
     reload: async () => (await import("../commands/util/index.js")).cmdReload(),
     fullscreen: async () => (await import("../commands/util/index.js")).cmdFullscreen(),
     nav: async () => (await import("../commands/util/index.js")).cmdNavMenu(),
+    watch: async (args) => (await import("../commands/util/index.js")).cmdWatch(args),
 
 };

@@ -82,6 +82,7 @@ export function cmdNavMenu() {
                         }
 
                         out += `\n  ${ANSI.dim}Press 1-${CATEGORIES.length} to select. 'Q' to quit.${ANSI.reset}\n`;
+                        out += `  ${ANSI.dim}Tip: Press Ctrl+Shift+. anytime to toggle this panel.${ANSI.reset}\n`;
                         term.write(out);
                     } else {
                         const cat = CATEGORIES[this.currentCategory];
@@ -101,6 +102,10 @@ export function cmdNavMenu() {
 
                     // Quit
                     if (lower === "q" || e === "\x03") {
+                        if (this.onDataDisposable) {
+                            this.onDataDisposable.dispose();
+                            this.onDataDisposable = null;
+                        }
                         doneCallback();
                         return;
                     }

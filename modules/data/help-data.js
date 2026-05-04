@@ -76,6 +76,7 @@ export const HELP_SECTIONS = [
         ["isup", "Local vs global parity", "upcheck down"],
         ["jitter", "Latency jitter test", ""],
         ["speedtest", "Local bandwidth test", "bandwidth"],
+        ["watch", "Live network waterfall", "monitor live netwatch"],
         ["rev-dns", "Reverse DNS (PTR)", "rdns ptr"],
         ["port-scan", "Port scanner", "ports nmap"],
         ["ftp-check", "FTP banner grab", "ftp"],

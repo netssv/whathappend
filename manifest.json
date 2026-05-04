@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "WhatHappened",
-    "version": "2.7.4",
+    "version": "2.7.5",
     "description": "Your friendly side panel terminal! Learn how to diagnose DNS, SSL, and email infrastructure using simple, guided commands.",
     "permissions": [
         "activeTab",
@@ -52,8 +52,7 @@
             "suggested_key": {
                 "default": "Ctrl+Shift+Period",
                 "mac": "Command+Shift+Period"
-            },
-            "description": "Open WhatHappened panel"
+            }
         },
         "reload-extension": {
             "suggested_key": {

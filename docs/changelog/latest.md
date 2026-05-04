@@ -14,6 +14,24 @@ If you are extending the terminal or adding new commands, you MUST verify the fo
 6. `modules/core/registry.js`: Add your function to the command registry map.
 7. `modules/commands/.../index.js`: Ensure your function is exported from its domain folder.
 
+## [2.7.5] - 2026-05-04
+
+**The "Watcher Lifecycle" Update**
+
+### What's New?
+
+- **WatchLifecycle Manager**: Introduced a robust infrastructure to manage network monitoring sessions, ensuring better stability and resource cleanup.
+- **Interactive Tab Switching**: Added a modal choice dialog (`showChoice`) that triggers when navigating away from a tab with an active watcher, allowing users to choose between switching or terminating the session.
+- **Enhanced Badge States**: Optimized extension badge notifications to provide clearer real-time status of active monitoring.
+
+### Refinements & Architecture
+
+- **Watcher Modularization**: Refactored the `Waterfall`, `Raw`, and `Dashboard` watchers into decoupled units for improved maintainability.
+- **Tab Lifecycle Integration**: Centralized tab-event handling to prevent terminal state desync during rapid navigation.
+- **Stability Fixes**: Resolved the "Blank Screen" initialization bug occurring during heavy network monitoring sessions.
+
+---
+
 ## [2.7.4] - 2026-05-03
 
 **The "Universal Navigation" Update**

@@ -41,24 +41,26 @@ export function refreshTriadVisibility() {
     const peekTab = document.getElementById("header-peek-tab");
 
     if (hasAny) {
-        contextTriad.classList.add("visible");
-        if (peekTab) peekTab.classList.add("peek-open");
-        if (hideTimeout) clearTimeout(hideTimeout);
-        
-        const checkId = ++currentVisibilityCheck;
-        chrome.storage.local.get("wh_config").then(data => {
-            if (checkId !== currentVisibilityCheck) return;
-            const config = data["wh_config"] || {};
-            const autoHide = config["autoHide"] !== undefined ? config["autoHide"] : true;
-            const autoHideDelay = config["autoHideDelay"] || 5000;
-            if (autoHide && !isHovering && contextTriad.classList.contains("visible")) {
-                hideTimeout = setTimeout(() => {
-                    contextTriad.classList.remove("visible");
-                    if (peekTab) peekTab.classList.remove("peek-open");
-                    setTimeout(() => refitTerminal(), 350);
-                }, autoHideDelay);
-            }
-        });
+        // Only run auto-hide logic if the triad is CURRENTLY visible
+        // Do NOT automatically force it open to prevent covering the TUI
+        if (contextTriad.classList.contains("visible")) {
+            if (hideTimeout) clearTimeout(hideTimeout);
+            
+            const checkId = ++currentVisibilityCheck;
+            chrome.storage.local.get("wh_config").then(data => {
+                if (checkId !== currentVisibilityCheck) return;
+                const config = data["wh_config"] || {};
+                const autoHide = config["autoHide"] !== undefined ? config["autoHide"] : true;
+                const autoHideDelay = config["autoHideDelay"] || 5000;
+                if (autoHide && !isHovering) {
+                    hideTimeout = setTimeout(() => {
+                        contextTriad.classList.remove("visible");
+                        if (peekTab) peekTab.classList.remove("peek-open");
+                        setTimeout(() => refitTerminal(), 350);
+                    }, autoHideDelay);
+                }
+            });
+        }
     } else {
         contextTriad.classList.remove("visible");
         if (peekTab) peekTab.classList.remove("peek-open");
@@ -150,6 +152,10 @@ export function setTriadValue(el, text, url) {
     el.classList.remove("pop");
     void el.offsetWidth; // Force DOM reflow to restart animation
     if (cleanText) el.classList.add("pop");
+
+    if (cleanText && contextTriad && !contextTriad.classList.contains("visible")) {
+        triggerPeekTease();
+    }
 
     refreshTriadVisibility();
 }
