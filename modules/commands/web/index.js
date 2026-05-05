@@ -53,3 +53,4 @@ export { cmdDiff } from "./diff.js";
 export { cmdHeadersCheck } from "./headers-check.js";
 export { cmdAudit } from "./audit.js";
 export { cmdExt, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "./ext.js";
+export { cmdExtract } from "./extract.js";

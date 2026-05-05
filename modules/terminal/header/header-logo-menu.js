@@ -74,6 +74,14 @@ export function initLogoMenu() {
         logo.classList.toggle("menu-active");
         
         if (menu.classList.contains("open")) {
+            // Close other overlay menus (Triad and Block Panel)
+            const triad = document.getElementById("context-triad");
+            if (triad) triad.classList.remove("visible");
+            const blockPanel = document.getElementById("block-panel");
+            if (blockPanel) blockPanel.classList.remove("visible");
+            const peekTab = document.getElementById("header-peek-tab");
+            if (peekTab) peekTab.classList.remove("peek-open");
+
             // Shift focus out of xterm so document can catch keyboard events
             const firstItem = menu.querySelector(".logo-menu-item");
             if (firstItem) setTimeout(() => firstItem.focus({ preventScroll: true }), 10);
@@ -116,13 +124,27 @@ export function initLogoMenu() {
         if (icon) icon.classList.remove("pulse-hint");
     });
 
-    // Close menu immediately on outside click
-    document.addEventListener("click", (e) => {
+    // Close menu immediately on outside click or focus change (e.g., terminal gets focus)
+    document.addEventListener("click", closeMenuIfOutside);
+    document.addEventListener("focusin", closeMenuIfOutside);
+    
+    // Close menu if user starts typing while it's open (unless they are navigating the menu itself)
+    document.addEventListener("keydown", (e) => {
+        if (menu.classList.contains("open") && !menu.contains(document.activeElement)) {
+            // If they press a key that isn't a modifier, close the menu
+            if (e.key.length === 1 || e.key === "Escape" || e.key === "Enter") {
+                menu.classList.remove("open");
+                logo.classList.remove("menu-active");
+            }
+        }
+    });
+
+    function closeMenuIfOutside(e) {
         if (!menu.contains(e.target) && !logo.contains(e.target)) {
             menu.classList.remove("open");
             logo.classList.remove("menu-active");
         }
-    });
+    }
 
     // Initialize submodules
     initTabsSubmenu(menu);

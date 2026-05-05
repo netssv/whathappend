@@ -71,28 +71,20 @@ export function refreshTriadVisibility() {
 
 let teaseTimeout = null;
 let teaseCleanupTimeout = null;
+let teaseHasFired = false;
 
 export function triggerPeekTease() {
     const peekTab = document.getElementById("header-peek-tab");
     if (!peekTab || !contextTriad) return;
 
-    // Reset any running tease
-    if (teaseTimeout) clearTimeout(teaseTimeout);
-    if (teaseCleanupTimeout) clearTimeout(teaseCleanupTimeout);
-    
-    // Clear existing classes to restart animation
-    peekTab.classList.remove("peek-bounce");
-    contextTriad.classList.remove("peek-tease");
-    contextTriad.removeAttribute("data-peek-active");
-    
-    // Force reflow to allow restarting animations
-    void peekTab.offsetWidth;
-    void contextTriad.offsetWidth;
+    // Only fire once — don't restart if already active or already played
+    if (teaseHasFired) return;
+    teaseHasFired = true;
 
     // Block auto-show during tease period
     contextTriad.setAttribute("data-peek-active", "");
 
-    // Start tease with a slight delay
+    // Start tease after a brief moment for DOM to settle
     teaseTimeout = setTimeout(() => {
         peekTab.classList.add("peek-bounce");
         contextTriad.classList.add("peek-tease");
@@ -103,7 +95,20 @@ export function triggerPeekTease() {
             contextTriad.removeAttribute("data-peek-active");
             refitTerminal();
         }, 2100);
-    }, 400);
+    }, 80);
+}
+
+/** Allow the tease to fire again (e.g. after domain change) */
+export function resetPeekTease() {
+    teaseHasFired = false;
+    if (teaseTimeout) clearTimeout(teaseTimeout);
+    if (teaseCleanupTimeout) clearTimeout(teaseCleanupTimeout);
+    const peekTab = document.getElementById("header-peek-tab");
+    if (peekTab) peekTab.classList.remove("peek-bounce");
+    if (contextTriad) {
+        contextTriad.classList.remove("peek-tease");
+        contextTriad.removeAttribute("data-peek-active");
+    }
 }
 
 export function cancelAutoHide() {

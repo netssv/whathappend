@@ -13,9 +13,11 @@
     font-size: 13px;
     color: var(--text-dim);
     -webkit-user-select: none;
-    user-select: none;
     flex-shrink: 0;
     position: relative;
+    height: 48px; /* Fixed height for default theme — expansion will overlay terminal */
+    overflow: visible;
+    z-index: 20;   /* Paint above terminal CRT overlay */
     transition: background 0.3s ease, border-color 0.3s ease;
 
     &.active {
@@ -151,7 +153,7 @@
     flex-shrink: 0; border-radius: 3px;
     opacity: 0.4;
     cursor: pointer;
-    transition: opacity 0.4s ease, filter 0.4s ease;
+    transition: opacity 0.4s ease;
 }
 
 /* --- Domain Input ------------------------------------------------------ */

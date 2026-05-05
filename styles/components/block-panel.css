@@ -39,18 +39,22 @@
 #block-panel {
     display: flex;
     align-items: center;
+    flex-shrink: 0; /* CRITICAL: Prevent flexbox squishing */
     gap: 8px;
     height: 0; overflow: hidden; opacity: 0;
     padding: 0 10px;
     border-top: 1px solid transparent;
     transition: height 0.25s ease, opacity 0.2s ease, padding 0.25s ease, border-color 0.25s ease;
     background: linear-gradient(to right, rgba(255, 107, 107, 0.04), transparent);
+    background-color: var(--bg-panel); /* Solid background for overlay */
 }
 
 #block-panel.visible {
     height: 30px; opacity: 1;
     padding: 5px 10px;
     border-top-color: rgba(255, 107, 107, 0.15);
+    border-bottom: 1px solid var(--bg-panel-border);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
 }
 
 /* --- Toggle Switch Labels ------------------------------------------------ */

@@ -54,6 +54,7 @@ export const COMMAND_REGISTRY = {
     edit: async (args) => (await import("../commands/web/index.js")).cmdEdit(args),
     emails: async (args) => (await import("../commands/web/index.js")).cmdEmails(args),
     phones: async (args) => (await import("../commands/web/index.js")).cmdPhones(args),
+    extract: async (args, flags) => (await import("../commands/web/index.js")).cmdExtract(args, flags),
     isup: async (args) => (await import("../commands/web/index.js")).cmdIsUp(args),
     jitter: async (args) => (await import("../commands/web/index.js")).cmdJitter(args),
     speedtest: async (args) => (await import("../commands/web/index.js")).cmdSpeedtest(args),

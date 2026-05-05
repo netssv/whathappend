@@ -12,9 +12,9 @@
     cursor: pointer;
 }
 
-#context-logo { transition: opacity 0.4s ease, filter 0.4s ease, transform 0.15s ease; }
-#logo-wrapper:hover #context-logo { transform: scale(1.1); }
-#logo-wrapper:active #context-logo { transform: scale(0.95); }
+#context-logo { transition: opacity 0.4s ease; }
+#logo-wrapper:hover #context-logo { transform: scale(1.1); transition: opacity 0.4s ease, filter 0.4s ease, transform 0.15s ease; }
+#logo-wrapper:active #context-logo { transform: scale(0.95); transition: opacity 0.4s ease, transform 0.1s ease; }
 
 .logo-caret {
     font-size: 12px;
@@ -34,6 +34,7 @@
 /* Animation to suggest clicking the logo */
 .pulse-hint {
     animation: logoBounceHint 2s infinite ease-in-out;
+    transition: none !important; /* Prevent transition from fighting the animation */
 }
 
 @keyframes logoBounceHint {
@@ -49,8 +50,6 @@
     margin-top: 4px; z-index: 100;
     min-width: 155px;
     max-width: calc(100vw - 16px);
-    max-height: 80vh;
-    overflow-y: auto;
     background: var(--bg-panel, #111);
     border: 1px solid var(--bg-active-border, #1a3a28);
     border-radius: 6px;
@@ -61,6 +60,7 @@
 }
 
 .logo-menu.open { display: block; animation: menuFadeIn 0.15s ease-out; }
+.logo-menu.submenu-inline { max-height: 80vh; overflow-y: auto; }
 
 @keyframes menuFadeIn {
     from { opacity: 0; transform: translateY(-4px); }

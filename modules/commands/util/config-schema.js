@@ -61,7 +61,7 @@ export const CONFIG_SCHEMA = {
         default: DEFAULT_THEME_ID,
         type: "enum",
         options: Object.keys(THEMES),
-        desc: "Visual theme (WhOS, amber, matrix)",
+        desc: "Visual theme (wh_ui, wh_dark, amber, classic)",
     },
 };
 

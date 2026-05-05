@@ -1,36 +1,67 @@
 /* =========================================================================
  * Modern UI Theme — Layout & Chrome overrides
- * Scoped: [data-theme="modern"]
+ * Scoped: :is([data-theme="wh_ui"], [data-theme="wh_dark"])
  * 
  * Handles: Context bar, domain input, peek tab, terminal container,
  *          menus, modals, emulation pills.
  * Companion: modern-ui-triad.css (dashboard cards & accent bars)
  * ========================================================================= */
 
+/* Theme variables for the modern layout structure */
+[data-theme="wh_ui"] {
+    --page-bg: #acb9c0;
+    --bar-bg: rgba(43, 53, 59, 0.92);
+    --bar-active-bg: rgba(36, 45, 50, 0.9);
+    --domain-bg: rgba(60, 74, 82, 0.6);
+    --menu-bg: #242d32;
+    --menu-item-bg: #333f46;
+    --menu-hover-bg: #88c0d0;
+    --menu-hover-text: #242d32;
+}
+
+[data-theme="wh_dark"] {
+    --page-bg: #000000;
+    --bar-bg: rgba(17, 17, 17, 0.95);
+    --bar-active-bg: rgba(10, 10, 10, 0.95);
+    --domain-bg: rgba(26, 26, 26, 0.6);
+    --menu-bg: #0a0a0a;
+    --menu-item-bg: #161616;
+    --menu-hover-bg: #00ff88;
+    --menu-hover-text: #0a0a0a;
+}
+
+body:is([data-theme="wh_ui"], [data-theme="wh_dark"]) {
+    background: var(--page-bg);
+    transition: background 0.3s ease;
+}
+
 /* --- Layout: Floating Card Context Bar ----------------------------------- */
 
-[data-theme="modern"] #context-bar {
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #context-bar {
+    position: absolute;  /* Detach from normal flow so expansion overlays perfectly */
+    top: 0; left: 0; right: 0;
     margin: 6px;
-    border-radius: 10px;
+    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(44, 44, 46, 0.85);
+    background: var(--bar-bg);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-    overflow: visible;   /* CRITICAL — allows logo-menu to render outside */
-    z-index: 10;         /* CRITICAL — paints above #terminal-container */
+    overflow: visible;   /* allows logo-menu to render outside */
+    height: auto;        /* Let it grow naturally to contain expanding panels */
+    z-index: 30;         /* Paint above #terminal-container */
     transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-[data-theme="modern"] #context-bar.active {
-    border-color: rgba(48, 209, 88, 0.2);
-    background: rgba(30, 40, 34, 0.9);
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #context-bar.active {
+    border-color: rgba(136, 192, 208, 0.2);
+    background: var(--bar-active-bg);
     box-shadow: 0 2px 16px rgba(48, 209, 88, 0.06);
 }
 
 /* --- Top Row ------------------------------------------------------------- */
 
-[data-theme="modern"] .context-row.context-top {
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .context-row.context-top {
     padding: 8px 10px;
     height: auto;
     background: rgba(255, 255, 255, 0.025);
@@ -38,8 +69,8 @@
     border-radius: 10px 10px 0 0;
 }
 
-[data-theme="modern"] #context-domain {
-    background: rgba(58, 58, 60, 0.6);
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #context-domain {
+    background: var(--domain-bg);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
     padding: 4px 8px;
@@ -48,183 +79,106 @@
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-[data-theme="modern"] #context-domain:focus,
-[data-theme="modern"] #context-domain.editing {
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #context-domain:focus,
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #context-domain.editing {
     border-color: var(--accent-green);
     background: var(--bg-input-focus);
     box-shadow: 0 0 0 2px rgba(48, 209, 88, 0.15);
 }
 
-/* --- Logo Wrapper: Smooth interactions ----------------------------------- */
-
-[data-theme="modern"] #logo-wrapper:hover #context-logo { filter: drop-shadow(0 0 4px rgba(48, 209, 88, 0.4)); }
-[data-theme="modern"] #context-version { color: rgba(255, 255, 255, 0.45) !important; }
-
-/* --- Logo Menu ----------------------------------------------------------- */
-
-[data-theme="modern"] .logo-menu {
-    background: #000000; /* Pure black for Android feel */
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    border: 1px solid #303030;
-    border-radius: 28px; /* Android large corner radius */
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-    padding: 16px 12px;
-    max-width: calc(100vw - 16px);
-}
-
-[data-theme="modern"] .logo-menu-submenu {
-    background: #000000;
-}
-
-[data-theme="modern"] .logo-menu:not(.submenu-inline) .logo-menu-submenu {
-    border: 1px solid #303030;
-    border-radius: 28px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-    padding: 12px;
-}
-
-[data-theme="modern"] .logo-menu-item {
-    border-radius: 28px; /* Pill shape */
-    transition: background 0.2s cubic-bezier(0.2, 0, 0, 1), color 0.2s ease, transform 0.1s ease;
-    padding: 14px 20px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #e3e3e3;
-    background: #303030; /* Inactive pill background */
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-}
-
-[data-theme="modern"] .logo-menu-item:last-child {
-    margin-bottom: 0;
-}
-
-[data-theme="modern"] .logo-menu-submenu .logo-menu-item {
-    font-size: 13.5px;
-    padding: 12px 18px;
-    margin-bottom: 4px;
-}
-
-[data-theme="modern"] .logo-menu-item span:first-child { 
-    font-size: 20px; 
-    width: 32px; 
-    text-align: left; 
-}
-
-/* Material You Active/Hover State */
-[data-theme="modern"] .logo-menu-item:hover,
-[data-theme="modern"] .logo-menu-item:focus,
-[data-theme="modern"] .logo-menu-sub-wrap:hover > .logo-menu-has-sub,
-[data-theme="modern"] .logo-menu-sub-wrap.sub-expanded > .logo-menu-has-sub {
-    background: #d3e3fd; /* Light blue */
-    color: #041e49; /* Deep blue text */
-    outline: none;
-    transform: scale(0.98); /* slight press effect */
-}
-
-/* Submenu Arrow in Active state */
-[data-theme="modern"] .logo-menu-sub-wrap:hover .logo-menu-sub-arrow,
-[data-theme="modern"] .logo-menu-sub-wrap.sub-expanded .logo-menu-sub-arrow {
-    color: #041e49; 
-    opacity: 0.8;
-}
-
-[data-theme="modern"] .logo-menu-sep {
-    display: block;
-    height: 0px;
-    background: transparent;
-    margin: 8px 0;
-}
-
-[data-theme="modern"] .logo-menu-group-label {
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 11px;
-    letter-spacing: 0.5px;
-    white-space: normal;
-    line-height: 1.4;
-    margin-top: 4px;
-    padding-bottom: 4px;
-    padding-left: 18px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
 
 /* --- Peek Tab ------------------------------------------------------------ */
 
-[data-theme="modern"] #header-peek-tab { height: 28px; background: rgba(48, 209, 88, 0.03); border: none; border-top: 1px solid rgba(255, 255, 255, 0.06); transition: background 0.2s ease; }
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #header-peek-tab { height: 28px; background: rgba(48, 209, 88, 0.03); border: none; border-top: 1px solid rgba(255, 255, 255, 0.06); transition: background 0.2s ease; }
 
-[data-theme="modern"] #header-peek-tab:hover {
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #header-peek-tab:hover {
     background: rgba(48, 209, 88, 0.08);
 }
 
-[data-theme="modern"] .peek-label { font-size: 11px !important; font-weight: 800 !important; letter-spacing: 3px !important; color: var(--accent-green) !important; }
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .peek-label { font-size: 11px !important; font-weight: 800 !important; letter-spacing: 3px !important; color: var(--accent-green) !important; }
 
 /* --- Terminal Container -------------------------------------------------- */
 
-[data-theme="modern"] #terminal-container {
-    margin: 4px 6px 6px 6px;
-    border-radius: 10px;
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #terminal-container {
+    margin: 82px 8px 8px 8px; /* Offset for the absolute context-bar (70px height + 12px gaps) */
+    border-radius: 12px;
     background: var(--bg-main);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* Kill the retro CRT scanline overlay */
-[data-theme="modern"] #terminal-container::after { display: none; }
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #terminal-container::after { display: none; }
 
-[data-theme="modern"] #font-controls button {
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #font-controls button {
     border: 1px solid transparent;
 }
-[data-theme="modern"] #font-controls button,
-[data-theme="modern"] .shield-btn {
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #font-controls button,
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .shield-btn {
     border-radius: 5px;
     transition: all 0.15s ease;
 }
-[data-theme="modern"] #font-controls button:hover {
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #font-controls button:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.12);
     color: var(--accent-green);
 }
 
-/* --- Block Panel --------------------------------------------------------- */
+/* --- Block Panel & Emulation ----------------------------------------------- */
 
-[data-theme="modern"] #block-panel { background: rgba(0, 0, 0, 0.1); border-top: 1px solid rgba(255, 255, 255, 0.06); }
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #block-panel { 
+    background: transparent; 
+    border-top: 1px solid rgba(255, 255, 255, 0.06); 
+}
 
-/* --- Tab Switch Bar ------------------------------------------------------ */
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .emulation-bar {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: none;
+}
 
-[data-theme="modern"] #tab-switch-bar {
-    background: linear-gradient(135deg, rgba(10, 132, 255, 0.06), rgba(10, 132, 255, 0.02));
-    border-bottom-color: rgba(10, 132, 255, 0.12);
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50; /* Above context-bar (z-index 30) */
+    background: linear-gradient(135deg, rgba(10, 132, 255, 0.12), rgba(10, 132, 255, 0.04));
+    border-bottom-color: rgba(10, 132, 255, 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 0;
 }
 
 /* --- Modal Dialog -------------------------------------------------------- */
 
-[data-theme="modern"] .wh-modal {
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .wh-modal {
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.12);
-    background: #2c2c2e;
+    background: var(--bg-main);
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
 }
 
-[data-theme="modern"] .wh-modal-header { background: rgba(48, 209, 88, 0.04); border-bottom: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px 14px 0 0; }
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .wh-modal-header { background: rgba(48, 209, 88, 0.04); border-bottom: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px 14px 0 0; }
 
-[data-theme="modern"] .wh-modal-btn-primary,
-[data-theme="modern"] .wh-modal-btn-cancel {
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .wh-modal-btn-primary,
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .wh-modal-btn-cancel {
     border-radius: 8px;
     transition: background 0.2s ease, transform 0.1s ease;
 }
 
 /* --- Emulation Pills ----------------------------------------------------- */
 
-[data-theme="modern"] .emu-pill {
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .emu-pill {
     border-radius: 8px;
     transition: all 0.2s ease;
 }
 
-[data-theme="modern"] .emu-dropdown { background: #2c2c2e; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; }
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .emu-dropdown { background: var(--bg-panel); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; }
 
 /* --- Scrollbar ----------------------------------------------------------- */
 
-[data-theme="modern"] .xterm-viewport::-webkit-scrollbar-track { background: transparent; }
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .xterm-viewport::-webkit-scrollbar-track { background: transparent; }

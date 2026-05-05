@@ -24,7 +24,7 @@ export const AVAILABLE_COMMANDS = [
     "web", "curl", "openssl", "whois", "hosting", "history", "rank", "ping", "trace", "robots", "links", "wayback", "green", "cookies", "pixels", "socials", "stack", "seo", "og", "alt", "schema", "minify", "load", "vitals", "security-txt", "fonts", "palette",
 
     // AUDITS
-    "audit", "sec", "csp", "waf", "hsts", "headers-check", "comments", "cms", "malware", "emails", "phones",
+    "audit", "sec", "csp", "waf", "hsts", "headers-check", "comments", "cms", "malware", "emails", "phones", "extract",
 
     // NETWORK
     "isup", "jitter", "speedtest", "rev-dns", "port-scan", "ftp-check", "ip",
@@ -95,6 +95,7 @@ const THROTTLE_KEYS = ["5g", "4g", "fast3g", "slow3g", "edge", "offline", "reset
 const GEO_KEYS = ["london", "nyc", "india", "tokyo", "mexico", "brazil", "italy", "philippines", "add", "remove", "list", "reset", "clear", "off"];
 const BLOCK_KEYS = ["--list", "--clear", "list", "clear"];
 const HACK_KEYS = ["junior", "mid", "senior", "random", "--timer"];
+const EXTRACT_KEYS = ["-emails", "-phones", "-links", "-images", "-docs", "-comments"];
 export const SUBCOMMAND_MAP = {
     config:   CONFIG_KEYS,
     settings: CONFIG_KEYS,
@@ -131,4 +132,5 @@ export const SUBCOMMAND_MAP = {
     live:      WATCH_KEYS,
     netwatch:  WATCH_KEYS,
     waterfall: WATCH_KEYS,
+    extract:   EXTRACT_KEYS,
 };

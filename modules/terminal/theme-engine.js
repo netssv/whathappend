@@ -32,6 +32,14 @@ export async function initThemeEngine(term) {
     } catch (_) {}
 
     applyThemeInternal(_currentThemeId, false);
+
+    // Start logo bounce hint AFTER theme is fully painted (double-rAF prevents glitch)
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            const logo = document.getElementById("context-logo");
+            if (logo) logo.classList.add("pulse-hint");
+        });
+    });
 }
 
 /**

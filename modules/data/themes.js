@@ -13,16 +13,16 @@
  * - Layer: Data Layer - Static constants, dictionaries, and autocomplete datasets.
  */
 
-import { themeWhOS } from "./themes/theme-whos.js";
+import { themeWHDark } from "./themes/theme-wh-dark.js";
 import { themeAmber } from "./themes/theme-amber.js";
-import { themeMatrix } from "./themes/theme-matrix.js";
-import { themeModern } from "./themes/theme-modern.js";
+import { themeClassic } from "./themes/theme-classic.js";
+import { themeWHUI } from "./themes/theme-wh-ui.js";
 
-export const DEFAULT_THEME_ID = "modern";
+export const DEFAULT_THEME_ID = "wh_ui";
 
 export const THEMES = {
-    WhOS: themeWhOS,
+    wh_ui: themeWHUI,
+    wh_dark: themeWHDark,
     amber: themeAmber,
-    matrix: themeMatrix,
-    modern: themeModern,
+    classic: themeClassic,
 };

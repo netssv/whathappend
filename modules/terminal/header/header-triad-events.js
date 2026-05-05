@@ -80,7 +80,9 @@ export function initTriadEvents(api) {
 
     const peekTab = document.getElementById("header-peek-tab");
     if (peekTab && contextTriad) {
-        peekTab.addEventListener("click", () => {
+        peekTab.addEventListener("click", (e) => {
+            e.stopPropagation(); // Prevent document-level close handler from firing
+            
             // Clear any running tease animation and unlock visibility
             contextTriad.classList.remove("peek-tease");
             contextTriad.removeAttribute("data-peek-active");
@@ -88,6 +90,29 @@ export function initTriadEvents(api) {
             cancelAutoHide();
             contextTriad.classList.toggle("visible");
             peekTab.classList.toggle("peek-open", contextTriad.classList.contains("visible"));
+            
+            // Close other overlay menus if opening
+            if (contextTriad.classList.contains("visible")) {
+                const logoMenu = document.getElementById("logo-menu");
+                if (logoMenu) logoMenu.classList.remove("open");
+                const logoWrapper = document.getElementById("logo-wrapper");
+                if (logoWrapper) logoWrapper.classList.remove("menu-active");
+                const blockPanel = document.getElementById("block-panel");
+                if (blockPanel) blockPanel.classList.remove("visible");
+            }
+            
+            setTimeout(() => refitTerminal(), 350);
+        });
+        
+        // Close Triad on outside click (terminal, body, etc.)
+        document.addEventListener("click", (e) => {
+            if (!contextTriad.classList.contains("visible")) return;
+            const contextBar = document.getElementById("context-bar");
+            // Allow clicks anywhere inside the context-bar (header) without closing
+            if (contextBar && contextBar.contains(e.target)) return;
+            contextTriad.classList.remove("visible");
+            peekTab.classList.remove("peek-open");
+            cancelAutoHide();
             setTimeout(() => refitTerminal(), 350);
         });
     }

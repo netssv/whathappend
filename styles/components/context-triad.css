@@ -15,17 +15,24 @@
 #context-triad {
     display: flex;
     flex-direction: column;
+    flex-shrink: 0; /* CRITICAL: Prevent flexbox from squishing when parent has fixed height */
     gap: 4px;
     height: 0; overflow: hidden; opacity: 0;
     padding: 0 10px;
     border-top: 1px solid transparent;
-    transition: height 0.3s ease, opacity 0.35s ease, padding 0.3s ease, border-color 0.3s ease;
+    transition: height 0.3s ease, opacity 0.3s ease, padding 0.3s ease, border-color 0.3s ease;
+    
+    /* Solid background for when it overflows/overlays the terminal */
+    background: var(--bg-panel);
 
     &.visible {
         height: auto; opacity: 1;
-        padding: 6px 10px;
+        padding: 10px;
         border-top-color: var(--bg-active-border);
-        background: linear-gradient(to right, rgba(0,255,136,0.03), transparent);
+        border-bottom: 1px solid var(--bg-panel-border);
+        background: var(--bg-active);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        pointer-events: auto;
         animation: slideDownFadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
 

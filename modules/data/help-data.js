@@ -19,6 +19,7 @@ export const HELP_SECTIONS = [
         ["malware", "Client-side malware heuristic", "virus"],
         ["emails", "Extract email addresses", "scrape-emails"],
         ["phones", "Extract phone numbers", "scrape-phones"],
+        ["extract", "Page content extractor", "-emails -links -images -docs"],
     ]},
     { title: "DNS", cmds: [
         ["dig", "Full DNS [+short]", "dns record"],
