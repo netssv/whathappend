@@ -10,7 +10,7 @@ export const themeWHUI = {
     name: "WH UI",
     accent: "#88c0d0",
     css: {
-        /* Oceanic dark grays / blues — inspired by the reference image */
+        /* Oceanic dark grays / blues */
         "--bg-main": "#2b353b",
         "--bg-panel": "#333f46",
         "--bg-panel-border": "#3c4a52",
@@ -26,10 +26,10 @@ export const themeWHUI = {
         "--bg-scrollbar-thumb-hover": "#81a1c1",
         "--bg-scrollbar-thumb-active": "#88c0d0",
         /* Text — softer contrast on oceanic background */
-        "--text-dim": "#6c7a80",
+        "--text-dim": "#8ea1ab",
         "--text-light": "#9aa7ad",
         "--text-bright": "#eceff4",
-        "--text-dark": "#4f5e66",
+        "--text-dark": "#6f7e88",
         "--text-btn": "#eceff4",
         /* Accent palette (Nord inspired) */
         "--accent-green": "#a3be8c",
@@ -58,7 +58,7 @@ export const themeWHUI = {
         magenta: "#b48ead",
         cyan: "#88c0d0",
         white: "#e5e9f0",
-        brightBlack: "#4c566a",
+        brightBlack: "#8190a0",
         brightRed: "#d08770",
         brightGreen: "#8fbcbb",
         brightYellow: "#ebcb8b",

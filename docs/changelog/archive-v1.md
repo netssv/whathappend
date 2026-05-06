@@ -8,4 +8,4 @@
 - **Side Panel Integration**: Debuted as a native Chrome side panel extension.
 - **Privacy Focus**: Established the "no tracking, no databases" philosophy.
 
-[⬅ Return to Knowledge Map](../map.md)
+[⬅ Return to Home](../../README.md)

@@ -110,17 +110,16 @@ export function cmdCoffee(args) {
                         // Start visual flash on the terminal container
                         this._flash = startFlash();
 
-                        // Chrome notification
-                        try {
-                            if (chrome.notifications && chrome.notifications.create) {
-                                chrome.notifications.create("wh-coffee-done", {
-                                    type: "basic",
-                                    iconUrl: "icons/icon128.png",
-                                    title: "Break Over ☕",
-                                    message: `Your ${minutes}-minute break is done. Back to work!`,
-                                });
-                            }
-                        } catch (_) {}
+                        // Browser-level alert via title flash (no permission needed)
+                        this._titleFlash = (() => {
+                            const original = document.title;
+                            let on = true;
+                            const id = setInterval(() => {
+                                document.title = on ? `☕ Break Over! — ${minutes} min` : original;
+                                on = !on;
+                            }, 1000);
+                            return { stop: () => { clearInterval(id); document.title = original; } };
+                        })();
                     }
                 };
 
@@ -143,6 +142,11 @@ export function cmdCoffee(args) {
                 if (this._flash) {
                     this._flash.stop();
                     this._flash = null;
+                }
+                // Stop title flash
+                if (this._titleFlash) {
+                    this._titleFlash.stop();
+                    this._titleFlash = null;
                 }
             }
         }

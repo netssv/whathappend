@@ -11,6 +11,7 @@ export function cmdNavMenu() {
     return {
         __watch: true,
         watcher: {
+            clearOnExit: true,
             onDataDisposable: null,
             _subWatcher: null,
             _renderer: null,
@@ -62,6 +63,11 @@ export function cmdNavMenu() {
                             this.onDataDisposable.dispose();
                             this.onDataDisposable = null;
                         }
+                        
+                        // Clear the menu from the screen to prevent "dead UI" confusion
+                        term.clear();
+                        import("../../terminal-ui.js").then(ui => ui.showBanner());
+                        
                         doneCallback();
                         return;
                     }

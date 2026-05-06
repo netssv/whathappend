@@ -93,4 +93,4 @@
 - **Keyboard Shortcuts**: Added reliable Chrome shortcuts: `Ctrl+Shift+.` (Toggle Panel) and `Ctrl+Shift+,` (Reload).
 - **Bug Fixes**: Fixed ANSI italic rendering issues and improved CNAME chain resolution in DNS lookups.
 
-[⬅ Return to Knowledge Map](../map.md)
+[⬅ Return to Home](../../README.md)

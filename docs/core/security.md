@@ -18,4 +18,4 @@ We use a **Heuristic Discovery Engine** using live data (DNS, RDAP, CNAMEs).
 ### 4. No Third-Party Dependencies
 All code (like xterm.js) is bundled internally to prevent supply chain attacks.
 
-[⬅ Return to Knowledge Map](../map.md)
+[⬅ Return to Home](../../README.md)

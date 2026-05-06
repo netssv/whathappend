@@ -66,7 +66,7 @@ function execCmd(cmd) {
 function render() {
     const bar = document.getElementById("emulation-bar");
     if (!bar) return;
-    bar.innerHTML = "";
+    bar.replaceChildren();
 
     if (_active.size === 0) {
         bar.classList.remove("visible");

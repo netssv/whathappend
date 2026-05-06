@@ -18,6 +18,7 @@
 import { ANSI } from "../../formatter.js";
 import { getActiveTabId, listTabOptions } from "./core/ua-engine.js";
 import { setEmulation, clearEmulation } from "../../terminal/header/header-emulation.js";
+import { ensureDebugger, getDebuggerFallbackMessage } from "./core/debugger-guard.js";
 
 // Keep track of blocked URLs per tab
 const blockedPatternsByTab = new Map();
@@ -30,7 +31,42 @@ async function attachDebugger(tabId) {
     }
 }
 
+async function getShieldBlocks(tabId) {
+    const blocks = [];
+    try {
+        const tab = await chrome.tabs.get(tabId);
+        const primaryUrl = tab.url;
+        const domain = new URL(primaryUrl).hostname;
+        
+        const contentSettings = ["javascript", "images", "cookies", "popups"];
+        for (const api of contentSettings) {
+            try {
+                const result = await chrome.contentSettings[api].get({ primaryUrl });
+                if (result.setting === "block") blocks.push(api);
+            } catch {}
+        }
+        
+        try {
+            const rules = await chrome.declarativeNetRequest.getSessionRules();
+            if (rules.some(r => r.id === 1001 && r.condition.initiatorDomains?.includes(domain))) blocks.push("css");
+            if (rules.some(r => r.id === 1002 && r.condition.initiatorDomains?.includes(domain))) blocks.push("fonts");
+        } catch {}
+    } catch {}
+    return blocks;
+}
+
 export async function cmdBlock(args) {
+    // ── Permission guard — request debugger on demand ──────────────────
+    const granted = await ensureDebugger();
+    if (!granted) {
+        const tabId = await getActiveTabId();
+        let domain = "";
+        if (tabId) {
+            try { const tab = await chrome.tabs.get(tabId); domain = new URL(tab.url).hostname; } catch {}
+        }
+        return getDebuggerFallbackMessage("block", domain);
+    }
+
     if (args.length === 0) {
         return {
             __watch: true,
@@ -40,18 +76,21 @@ export async function cmdBlock(args) {
                     const draw = async () => {
                         const tabId = await getActiveTabId();
                         let currentPatterns = [];
+                        let shieldBlocks = [];
                         if (tabId) {
                             currentPatterns = blockedPatternsByTab.get(tabId) || [];
+                            shieldBlocks = await getShieldBlocks(tabId);
                         }
 
                         term.write('\x1b[2J\x1b[H');
                         let out = `\n  ${ANSI.bold}${ANSI.cyan}/// NETWORK BLOCKER ///${ANSI.reset}\n\n`;
                         
-                        if (currentPatterns.length === 0) {
+                        if (currentPatterns.length === 0 && shieldBlocks.length === 0) {
                             out += `    ${ANSI.dim}No active rules.${ANSI.reset}\n\n`;
                         } else {
                             out += `    ${ANSI.bold}Active Rules:${ANSI.reset}\n`;
-                            currentPatterns.forEach(p => out += `      ${ANSI.red}✗${ANSI.reset} ${p}\n`);
+                            shieldBlocks.forEach(p => out += `      ${ANSI.cyan}[Shield]${ANSI.reset} ${p}\n`);
+                            currentPatterns.forEach(p => out += `      ${ANSI.red}[Debugger]${ANSI.reset} ${p}\n`);
                             out += `\n`;
                         }
                         
@@ -126,15 +165,48 @@ export async function cmdBlock(args) {
             await chrome.debugger.sendCommand({ tabId }, "Network.setBlockedURLs", { urls: [] });
             blockedPatternsByTab.delete(tabId);
             clearEmulation("block");
+            
+            // Also clear Shield blocks (best-effort)
+            try {
+                const tab = await chrome.tabs.get(tabId);
+                const primaryPattern = `${new URL(tab.url).protocol}//${new URL(tab.url).hostname}/*`;
+                const contentSettings = ["javascript", "images", "cookies", "popups"];
+                for (const api of contentSettings) {
+                    await chrome.contentSettings[api].set({ primaryPattern, setting: "allow" });
+                }
+                const rules = await chrome.declarativeNetRequest.getSessionRules();
+                const hostname = new URL(tab.url).hostname;
+                for (const ruleId of [1001, 1002]) {
+                    const rule = rules.find(r => r.id === ruleId);
+                    if (rule) {
+                        const domains = new Set(rule.condition.initiatorDomains || []);
+                        domains.delete(hostname);
+                        if (domains.size > 0) {
+                            await chrome.declarativeNetRequest.updateSessionRules({
+                                removeRuleIds: [ruleId],
+                                addRules: [{ ...rule, condition: { ...rule.condition, initiatorDomains: Array.from(domains) } }]
+                            });
+                        } else {
+                            await chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [ruleId] });
+                        }
+                    }
+                }
+                setTimeout(() => import("../../terminal/header-controller.js").then(m => m.updateBlockState(tab.url)), 100);
+            } catch {}
+
             return `\n${ANSI.green}[OK]${ANSI.reset} All blocking rules cleared for this tab.`;
         }
 
         if (sub === "--list" || sub === "list" || sub === "ls") {
-            if (currentPatterns.length === 0) {
+            const shieldBlocks = await getShieldBlocks(tabId);
+            
+            if (currentPatterns.length === 0 && shieldBlocks.length === 0) {
                 return `\n${ANSI.dim}No active blocks for this tab.${ANSI.reset}`;
             }
+            
             let o = `\n${ANSI.bold}Active Blocks:${ANSI.reset}\n`;
-            currentPatterns.forEach(p => o += `  ${ANSI.red}✗${ANSI.reset} ${p}\n`);
+            shieldBlocks.forEach(p => o += `  ${ANSI.cyan}[Shield]${ANSI.reset} ${p}\n`);
+            currentPatterns.forEach(p => o += `  ${ANSI.red}[Debugger]${ANSI.reset} ${p}\n`);
             return o;
         }
 

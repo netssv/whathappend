@@ -142,15 +142,74 @@ body:is([data-theme="wh_ui"], [data-theme="wh_dark"]) {
 
 :is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-bar {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 50; /* Above context-bar (z-index 30) */
-    background: linear-gradient(135deg, rgba(10, 132, 255, 0.12), rgba(10, 132, 255, 0.04));
-    border-bottom-color: rgba(10, 132, 255, 0.2);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 0;
+    top: auto;
+    bottom: 30px;
+    left: 50%;
+    right: auto;
+    z-index: 100;
+    transform: translateX(-50%) translateY(150%);
+    background: rgba(10, 20, 30, 0.96); /* Deep dark contrasting background */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 229, 255, 0.5); /* Vibrant cyan border */
+    border-radius: 24px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.6), 0 0 20px rgba(0, 229, 255, 0.15); /* Soft glowing shadow */
+    height: auto !important;
+    padding: 10px 18px !important;
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+    width: max-content;
+    max-width: 90%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-bar.visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-label {
+    color: #e0e0e0;
+    font-weight: 500;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-domain {
+    color: #00e5ff;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-btn {
+    background: rgba(0, 229, 255, 0.15);
+    border: 1px solid rgba(0, 229, 255, 0.4);
+    color: #00e5ff;
+    border-radius: 14px;
+    padding: 4px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-btn:hover {
+    background: #00e5ff;
+    color: #001122;
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.5);
+    transform: translateY(-1px);
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-dismiss {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 16px;
+    transition: color 0.2s ease;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-dismiss:hover {
+    color: #ff4444;
 }
 
 /* --- Modal Dialog -------------------------------------------------------- */

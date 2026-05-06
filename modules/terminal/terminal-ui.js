@@ -58,6 +58,14 @@ export function initTerminalUI(containerId) {
     const container = document.getElementById(containerId);
     term.open(container);
 
+    // Let Ctrl+V pass through to the browser so the native 'paste' event
+    // fires. clipboard-handler.js Layer 1/2 will process it.
+    // Returning false tells xterm to NOT intercept the event.
+    term.attachCustomKeyEventHandler((e) => {
+        if (e.ctrlKey && e.key === 'v') return false;
+        return true;
+    });
+
     // Initialize theme engine (restores saved theme from storage)
     initThemeEngine(term);
 

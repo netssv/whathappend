@@ -28,7 +28,10 @@ export function initTabsSubmenu(menu) {
                 btn.className = "logo-menu-item";
                 if (tab.active) btn.classList.add("active-theme");
                 btn.dataset.cmd = `tab_menu:${tab.id}:${host}`;
-                btn.innerHTML = `<span>${tab.active ? "●" : " "}</span>${title}`;
+                const icon = document.createElement("span");
+                icon.textContent = tab.active ? "●" : " ";
+                btn.appendChild(icon);
+                btn.appendChild(document.createTextNode(title));
                 btn.title = tab.url;
                 tabsSub.appendChild(btn);
             }
@@ -41,7 +44,10 @@ export function initTabsSubmenu(menu) {
             const allBtn = document.createElement("button");
             allBtn.className = "logo-menu-item";
             allBtn.dataset.cmd = "tabs";
-            allBtn.innerHTML = `<span>⋯</span>Full tab manager`;
+            const allIcon = document.createElement("span");
+            allIcon.textContent = "⋯";
+            allBtn.appendChild(allIcon);
+            allBtn.appendChild(document.createTextNode("Full tab manager"));
             tabsSub.appendChild(allBtn);
         } catch {
             tabsSub.innerHTML = `<span class="logo-menu-group-label">Error loading tabs</span>`;

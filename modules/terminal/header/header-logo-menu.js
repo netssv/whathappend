@@ -34,10 +34,20 @@ export function initLogoMenu() {
                 const isBlockerHidden = config["autoHideBlocker"] !== undefined ? config["autoHideBlocker"] : true;
                 
                 const btnHide = document.getElementById("menu-toggle-header");
-                if (btnHide) btnHide.innerHTML = `<span>◫</span> Triage: ${isHidden ? "ON" : "OFF"}`;
+                if (btnHide) {
+                    btnHide.replaceChildren();
+                    const s1 = document.createElement("span"); s1.textContent = "◫";
+                    btnHide.appendChild(s1);
+                    btnHide.appendChild(document.createTextNode(` Triage: ${isHidden ? "ON" : "OFF"}`));
+                }
                 
                 const btnBlocker = document.getElementById("menu-toggle-blocker");
-                if (btnBlocker) btnBlocker.innerHTML = `<span>🛡</span> Blocker: ${isBlockerHidden ? "ON" : "OFF"}`;
+                if (btnBlocker) {
+                    btnBlocker.replaceChildren();
+                    const s2 = document.createElement("span"); s2.textContent = "🛡";
+                    btnBlocker.appendChild(s2);
+                    btnBlocker.appendChild(document.createTextNode(` Blocker: ${isBlockerHidden ? "ON" : "OFF"}`));
+                }
             });
         } catch {}
 
@@ -63,7 +73,10 @@ export function initLogoMenu() {
                         const btn = document.createElement("button");
                         btn.className = "logo-menu-item";
                         btn.dataset.cmd = `geo ${key}`;
-                        btn.innerHTML = `<span>📌</span>${customLocs[key].label || key}`;
+                        const pinIcon = document.createElement("span");
+                        pinIcon.textContent = "📌";
+                        btn.appendChild(pinIcon);
+                        btn.appendChild(document.createTextNode(customLocs[key].label || key));
                         container.appendChild(btn);
                     }
                 }
@@ -175,9 +188,10 @@ export function initLogoMenu() {
     const subButtons = menu.querySelectorAll(".logo-menu-has-sub");
     subButtons.forEach(btn => {
         btn.addEventListener("click", (e) => {
-            if (!menu.classList.contains("submenu-inline")) return; // Skip in flyout mode
             e.preventDefault();
             e.stopPropagation();
+
+            if (!menu.classList.contains("submenu-inline")) return; // Skip accordion logic in flyout mode
 
             const parentWrap = btn.closest(".logo-menu-sub-wrap");
             const isCurrentlyOpen = parentWrap.classList.contains("sub-expanded");

@@ -1,7 +1,13 @@
 /**
  * @module modules/terminal/input/clipboard-handler.js
- * @description Architectural connections and module role.
- * 
+ * @description Clipboard paste handling for the terminal input.
+ *
+ * Note: The `clipboardRead` permission was removed in v2.8.1.
+ * In MV3, `navigator.clipboard.readText()` works from extension pages
+ * (like our side panel) when the page has focus — no permission needed.
+ * The paste event handler is the primary path; the manual trigger via
+ * navigator.clipboard is a fallback for Ctrl+V interception.
+ *
  * @connections
  * - Imports: 
  *     - InputEvents from './events.js'

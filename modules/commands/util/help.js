@@ -38,6 +38,7 @@ function createHelpWatcher() {
     return {
         __watch: true,
         watcher: {
+            clearOnExit: true,
             onDataDisposable: null,
             _renderer: null,
             _mouseEnabled: false,
@@ -76,6 +77,11 @@ function createHelpWatcher() {
 
                     if (lower === "q" || e === "\x03") {
                         this._dispose();
+                        
+                        // Clear the help TUI from the screen to prevent "dead UI" confusion
+                        term.clear();
+                        import("../../terminal-ui.js").then(ui => ui.showBanner());
+                        
                         doneCallback();
                         return;
                     }

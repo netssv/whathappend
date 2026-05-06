@@ -11,4 +11,4 @@ Environment emulation, spoofing, and manipulation.
 | `block` | Blocks specific URLs or patterns from loading in the active tab. | `ban`, `deny` |
 | `edit` | Toggles designMode to edit text on the live page. | `designmode` |
 
-[⬅ Return to Knowledge Map](../../map.md)
+[⬅ Return to Home](../../README.md)

@@ -4,17 +4,19 @@
  *
  * @connections
  * - Imports: getModalEls, openModal, closeModal from './modal-core.js'
- * - Exports: showConfirm
+ *            sanitizeHTML, clearElement from './sanitize.js'
+ * - Exports: showConfirm, showChoice
  * - Layer: Terminal Layer (UI)
  */
 
 import { getModalEls, openModal, closeModal } from "./modal-core.js";
+import { sanitizeHTML, clearElement } from "./sanitize.js";
 
 /**
  * Show a confirmation dialog.
  * @param {Object} opts
  * @param {string} opts.title
- * @param {string} opts.message - Body message (supports HTML)
+ * @param {string} opts.message - Body message (supports safe HTML subset)
  * @param {string} [opts.confirmLabel="Yes"]
  * @param {string} [opts.cancelLabel="Cancel"]
  * @param {boolean} [opts.danger=false] - If true, confirm button is styled red
@@ -27,15 +29,15 @@ export function showConfirm(opts) {
     // Title
     if (els.title) els.title.textContent = opts.title || "Confirm";
 
-    // Message body
-    els.body.innerHTML = "";
+    // Message body — sanitized to prevent DOM XSS
+    clearElement(els.body);
     const msg = document.createElement("div");
     msg.style.cssText = "font-size: 12.5px; color: #ccc; line-height: 1.6;";
-    msg.innerHTML = opts.message || "Are you sure?";
+    msg.innerHTML = sanitizeHTML(opts.message || "Are you sure?");
     els.body.appendChild(msg);
 
     // Footer buttons
-    els.footer.innerHTML = "";
+    clearElement(els.footer);
 
     const cancelBtn = document.createElement("button");
     cancelBtn.className = "wh-modal-btn-cancel";
@@ -73,13 +75,15 @@ export function showChoice(opts) {
 
     if (els.title) els.title.textContent = opts.title || "Choose Option";
 
-    els.body.innerHTML = "";
+    // Message body — sanitized
+    clearElement(els.body);
     const msg = document.createElement("div");
     msg.style.cssText = "font-size: 12.5px; color: #ccc; line-height: 1.6; margin-bottom: 12px;";
-    msg.innerHTML = opts.message || "";
+    msg.innerHTML = sanitizeHTML(opts.message || "");
     els.body.appendChild(msg);
 
-    els.footer.innerHTML = "";
+    // Footer buttons
+    clearElement(els.footer);
     
     // Add cancel button first
     const cancelBtn = document.createElement("button");
@@ -100,3 +104,4 @@ export function showChoice(opts) {
 
     return openModal(els, null, firstPrimary || cancelBtn);
 }
+

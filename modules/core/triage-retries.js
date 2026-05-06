@@ -50,20 +50,24 @@ export function retryEmptyHeaderFields(domain, apexDomain, resolved) {
 
     // Fire-and-forget — no terminal output, only header updates
     for (const field of missing) {
-        if (field === "registrar") {
-            retryRegistrar(apexDomain, isStale, gen);
-        } else if (field === "ns") {
-            retryNS(domain, isStale, gen);
-        } else if (field === "webhost") {
-            retryWebHost(domain, isStale, gen);
-        } else if (field === "ip") {
-            retryIPGeo(domain, gen);
-        } else if (field === "myip") {
-            retryMyIP(gen);
-        } else if (field === "ssl" || field === "http" || field === "cdn") {
-            retrySSLCDN(domain, gen);
-        } else if (field === "mx") {
-            retryMXDNS(apexDomain, gen);
+        try {
+            if (field === "registrar") {
+                retryRegistrar(apexDomain, isStale, gen);
+            } else if (field === "ns") {
+                retryNS(domain, isStale, gen);
+            } else if (field === "webhost") {
+                retryWebHost(domain, isStale, gen);
+            } else if (field === "ip") {
+                retryIPGeo(domain, gen);
+            } else if (field === "myip") {
+                retryMyIP(gen);
+            } else if (field === "ssl" || field === "http" || field === "cdn") {
+                retrySSLCDN(domain, gen);
+            } else if (field === "mx") {
+                retryMXDNS(apexDomain, gen);
+            }
+        } catch (e) {
+            console.warn(`[WH] Failed to init retry for ${field}:`, e);
         }
     }
 }

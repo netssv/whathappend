@@ -59,10 +59,9 @@ function setupTerminalListener() {
             }
             return;
         }
-        if (ctrlKey && keyCode === 86) {
-            InputEvents.emit("EV_TRIGGER_MANUAL_PASTE", null);
-            return;
-        }
+        // Ctrl+V paste: handled by attachCustomKeyEventHandler in terminal-ui.js
+        // which passes it to the browser → native 'paste' event → clipboard-handler.js
+
         const isNavKey = keyCode >= 35 && keyCode <= 40;
         if (keyCode !== 9 && !isNavKey) InputEvents.emit(InputEvents.EV_KEY_TYPED, keyCode);
         if (isKeyboardLocked()) return;

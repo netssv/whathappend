@@ -16,4 +16,4 @@
 - **Subcommand Conventions**: Documented the "Dash or No Dash" nomenclature for terminal flag handling vs configuration keys.
 - **Emoji Audit**: Reduced and standardized terminal output emoji usage per the new minimalist conventions.
 
-[⬅ Return to Knowledge Map](../map.md)
+[⬅ Return to Home](../../README.md)

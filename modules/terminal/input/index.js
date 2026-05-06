@@ -59,10 +59,15 @@ export function initInputManager() {
         const watcher = getWatcher();
         if (watcher) {
             watcher.stop(term);
+            if (watcher.clearOnExit) {
+                term.clear();
+                import("../terminal-ui.js").then(ui => ui.showBanner());
+            } else {
+                term.write("\r\n\x1b[33m^C [Stopped]\x1b[0m\r\n");
+            }
             setWatcher(null);
             setProcessing(false);
             setKeyboardLock(false);
-            term.write("\r\n\x1b[33m^C [Stopped]\x1b[0m\r\n");
             writePrompt();
             return;
         }

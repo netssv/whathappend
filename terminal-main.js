@@ -12,6 +12,19 @@ import { getConfig } from "./modules/commands/util/config.js";
 import { retryEmptyHeaderFields } from "./modules/core/triage-retries.js";
 
 // ---------------------------------------------------------------------------
+// Isolated Block-Panel Sync — fire-and-forget, never crashes triage
+// ---------------------------------------------------------------------------
+
+async function syncBlockPanelSafe() {
+    try {
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tabs[0]?.url) await updateBlockState(tabs[0].url);
+    } catch (e) {
+        console.warn("[WH] Block panel sync failed (non-fatal):", e);
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Bootstrapping
 // ---------------------------------------------------------------------------
 
@@ -40,10 +53,14 @@ async function bootstrap() {
         const restored = handleSessionRestore(session, initialDomain);
         if (!restored && initialDomain && initialDomain !== "restricted") {
             writePrompt();
-            // Trigger initial triage if auto-triage is enabled
+            // ALWAYS set manual target so the Side Panel is "sticky" to the starting domain.
+            // This prevents auto-switching and enables the tab-switch popup.
+            ContextManager.setManualTarget(initialDomain);
+            
+            // Helpful hint if auto-triage is OFF
             const autoTriage = await getConfig("auto-triage");
-            if (autoTriage) {
-                ContextManager.setManualTarget(initialDomain);
+            if (!autoTriage) {
+                term.writeln(`\x1b[90m  (Auto-triage is OFF. Type \x1b[37mstart\x1b[90m to scan active tab)\x1b[0m`);
             }
         } else if (!restored) {
             writePrompt();
@@ -51,12 +68,18 @@ async function bootstrap() {
 
         // Fallback: auto-focus if user clicks anywhere in the panel background
         document.addEventListener("click", (e) => {
-            if (e.target.tagName !== "BUTTON" && e.target.tagName !== "INPUT" && e.target.tagName !== "A") {
+            if (!e.target.closest("button") && e.target.tagName !== "INPUT" && e.target.tagName !== "A") {
                 grabFocus();
             }
         });
 
-        // initial tease is triggered by onDomainChanged
+        // Final refit: ensure terminal dimensions are correct after all header
+        // UI (triad cards, block panel) has settled. Without this, the banner
+        // can scroll off-screen if the header takes more space than expected.
+        setTimeout(() => {
+            refitTerminal();
+            term.scrollToBottom();
+        }, 400);
 
     } catch (err) {
         console.error("[WhatHappened] Bootstrap failed:", err);
@@ -89,18 +112,46 @@ window.addEventListener("focus", grabFocus);
 function showBootstrapError(err) {
     const termC = document.getElementById("terminal-container");
     if (termC) {
-        termC.innerHTML = `
-            <div style="padding: 20px; font-family: monospace;">
-                <h3 style="color:#ff3366;margin-top:0">⚠️ Terminal Core Failure</h3>
-                <p style="color:#aaa;margin:0 0 8px">The terminal could not initialize. This is usually caused by a corrupt extension state or a failed module import.</p>
-                <pre style="color:#ff6b6b;background:#0f0f23;padding:12px;border-radius:6px;overflow:auto;max-height:120px;font-size:12px">${err?.message || "Unknown error"}\n${err?.stack || ""}</pre>
-                <p style="color:#888;margin:16px 0 8px">Try one of these fixes:</p>
-                <ol style="color:#ccc;padding-left:20px;line-height:1.8">
-                    <li>Close and reopen the Side Panel</li>
-                    <li>Go to <code style="color:#00d2ff">chrome://extensions</code> → click <b>Reload</b> on WhatHappened</li>
-                    <li>If the issue persists, clear extension storage via DevTools</li>
-                </ol>
-            </div>`;
+        termC.replaceChildren();
+
+        const wrapper = document.createElement("div");
+        wrapper.style.cssText = "padding: 20px; font-family: monospace;";
+
+        const h3 = document.createElement("h3");
+        h3.style.cssText = "color:#ff3366;margin-top:0";
+        h3.textContent = "⚠️ Terminal Core Failure";
+        wrapper.appendChild(h3);
+
+        const desc = document.createElement("p");
+        desc.style.cssText = "color:#aaa;margin:0 0 8px";
+        desc.textContent = "The terminal could not initialize. This is usually caused by a corrupt extension state or a failed module import.";
+        wrapper.appendChild(desc);
+
+        const pre = document.createElement("pre");
+        pre.style.cssText = "color:#ff6b6b;background:#0f0f23;padding:12px;border-radius:6px;overflow:auto;max-height:120px;font-size:12px";
+        pre.textContent = `${err?.message || "Unknown error"}\n${err?.stack || ""}`;
+        wrapper.appendChild(pre);
+
+        const fixTitle = document.createElement("p");
+        fixTitle.style.cssText = "color:#888;margin:16px 0 8px";
+        fixTitle.textContent = "Try one of these fixes:";
+        wrapper.appendChild(fixTitle);
+
+        const ol = document.createElement("ol");
+        ol.style.cssText = "color:#ccc;padding-left:20px;line-height:1.8";
+        const fixes = [
+            "Close and reopen the Side Panel",
+            "Go to chrome://extensions → click Reload on WhatHappened",
+            "If the issue persists, clear extension storage via DevTools"
+        ];
+        for (const fix of fixes) {
+            const li = document.createElement("li");
+            li.textContent = fix;
+            ol.appendChild(li);
+        }
+        wrapper.appendChild(ol);
+
+        termC.appendChild(wrapper);
     }
 }
 
@@ -112,9 +163,6 @@ ContextManager.onDomainChanged((domain) => {
     
     // Clear stale badges immediately — triage resolvers will repopulate
     clearWhoisFields();
-    
-    // Trigger the bounce and tease animation
-    triggerPeekTease();
 });
 
 // Async Header: When a manual target is set.
@@ -135,17 +183,19 @@ ContextManager.onTargetChanged(async (domain) => {
 
     // Persist target for session restore
     setSessionTarget(domain);
+    
+    // Trigger the bounce and tease animation
+    triggerPeekTease();
 
-    // Trigger silent background triage if auto-triage is enabled
-    const autoTriage = await getConfig("auto-triage");
-    if (autoTriage) {
-        // Kick off progressive retries for all fields (they resolve via background handlers)
+    // Trigger silent background triage for the header triad (always runs)
+    try {
         retryEmptyHeaderFields(domain, toApex(domain), { registrar: null, ns: null, webhost: null, ip: null, myip: null, geo: null, ssl: null, cdn: null, http: null, mx: null });
+    } catch (e) {
+        console.warn("[WH] Background triage init error:", e);
     }
 
-    // Sync content-block shield state for new domain
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tabs[0]?.url) updateBlockState(tabs[0].url);
+    // Sync content-block shield state (isolated — must never affect triage)
+    syncBlockPanelSafe();
 });
 
 // Tab-change notification: Show interactive bar so user can choose to switch

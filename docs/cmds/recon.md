@@ -29,4 +29,4 @@ OSINT, DOM extractors, and Security Scanners.
 | `palette`| Extracts the dominant color palette from the active tab. | `colors`, `theme` |
 | `security-txt`| RFC 9116 security contact discovery (`/.well-known/security.txt`). | `sec-txt` |
 
-[⬅ Return to Knowledge Map](../../map.md)
+[⬅ Return to Home](../../README.md)

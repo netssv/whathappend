@@ -164,4 +164,4 @@
 - **xterm.js**: Integrated high-performance terminal rendering.
 - **Zero Cloud**: Ensured 100% of diagnostic processing runs locally in the browser.
 
-[⬅ Return to Knowledge Map](../map.md)
+[⬅ Return to Home](../../README.md)

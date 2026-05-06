@@ -11,6 +11,7 @@ export function startInteractiveConfig(stored) {
     return {
         __watch: true,
         watcher: {
+            clearOnExit: true,
             onDataDisposable: null,
             start: function(term, doneCallback) {
                 const keys = Object.keys(CONFIG_SCHEMA);
@@ -41,6 +42,8 @@ export function startInteractiveConfig(stored) {
                 this.onDataDisposable = term.onData(async e => {
                     e = e.toLowerCase();
                     if (e === 'q' || e === '\x03' || e === '\r' || e === '\n') {
+                        term.clear();
+                        import("../../terminal-ui.js").then(ui => ui.showBanner());
                         doneCallback();
                         return;
                     }

@@ -20,6 +20,7 @@
 import { ANSI } from "../../formatter.js";
 import { getActiveTabId, listTabOptions } from "./core/ua-engine.js";
 import { setEmulation, clearEmulation } from "../../terminal/header/header-emulation.js";
+import { ensureDebugger, getDebuggerFallbackMessage } from "./core/debugger-guard.js";
 
 // ---------------------------------------------------------------------------
 // Network Profiles
@@ -141,6 +142,19 @@ async function resetThrottle(tabId) {
 
 export async function cmdThrottle(args) {
     const sub = args[0]?.toLowerCase();
+
+    // ── Permission guard — request debugger on demand ──────────────────
+    if (sub && sub !== "help") {
+        const granted = await ensureDebugger();
+        if (!granted) {
+            const tabId = await getActiveTabId();
+            let domain = "";
+            if (tabId) {
+                try { const tab = await chrome.tabs.get(tabId); domain = new URL(tab.url).hostname; } catch {}
+            }
+            return getDebuggerFallbackMessage("throttle", domain);
+        }
+    }
 
     // ── LIST ───────────────────────────────────────────────────────────
     if (!sub) {

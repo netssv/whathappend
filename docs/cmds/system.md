@@ -32,4 +32,4 @@ Control the terminal environment itself.
 | `signal` | Displays a random ASCII signal generator | `intercept` |
 | `btc` | Live Bitcoin price fetched from Binance public API. | - |
 
-[⬅ Return to Knowledge Map](../../map.md)
+[⬅ Return to Home](../../README.md)

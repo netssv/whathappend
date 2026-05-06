@@ -1,6 +1,6 @@
 # WhatHappened
 
-**The terminal you always wanted in your browser side panel.** *(Current Version: v2.8.1)*
+**The terminal you always wanted in your browser side panel.** *(Current Version: v2.8.2)*
 
 Ever find yourself jumping between 10 different tabs just to check a DNS record, see why an SSL certificate is acting up, or figure out who is actually hosting a site? We were tired of that too. So we built **WhatHappened**.
 
@@ -10,7 +10,6 @@ It’s a simple, powerful terminal that lives right in your Chrome side panel. I
 
 Our documentation is modularized to ensure maximum readability and context retention:
 
-- [📍 Master Knowledge Map](docs/map.md)
 - [📖 Quick Start Guide](docs/guides/quick-start.md)
 - [🏗 Architecture & Internals](docs/core/architecture.md)
 - [🔒 Security & Privacy Policy](docs/core/security.md)

@@ -9,6 +9,7 @@
  */
 
 import { getModalEls, openModal, closeModal } from "./modal-core.js";
+import { clearElement } from "./sanitize.js";
 
 // ---------------------------------------------------------------------------
 // Field renderer
@@ -62,7 +63,7 @@ export function showModal(opts) {
     if (els.title) els.title.textContent = opts.title || "Dialog";
 
     // Build form fields
-    els.body.innerHTML = "";
+    clearElement(els.body);
     const fieldEls = {};
 
     // Group fields by row
@@ -104,7 +105,7 @@ export function showModal(opts) {
     els.body.appendChild(errEl);
 
     // Footer buttons
-    els.footer.innerHTML = "";
+    clearElement(els.footer);
 
     const cancelBtn = document.createElement("button");
     cancelBtn.className = "wh-modal-btn-cancel";

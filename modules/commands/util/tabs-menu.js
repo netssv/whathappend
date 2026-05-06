@@ -32,6 +32,7 @@ export function createTabMenu(cmdTabs) {
     return {
         __watch: true,
         watcher: {
+            clearOnExit: true,
             /** @type {import("@xterm/xterm").IDisposable|null} */
             onDataDisposable: null,
             _subWatcher: null,
@@ -95,6 +96,8 @@ export function createTabMenu(cmdTabs) {
                     // Global quit
                     if (isQuitKey(lower)) {
                         disposeListener(this);
+                        term.clear();
+                        import("../../terminal-ui.js").then(ui => ui.showBanner());
                         doneCallback();
                         return;
                     }

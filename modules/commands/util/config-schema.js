@@ -45,7 +45,7 @@ export const CONFIG_SCHEMA = {
         desc: "Auto-hide content blocker button and panel",
     },
     "autoHideDelay": {
-        default: 10000,
+        default: 15000,
         type: "number",
         min: 1000,
         max: 30000,

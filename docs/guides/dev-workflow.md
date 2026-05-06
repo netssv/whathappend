@@ -8,4 +8,4 @@ When adding or modifying a command, you MUST verify and update:
 5. Update `modules/commands/util/help.js` (for main `help` menu).
 6. Update the corresponding markdown file in `docs/cmds/` to document the new command.
 
-[⬅ Return to Knowledge Map](../map.md)
+[⬅ Return to Home](../../README.md)

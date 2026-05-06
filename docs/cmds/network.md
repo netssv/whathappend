@@ -23,4 +23,4 @@ Native DNS queries using Google's DNS-over-HTTPS.
 Type these directly to get specific records:
 `a`, `aaaa`, `mx`, `txt`, `ns`, `cname`, `soa`
 
-[⬅ Return to Knowledge Map](../../map.md)
+[⬅ Return to Home](../../README.md)

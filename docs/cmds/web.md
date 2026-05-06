@@ -19,4 +19,4 @@ Dig into the architecture, hosting, and performance of a site.
 | `diff` | Compare DNS/HTTP results between two different domains. | - |
 | `green` | Checks if the hosting provider runs on green/renewable energy. | - |
 
-[⬅ Return to Knowledge Map](../../map.md)
+[⬅ Return to Home](../../README.md)

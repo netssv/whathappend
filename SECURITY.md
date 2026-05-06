@@ -6,4 +6,4 @@ Our security documentation has been moved to our modular wiki. Please see the li
 
 - [🔒 Zero-Cloud & Privacy Policy](docs/core/security.md)
 - [🛡 Permissions & Scope Limits](docs/core/permissions.md)
-- [📍 Master Knowledge Map](docs/map.md)
+- [📖 Quick Start Guide](docs/guides/quick-start.md)

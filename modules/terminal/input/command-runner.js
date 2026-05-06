@@ -58,6 +58,22 @@ export function setWatcher(v)     { _activeWatcher = v; }
 // ---------------------------------------------------------------------------
 
 export async function processCommand(rawInput) {
+    if (_isProcessing) {
+        if (_activeWatcher) {
+            _activeWatcher.stop(term);
+            if (_activeWatcher.clearOnExit) {
+                term.clear();
+                showBanner();
+            } else {
+                term.writeln("\r\n\x1b[33m[Interrupted by new command]\x1b[0m");
+            }
+            _activeWatcher = null;
+        }
+        _currentAbortId = null;
+        _isProcessing = false;
+        setKeyboardLock(false);
+    }
+
     let input = rawInput.trim().replace(/\\+$/, "").trim();
     if (input.startsWith("> ")) input = input.substring(2).trim();
 
