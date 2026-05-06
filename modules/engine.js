@@ -54,7 +54,12 @@ export async function executeCommand(input) {
     const hasImpact = flags.includes("--impact");
     let output = "";
 
-    const resolved = CMD_ALIASES[cmd] || cmd;
+    let resolved = CMD_ALIASES[cmd] || cmd;
+    if (resolved.includes(" ")) {
+        const parts = resolved.split(" ");
+        resolved = parts[0];
+        flags.push(...parts.slice(1));
+    }
 
     // ── Contextual Intelligence: IP vs. Domain Guards ──
     const targetArg = args[0] || resolveTargetDomain(null);

@@ -21,10 +21,10 @@ export const AVAILABLE_COMMANDS = [
     "email", "spf", "dmarc", "dkim", "deliverability",
     
     // WEB
-    "web", "curl", "openssl", "whois", "hosting", "history", "rank", "ping", "trace", "robots", "links", "wayback", "green", "cookies", "pixels", "socials", "stack", "seo", "og", "alt", "schema", "minify", "load", "vitals", "security-txt", "fonts", "palette",
+    "web", "curl", "openssl", "whois", "hosting", "history", "rank", "ping", "trace", "robots", "links", "wayback", "green", "cookies", "pixels", "socials", "stack", "minify", "load", "vitals", "security-txt", "fonts", "palette",
 
     // AUDITS
-    "audit", "sec", "csp", "waf", "hsts", "headers-check", "comments", "cms", "malware", "emails", "phones", "extract",
+    "sec", "csp", "waf", "hsts", "headers-check", "comments", "cms", "malware", "extract",
 
     // NETWORK
     "isup", "jitter", "speedtest", "rev-dns", "port-scan", "ftp-check", "ip",
@@ -36,7 +36,7 @@ export const AVAILABLE_COMMANDS = [
     "start", "switch", "export", "clip", "matrix", "coffee", "sudo", "dog", "hack", "signal", "target", "tabs", "reload", "config", "about", "info", "errors", "clear", "flush", "diff", "exit", "help", "useragent", "mobile", "throttle", "geo", "block", "edit", "fullscreen", "nav", "watch",
 
     // ALIASES
-    "dns", "record", "lookup", "mail", "http", "headers", "ssl", "cert", "tls", "domain", "reg", "registrar", "provider", "webhost", "crt", "ranking", "traffic", "latency", "redirect", "follow", "sitemap", "src", "archive", "tracking", "trackers", "pixel", "ads", "social", "tech", "wappalyzer", "techstack", "meta", "tags", "thaks", "opengraph", "a11y", "images", "jsonld", "structured", "microdata", "min", "assets", "perf", "timing", "performance", "pagespeed", "cwv", "web-vitals", "core-vitals", "sec-txt", "securitytxt", "marketing", "scan", "security", "xss", "firewall", "cdn-check", "strict", "secure-transport", "hcheck", "upcheck", "down", "downcheck", "status", "latency-test", "bandwidth", "nettest", "rdns", "ptr", "ports", "nmap", "portscan", "ftp", "myip", "public-ip", "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann", "run", "go", "begin", "analyze", "actual", "current", "here", "sw", "dump", "save", "report", "tablist", "close", "tab", "restart", "reboot", "settings", "set", "prefs", "telemetry", "error", "error-list", "cls", "reset", "clearcache", "clear-cache", "note", "memo", "annotation", "quit", "ls", "commands", "man", "copy", "clipboard", "rain", "break", "pomodoro", "su", "global", "resolve", "optimiza", "optimiza-mail", "perro", "mascota", "pet", "trivia", "quiz", "ua", "agent", "spoof", "mob", "responsive", "iphone", "slow", "lag", "network", "gps", "location", "spoof-geo", "ban", "deny", "drop", "typography", "type", "colors", "theme", "hidden", "wordpress", "fingerprint", "virus", "heuristics", "designmode", "modify", "scrape-emails", "contacts", "scrape-phones", "numbers", "journey", "flow", "dns-map", "path", "fs", "f11", "menu", "gui", "explorer", "monitor", "waterfall", "live", "netwatch"
+    "dns", "record", "lookup", "mail", "http", "headers", "ssl", "cert", "tls", "domain", "reg", "registrar", "provider", "webhost", "crt", "ranking", "traffic", "latency", "redirect", "follow", "sitemap", "src", "archive", "tracking", "trackers", "pixel", "ads", "social", "tech", "wappalyzer", "techstack", "meta", "tags", "thaks", "opengraph", "a11y", "images", "jsonld", "structured", "microdata", "min", "assets", "perf", "timing", "performance", "pagespeed", "cwv", "web-vitals", "core-vitals", "sec-txt", "securitytxt", "marketing", "scan", "security", "xss", "firewall", "cdn-check", "strict", "secure-transport", "hcheck", "upcheck", "down", "downcheck", "status", "latency-test", "bandwidth", "nettest", "rdns", "ptr", "ports", "nmap", "portscan", "ftp", "myip", "public-ip", "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann", "run", "go", "begin", "analyze", "actual", "current", "here", "sw", "dump", "save", "report", "tablist", "close", "tab", "restart", "reboot", "settings", "set", "prefs", "telemetry", "error", "error-list", "cls", "reset", "clearcache", "clear-cache", "note", "memo", "annotation", "quit", "ls", "commands", "man", "copy", "clipboard", "rain", "break", "pomodoro", "su", "global", "resolve", "optimiza", "optimiza-mail", "perro", "mascota", "pet", "trivia", "quiz", "ua", "agent", "spoof", "mob", "responsive", "iphone", "slow", "lag", "network", "gps", "location", "spoof-geo", "ban", "deny", "drop", "typography", "type", "colors", "theme", "hidden", "wordpress", "fingerprint", "virus", "heuristics", "designmode", "modify", "scrape-emails", "contacts", "scrape-phones", "numbers", "journey", "flow", "dns-map", "path", "fs", "f11", "menu", "gui", "explorer", "monitor", "live", "netwatch"
 ];
 
 // Commands that accept a domain parameter (for auto-filling)
@@ -49,10 +49,10 @@ export const DOMAIN_COMMANDS = [
     "email", "spf", "dmarc", "dkim",
     
     // WEB
-    "web", "curl", "openssl", "whois", "hosting", "history", "rank", "ping", "trace", "robots", "links", "wayback", "green", "cookies", "pixels", "socials", "stack", "seo", "og", "alt", "schema", "minify", "load", "vitals", "security-txt", "fonts", "palette",
+    "web", "curl", "openssl", "whois", "hosting", "history", "rank", "ping", "trace", "robots", "links", "wayback", "green", "cookies", "pixels", "socials", "stack", "minify", "load", "vitals", "security-txt", "fonts", "palette",
 
     // AUDITS
-    "audit", "sec", "csp", "waf", "hsts", "headers-check", "comments", "cms", "malware", "emails", "phones",
+    "sec", "csp", "waf", "hsts", "headers-check", "comments", "cms", "malware",
 
     // NETWORK
     "isup", "jitter", "rev-dns", "port-scan", "ftp-check",
@@ -86,8 +86,8 @@ export const RAW_SNIPPETS = [
 
 // Context-aware subcommand completion (keys scoped to their parent command only)
 export const CONFIG_KEYS = ["timeout", "retry-timeout", "auto-triage", "tab-notify", "autoHide", "autoHideDelay", "expert-mode", "theme", "reset", "list"];
-const TABS_KEYS = ["list", "close", "info", "diag", "watch", "block", "sleep", "focus", "flush"];
-const WATCH_KEYS = ["raw", "dashboard", "log", "stream"];
+const TABS_KEYS = ["-list", "-close", "-info", "-diag", "-watch", "-block", "-sleep", "-focus", "-flush"];
+const WATCH_KEYS = ["raw", "waterfall", "log", "stream"];
 const SPEEDTEST_KEYS = ["10", "25", "50", "90"];
 const UA_KEYS = ["reset", "clear", "off"];
 const MOBILE_KEYS = ["reset", "off", "desktop"];
@@ -96,6 +96,10 @@ const GEO_KEYS = ["london", "nyc", "india", "tokyo", "mexico", "brazil", "italy"
 const BLOCK_KEYS = ["--list", "--clear", "list", "clear"];
 const HACK_KEYS = ["junior", "mid", "senior", "random", "--timer"];
 const EXTRACT_KEYS = ["-emails", "-phones", "-links", "-images", "-docs", "-comments"];
+const WEB_KEYS = ["-full", "-audit", "-seo", "-og", "-schema", "-alt"];
+const DNS_KEYS = ["-a", "-aaaa", "-mx", "-txt", "-ns", "-cname", "-soa"];
+const HELP_KEYS = ["-audit", "-dns", "-email", "-web", "-net", "-ext", "-util"];
+
 export const SUBCOMMAND_MAP = {
     config:   CONFIG_KEYS,
     settings: CONFIG_KEYS,
@@ -131,6 +135,8 @@ export const SUBCOMMAND_MAP = {
     monitor:   WATCH_KEYS,
     live:      WATCH_KEYS,
     netwatch:  WATCH_KEYS,
-    waterfall: WATCH_KEYS,
     extract:   EXTRACT_KEYS,
+    web:       WEB_KEYS,
+    dns:       DNS_KEYS,
+    help:      HELP_KEYS,
 };

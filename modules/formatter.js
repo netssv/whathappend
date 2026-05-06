@@ -7,7 +7,7 @@
  *     - ContextManager from './context.js'
  *     - REGEX from './data/constants.js'
  *     - getTermCols from './state.js'
- * - Exports: ANSI, getSeparator, insights, formatError, cmdUsage, cmdError, workerError, resolveTargetDomain, toRegisteredDomain, toApex, resolveBaseDomain, isIPAddress, ipNotAllowedError, loadImpactData, generateImpactSection
+ * - Exports: ANSI, getSeparator, insights, formatError, cmdUsage, cmdError, workerError, resolveTargetDomain, toRegisteredDomain, toApex, resolveBaseDomain, isIPAddress, ipNotAllowedError, loadImpactData, generateImpactSection, stripAnsi, linkify
  * - Layer: Shared Utility / Router - Common functions or central engine index used across the app.
  */
 
@@ -21,6 +21,18 @@
 import { ContextManager } from "./context.js";
 import { REGEX } from "./data/constants.js";
 import { getTermCols } from "./state.js";
+
+// ---------------------------------------------------------------------------
+// Text Manipulation & ANSI
+// ---------------------------------------------------------------------------
+
+export function stripAnsi(str) {
+    return str.replace(REGEX.ANSI_STRIP, "");
+}
+
+export function linkify(url, text) {
+    return `\x1b]8;;${url}\x07${text || url}\x1b]8;;\x07`;
+}
 
 // ---------------------------------------------------------------------------
 // ANSI Color Constants

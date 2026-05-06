@@ -33,10 +33,20 @@ const USAGE = `${ANSI.red}Try: tabs · list · close · info · diag · watch ·
 /**
  * Main entry point for the `tabs` command family.
  * @param {string[]} args
+ * @param {string[]} flags
  * @returns {Promise<string|{__watch:true, watcher:object}>}
  */
-export async function cmdTabs(args) {
-    const sub = args[0]?.toLowerCase();
+export async function cmdTabs(args, flags = []) {
+    let sub = "";
+    let tabArg = "";
+
+    if (flags.length > 0 && flags[0].startsWith("-")) {
+        sub = flags[0].replace(/^-+/, "").toLowerCase();
+        tabArg = args[0];
+    } else {
+        sub = args[0]?.toLowerCase();
+        tabArg = args[1];
+    }
 
     // ── INTERACTIVE MENU (no sub-command) ────────────────────────
     if (!sub) return createTabMenu(cmdTabs);
@@ -46,9 +56,9 @@ export async function cmdTabs(args) {
 
     // ── CLOSE ────────────────────────────────────────────────────
     if (sub === "close") {
-        if (args.length < 2) return `${ANSI.red}Usage: tabs close <#>${ANSI.reset}`;
-        const tabId = await resolveTabId(args[1]);
-        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
+        if (!tabArg) return `${ANSI.red}Usage: tabs -close <#>${ANSI.reset}`;
+        const tabId = await resolveTabId(tabArg);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
 
         try {
             const tab = await chrome.tabs.get(tabId);
@@ -71,17 +81,17 @@ export async function cmdTabs(args) {
 
     // ── INFO ─────────────────────────────────────────────────────
     if (sub === "info") {
-        if (args.length < 2) return `${ANSI.red}Usage: tabs info <#>${ANSI.reset}`;
-        const tabId = await resolveTabId(args[1]);
-        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
-        return await tabInfo(tabId, args[1]);
+        if (!tabArg) return `${ANSI.red}Usage: tabs -info <#>${ANSI.reset}`;
+        const tabId = await resolveTabId(tabArg);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
+        return await tabInfo(tabId, tabArg);
     }
 
     // ── SLEEP ────────────────────────────────────────────────────
     if (sub === "sleep" || sub === "discard") {
-        if (args.length < 2) return `${ANSI.red}Usage: tabs sleep <#>${ANSI.reset}`;
-        const tabId = await resolveTabId(args[1]);
-        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
+        if (!tabArg) return `${ANSI.red}Usage: tabs -sleep <#>${ANSI.reset}`;
+        const tabId = await resolveTabId(tabArg);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
         try {
             const tab = await chrome.tabs.get(tabId);
             if (tab.active)    return `${ANSI.yellow}[WARN]${ANSI.reset} Cannot sleep the active tab.`;
@@ -93,9 +103,9 @@ export async function cmdTabs(args) {
 
     // ── FOCUS ────────────────────────────────────────────────────
     if (sub === "focus" || sub === "goto" || sub === "switch") {
-        if (args.length < 2) return `${ANSI.red}Usage: tabs focus <#>${ANSI.reset}`;
-        const tabId = await resolveTabId(args[1]);
-        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
+        if (!tabArg) return `${ANSI.red}Usage: tabs -focus <#>${ANSI.reset}`;
+        const tabId = await resolveTabId(tabArg);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
         try {
             const tab = await chrome.tabs.get(tabId);
             await chrome.tabs.update(tabId, { active: true });
@@ -106,36 +116,36 @@ export async function cmdTabs(args) {
 
     // ── DIAG ─────────────────────────────────────────────────────
     if (sub === "diag" || sub === "health" || sub === "check") {
-        if (args.length < 2) return `${ANSI.red}Usage: tabs diag <#>${ANSI.reset}`;
-        const tabId = await resolveTabId(args[1]);
-        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
-        return await tabDiag(tabId, args[1]);
+        if (!tabArg) return `${ANSI.red}Usage: tabs -diag <#>${ANSI.reset}`;
+        const tabId = await resolveTabId(tabArg);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
+        return await tabDiag(tabId, tabArg);
     }
 
     // ── WATCH ────────────────────────────────────────────────────
     if (sub === "watch" || sub === "monitor" || sub === "top") {
-        if (args.length < 2) return `${ANSI.red}Usage: tabs watch <#>${ANSI.reset}`;
-        const tabId = await resolveTabId(args[1]);
-        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
+        if (!tabArg) return `${ANSI.red}Usage: tabs -watch <#>${ANSI.reset}`;
+        const tabId = await resolveTabId(tabArg);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
         try {
             await chrome.tabs.get(tabId); // validate exists
-            return { __watch: true, watcher: createTabWatcher(tabId, args[1]) };
+            return { __watch: true, watcher: createTabWatcher(tabId, tabArg) };
         } catch (err) { return `${ANSI.red}[ERROR] ${err.message}${ANSI.reset}`; }
     }
 
     // ── BLOCK ────────────────────────────────────────────────────
     if (sub === "block" || sub === "unblock") {
-        if (args.length < 2) return `${ANSI.red}Usage: tabs block <#> [js|images|popups|all|none]${ANSI.reset}`;
-        const tabId = await resolveTabId(args[1]);
-        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
-        return await tabBlock(tabId, args[1], args.slice(2));
+        if (!tabArg) return `${ANSI.red}Usage: tabs -block <#> [js|images|popups|all|none]${ANSI.reset}`;
+        const tabId = await resolveTabId(tabArg);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
+        return await tabBlock(tabId, tabArg, args.slice(1));
     }
 
     // ── FLUSH ────────────────────────────────────────────────────
     if (sub === "flush" || sub === "clear") {
-        if (args.length < 2) return `${ANSI.red}Usage: tabs flush <#>${ANSI.reset}`;
-        const tabId = await resolveTabId(args[1]);
-        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${args[1]}${ANSI.reset}`;
+        if (!tabArg) return `${ANSI.red}Usage: tabs -flush <#>${ANSI.reset}`;
+        const tabId = await resolveTabId(tabArg);
+        if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
         
         try {
             const tab = await chrome.tabs.get(tabId);

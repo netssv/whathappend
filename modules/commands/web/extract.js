@@ -43,6 +43,48 @@ async function run(scraper, title, formatter, clip) {
     return o + "\n";
 }
 
+/** Specialised runner for -images: enriches output with DOM + Performance data. */
+async function runImages(clip) {
+    const tab = await getActiveTab();
+    if (!tab) return `${ANSI.red}[ERROR] Must be on an HTTP/HTTPS page.${ANSI.reset}`;
+
+    const [{ result: items }] = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: scrapeImages });
+    const imgList = items || [];
+
+    // Enrich with DOM broken-image data + Performance API bytes
+    let extra = {};
+    try {
+        const [{ result: dom }] = await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: () => {
+                const els = Array.from(document.querySelectorAll("img"));
+                const broken = els.filter(i => i.complete && i.naturalWidth === 0 && i.src && !i.src.startsWith("data:"));
+                const res = performance.getEntriesByType("resource");
+                let imgBytes = 0, totalBytes = 0;
+                for (const r of res) {
+                    const sz = r.transferSize || r.encodedBodySize || 0;
+                    totalBytes += sz;
+                    if (r.initiatorType === "img" || r.initiatorType === "image") imgBytes += sz;
+                }
+                const nav = (performance.getEntriesByType("navigation") || [])[0] || {};
+                const docSz = nav.transferSize || nav.encodedBodySize || 0;
+                return {
+                    imgBroken: broken.length,
+                    brokenUrls: broken.slice(0, 5).map(e => e.src),
+                    imgBytes,
+                    pageWeight: totalBytes + docSz,
+                };
+            },
+        });
+        extra = dom || {};
+    } catch {}
+
+    let o = header("Image Extractor", host(tab), imgList.length);
+    o += fmtImages(imgList, extra);
+    if (clip && imgList.length) o += await copyToClipboard(imgList.join('\n'));
+    return o + "\n";
+}
+
 // ── Formatters (how each type renders its results) ───────────────────────────
 
 const fmtSimple = (empty) => (items) => numberedList(items, empty);
@@ -71,14 +113,45 @@ function fmtLinks(items) {
     return o + CLIP_HINT;
 }
 
-function fmtImages(items) {
+function fmtImages(items, extra = {}) {
     if (!items.length) return `  ${ANSI.yellow}No images found.${ANSI.reset}\n` + CLIP_HINT;
-    // Extension summary
+
+    // Extension count summary
     const counts = {};
     for (const url of items) { const e = extTag(url) || "OTHER"; counts[e] = (counts[e] || 0) + 1; }
     const summary = Object.entries(counts).sort((a, b) => b[1] - a[1])
         .map(([e, c]) => `${extColor(e)}${e}${ANSI.reset}:${c}`).join("  ");
-    return `  ${summary}\n\n` + fileList(items, "") + CLIP_HINT;
+
+    let o = `  ${summary}\n\n`;
+
+    // Broken images (from DOM scan)
+    if (extra.imgBroken > 0) {
+        o += `  ${ANSI.red}[BROKEN] ${extra.imgBroken} image(s) failed to load:${ANSI.reset}\n`;
+        for (const url of (extra.brokenUrls || [])) {
+            o += `    ${ANSI.red}✗${ANSI.reset} ${ANSI.dim}${trunc(url, 50)}${ANSI.reset}\n`;
+        }
+        if (extra.imgBroken > (extra.brokenUrls?.length || 0)) {
+            o += `    ${ANSI.dim}… +${extra.imgBroken - (extra.brokenUrls?.length || 0)} more${ANSI.reset}\n`;
+        }
+        o += `\n`;
+    }
+
+    // Image transfer weight from Performance API
+    if (extra.imgBytes > 0) {
+        const pct = extra.pageWeight > 0 ? Math.round((extra.imgBytes / extra.pageWeight) * 100) : 0;
+        o += `  ${ANSI.dim}Image weight:${ANSI.reset} ${ANSI.blue}${fmtBytes(extra.imgBytes)}${ANSI.reset}`;
+        if (pct > 0) o += ` ${ANSI.dim}(${pct}% of page)${ANSI.reset}`;
+        o += `\n\n`;
+    }
+
+    return o + fileList(items, "") + CLIP_HINT;
+}
+
+function fmtBytes(b) {
+    if (!b || b <= 0) return "0 B";
+    const u = ["B", "KB", "MB", "GB"]; let i = 0;
+    while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; }
+    return `${b.toFixed(i > 0 ? 1 : 0)} ${u[i]}`;
 }
 
 // ── Flag → handler map ───────────────────────────────────────────────────────
@@ -87,7 +160,7 @@ const HANDLERS = {
     "-emails":   (c) => run(scrapeEmails,  "Email Extractor",    fmtSimple("No emails detected."), c),
     "-phones":   (c) => run(scrapePhones,  "Phone Extractor",    fmtSimple("No phone numbers detected."), c),
     "-links":    (c) => run(scrapeLinks,   "Link Extractor",     fmtLinks, c),
-    "-images":   (c) => run(scrapeImages,  "Image Extractor",    fmtImages, c),
+    "-images":   (c) => runImages(c),
     "-docs":     (c) => run(scrapeDocs,    "Document Extractor", fmtFiles("No document links found."), c),
     "-comments": ()  => import("./comments.js").then(m => m.cmdComments([])),
 };

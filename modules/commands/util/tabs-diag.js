@@ -46,15 +46,17 @@ export async function tabDiag(tabId, label) {
 
                 // ── Resources ───────────────────────────
                 const resources = performance.getEntriesByType("resource");
+                const navStatus = nav.responseStatus || 200;
                 const slowThreshold = 3000;
                 const slow = [];
                 const failed = [];
 
                 for (const r of resources) {
-                    if (r.transferSize === 0 && r.decodedBodySize === 0 && r.duration > 0) {
-                        failed.push(r.name);
-                    }
-                    if (r.duration > slowThreshold) {
+                    const isFailed = (r.transferSize === 0 && r.decodedBodySize === 0 && r.duration > 0) || 
+                                     (r.responseStatus >= 400);
+                    if (isFailed) {
+                        failed.push(r.responseStatus >= 400 ? `[HTTP ${r.responseStatus}] ${r.name}` : r.name);
+                    } else if (r.duration > slowThreshold) {
                         slow.push({ url: r.name, time: r.duration });
                     }
                 }
@@ -100,6 +102,7 @@ export async function tabDiag(tabId, label) {
                     timing, slow, failed, brokenImgs, mixed,
                     domSize, maxDepth, resourceCount: resources.length,
                     meta: { hasViewport, hasCharset, hasTitle, hasDescription },
+                    navStatus,
                 };
             },
         });
@@ -119,6 +122,10 @@ export async function tabDiag(tabId, label) {
         o += `  ${ANSI.white}DOM Ready${ANSI.reset}   ${ms(d.timing.domReady)}\n`;
         o += `  ${ANSI.white}Full Load${ANSI.reset}   ${ms(d.timing.fullLoad)}\n`;
         o += `  ${ANSI.white}Resources${ANSI.reset}   ${d.resourceCount}\n`;
+
+        if (d.navStatus >= 400) {
+            o += `\n  ${ANSI.red}✗ MAIN DOCUMENT ERROR: HTTP ${d.navStatus}${ANSI.reset}\n`;
+        }
 
         // DOM
         const domColor = d.domSize > 3000 ? ANSI.red : d.domSize > 1500 ? ANSI.yellow : ANSI.green;
@@ -141,6 +148,15 @@ export async function tabDiag(tabId, label) {
             o += `\n  ${ANSI.red}✗ Mixed Content (${d.mixed.length})${ANSI.reset}\n`;
             for (const u of d.mixed.slice(0, 3)) {
                 const short = u.length > 36 ? "…" + u.slice(-35) : u;
+                o += `    ${ANSI.dim}${short}${ANSI.reset}\n`;
+            }
+        }
+
+        if (d.failed.length > 0) {
+            issues += d.failed.length;
+            o += `\n  ${ANSI.red}✗ Failed Requests (${d.failed.length})${ANSI.reset}\n`;
+            for (const f of d.failed.slice(0, 3)) {
+                const short = f.length > 36 ? "…" + f.slice(-35) : f;
                 o += `    ${ANSI.dim}${short}${ANSI.reset}\n`;
             }
         }

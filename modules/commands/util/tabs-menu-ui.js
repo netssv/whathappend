@@ -9,8 +9,9 @@
  * - Layer: Command Layer (Util) — stateless view helpers.
  */
 
-import { ANSI } from "../../formatter.js";
+import { ANSI, stripAnsi } from "../../formatter.js";
 import { icon, truncate } from "./tabs-utils.js";
+import { getTermCols } from "../../state.js";
 
 // ── Constants ────────────────────────────────────────────────────────
 
@@ -45,23 +46,28 @@ const ACTION_MENU_ITEMS = [
  * @param {string} message - Optional status message to display.
  * @returns {string} ANSI-formatted output string.
  */
-export function renderTabList(tabs, message) {
-    let out = `\n  ${ANSI.bold}${ANSI.cyan}/// TAB MANAGER ///${ANSI.reset}  ${ANSI.dim}${tabs.length} open${ANSI.reset}\n\n`;
+export function renderTabList(tabs, message, writeLine) {
+    writeLine(`  ${ANSI.bold}${ANSI.cyan}/// TAB MANAGER ///${ANSI.reset}  ${ANSI.dim}${tabs.length} open${ANSI.reset}`);
+    writeLine("");
 
     const max = Math.min(tabs.length, 9);
     for (let i = 0; i < max; i++) {
-        out += `    ${ANSI.bold}[${i + 1}]${ANSI.reset} ${icon(tabs[i])} ${truncate(tabs[i].title, 40)}\n`;
+        const val = (i + 1).toString();
+        const text = `    ${ANSI.bold}[${val}]${ANSI.reset} ${icon(tabs[i])} ${truncate(tabs[i].title, 40)}`;
+        writeLine(text, val);
     }
 
     if (tabs.length > 9) {
-        out += `    ${ANSI.dim}...and ${tabs.length - 9} more tabs.${ANSI.reset}\n`;
+        writeLine(`    ${ANSI.dim}...and ${tabs.length - 9} more tabs.${ANSI.reset}`);
     }
 
-    out += message ? `\n  ${ANSI.yellow}${message}${ANSI.reset}\n` : `\n`;
-    out += `  ${ANSI.bold}Select Target:${ANSI.reset} Press ${ANSI.cyan}1-${max}${ANSI.reset} to manage a tab.\n`;
-    out += `  ${ANSI.dim}'Q' to quit.${ANSI.reset}\n`;
-
-    return out;
+    if (message) {
+        writeLine("");
+        writeLine(`  ${ANSI.yellow}${message}${ANSI.reset}`);
+    }
+    writeLine("");
+    writeLine(`  ${ANSI.bold}Select Target:${ANSI.reset} Press ${ANSI.cyan}1-${max}${ANSI.reset} or click to manage a tab.`);
+    writeLine(`  ${ANSI.dim}${ANSI.red}[Q]uit${ANSI.reset}`, "q");
 }
 
 /**
@@ -70,19 +76,88 @@ export function renderTabList(tabs, message) {
  * @param {string} message - Optional status message.
  * @returns {string} ANSI-formatted output string.
  */
-export function renderActionMenu(tab, message) {
-    let out = `\n  ${ANSI.bold}${ANSI.cyan}/// MANAGE TAB ///${ANSI.reset}\n\n`;
-    out += `  ${ANSI.bold}Target:${ANSI.reset} ${icon(tab)} ${truncate(tab.title, 50)}\n`;
-    out += `  ${ANSI.dim}URL: ${truncate(tab.url || "about:blank", 55)}${ANSI.reset}\n\n`;
+export function renderActionMenu(tab, message, writeLine) {
+    writeLine(`  ${ANSI.bold}${ANSI.cyan}/// MANAGE TAB ///${ANSI.reset}`);
+    writeLine("");
+    writeLine(`  ${ANSI.bold}Target:${ANSI.reset} ${icon(tab)} ${truncate(tab.title, 50)}`);
+    writeLine(`  ${ANSI.dim}URL: ${truncate(tab.url || "about:blank", 55)}${ANSI.reset}`);
+    writeLine("");
 
-    out += `  ${ANSI.bold}Select Action:${ANSI.reset}\n`;
+    writeLine(`  ${ANSI.bold}Select Action:${ANSI.reset}`);
     for (const item of ACTION_MENU_ITEMS) {
-        out += `    ${ANSI.bold}${ANSI.yellow}[${item.key}]${ANSI.reset} ${item.label}\n`;
+        const text = `    ${ANSI.bold}${ANSI.yellow}[${item.key}]${ANSI.reset} ${item.label}`;
+        writeLine(text, item.key.toLowerCase());
     }
-    out += `\n`;
+    writeLine("");
 
-    if (message) out += `  ${ANSI.yellow}${message}${ANSI.reset}\n`;
-    out += `  ${ANSI.dim}Press letter to execute. 'B' to go back, 'Q' to quit.${ANSI.reset}\n`;
+    if (message) {
+        writeLine(`  ${ANSI.yellow}${message}${ANSI.reset}`);
+    }
+    const backQuitText = `  ${ANSI.dim}Press letter or click to execute. ${ANSI.yellow}[B]ack${ANSI.reset}  ${ANSI.red}[Q]uit${ANSI.reset}`;
+    writeLine(backQuitText, "bq");
+}
 
-    return out;
+// ── Renderer Class ───────────────────────────────────────────────────
+
+export class TabsMenuRenderer {
+    constructor(term) {
+        this.term = term;
+        this.rowMap = {};
+        this.hoveredAction = null;
+        this.selectedTabIndex = null;
+        this.tabsList = [];
+    }
+
+    draw(tabs, selectedTabIndex, message, hoveredAction = null) {
+        this.tabsList = tabs;
+        this.selectedTabIndex = selectedTabIndex;
+        this.hoveredAction = hoveredAction;
+        this.rowMap = {};
+        
+        let currentY = 1;
+        const cols = getTermCols() || 80;
+        let buffer = "\x1b[2J\x1b[3J\x1b[H\n";
+        currentY++; // account for the \n
+
+        const writeLine = (str, action = null) => {
+            const stripped = stripAnsi(str);
+            const len = stripped.length;
+            let lines = Math.ceil(len / cols);
+            if (lines === 0) lines = 1;
+            
+            if (action) {
+                for (let i = 0; i < lines; i++) {
+                    this.rowMap[currentY + i] = action;
+                }
+            }
+            
+            if (action && action === this.hoveredAction) {
+                buffer += `\x1b[7m${str}\x1b[27m\r\n`;
+            } else {
+                buffer += `${str}\r\n`;
+            }
+            currentY += lines;
+        };
+
+        if (this.selectedTabIndex === null) {
+            renderTabList(tabs, message, writeLine);
+        } else {
+            const tab = tabs[this.selectedTabIndex];
+            if (tab) {
+                renderActionMenu(tab, message, writeLine);
+            }
+        }
+
+        this.term.write(buffer);
+    }
+
+    getActionAt(y, x) {
+        const action = this.rowMap[y];
+        if (!action) return null;
+        if (action === "bq") {
+            if (x < 50) return "b";
+            return "q";
+        }
+        return action;
+    }
 }

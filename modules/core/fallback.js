@@ -31,9 +31,10 @@ import { resolveRegistrarRow, resolveNSRow, resolveWebHostRow } from "./triage-r
 import { resolveIPGeoRow, resolveSSLCDNRow } from "./triage-resolvers-ext.js";
 import { resolveMyIPRow, resolveMXRow } from "./triage-resolvers-mail.js";
 import { term } from "../terminal/terminal-ui.js";
-import { ProgressiveRenderer } from "../terminal/progressive-renderer.js";
+import { ProgressiveRenderer, ROW_KEYS } from "../terminal/progressive-renderer.js";
 import { buildTriageHistory } from "../terminal/triage-history.js";
 import { retryEmptyHeaderFields } from "./triage-retries.js";
+import { createTriageWatcher } from "../terminal/triage-interact.js";
 
 // ---------------------------------------------------------------------------
 // Module-level state
@@ -152,12 +153,20 @@ export async function handleAutoTarget(cmd, args, opts, flags = []) {
             if (_activeRenderer === renderer) _activeRenderer = null;
 
             // ── Background Header Retry ─────────────────────────────
-            // If any triad field is still empty, keep trying in the
-            // background with a longer timeout (best-effort, fire-and-forget)
             const resolved = renderer._resolved;
             retryEmptyHeaderFields(cleanCmd, apexDomain, resolved);
 
-            return { output, backgroundTriage: bannerShown, chainedCommand };
+            // Return interactive watcher for hover/click on results
+            const hasUrls = Object.keys(renderer._resolvedUrls).length > 0;
+            const triageLines = ROW_KEYS.length + 2 + renderer._extraLines; // header + rows + blank
+            return {
+                output,
+                backgroundTriage: bannerShown,
+                chainedCommand,
+                triageWatcher: hasUrls
+                    ? createTriageWatcher(renderer._resolved, renderer._resolvedUrls, triageLines)
+                    : null,
+            };
         }
         return output;
     }

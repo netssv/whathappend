@@ -22,7 +22,7 @@ export function showBanner(term) {
 
     if (cols >= 60) {
         // WIDE SCREEN
-        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.7.5\x1b[0m \x1b[90m│\x1b[0m Platform Navigator");
+        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.8.1\x1b[0m \x1b[90m│\x1b[0m Platform Navigator");
         term.writeln("  \x1b[90m" + "━".repeat(44) + "\x1b[0m");
         term.writeln("  \x1b[35m❯\x1b[0m \x1b[1m\x1b[37mmenu\x1b[0m\x1b[90m  — Interactive command navigator\x1b[0m");
         term.writeln("  \x1b[35m❯\x1b[0m \x1b[1m\x1b[37mstart\x1b[0m\x1b[90m — Analyze current tab\x1b[0m");
@@ -32,7 +32,7 @@ export function showBanner(term) {
         term.writeln("  \x1b[90mTip: Bind shortcuts for start, flush, watch at chrome://extensions/shortcuts\x1b[0m");
     } else if (cols >= 45) {
         // MEDIUM SCREEN
-        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.7.5\x1b[0m");
+        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.8.1\x1b[0m");
         term.writeln("  \x1b[90m" + "━".repeat(34) + "\x1b[0m");
         term.writeln("  \x1b[35m❯\x1b[0m \x1b[37mmenu\x1b[0m\x1b[90m  - Command navigator\x1b[0m");
         term.writeln("  \x1b[35m❯\x1b[0m \x1b[37mstart\x1b[0m\x1b[90m - Analyze active tab\x1b[0m");
@@ -42,7 +42,7 @@ export function showBanner(term) {
         term.writeln("  \x1b[90mTip: Map shortcuts at chrome://extensions/shortcuts\x1b[0m");
     } else {
         // NARROW SCREEN (Large fonts)
-        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.7.5\x1b[0m");
+        term.writeln("  \x1b[1m\x1b[36mWhatHappened\x1b[0m \x1b[33mv2.8.1\x1b[0m");
         term.writeln("  \x1b[90m━━━━━━━━━━━━━━━\x1b[0m");
         term.writeln("  \x1b[35m❯\x1b[0m \x1b[37mmenu\x1b[0m\x1b[90m  (navigator)\x1b[0m");
         term.writeln("  \x1b[35m❯\x1b[0m \x1b[37mstart\x1b[0m\x1b[90m (analyze tab)\x1b[0m");

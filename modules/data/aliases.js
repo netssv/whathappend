@@ -32,8 +32,8 @@ export const CMD_ALIASES = {
     lookup: "nslookup",
     // sec / security
     security: "sec", scan: "sec",
-    // web
-    "marketing": "audit",
+    // web tools flags mapping
+    "audit": "web -audit", "marketing": "web -audit",
     // email
     mail: "email",
     // whois
@@ -98,11 +98,11 @@ export const CMD_ALIASES = {
     // rank
     "ranking": "rank", "traffic": "rank",
     // seo
-    "meta": "seo", "tags": "seo",
+    "seo": "web -seo", "meta": "web -seo", "tags": "web -seo",
     // og
-    "thaks": "og", "opengraph": "og", "cards": "og",
+    "og": "web -og", "thaks": "web -og", "opengraph": "web -og", "cards": "web -og",
     // alt
-    "images": "alt", "a11y": "alt",
+    "alt": "web -alt", "images": "web -alt", "a11y": "web -alt",
     // reload
     "restart": "reload", "reboot": "reload",
     // waf
@@ -112,7 +112,7 @@ export const CMD_ALIASES = {
     // minify
     "min": "minify", "assets": "minify",
     // schema
-    "structured": "schema", "jsonld": "schema", "microdata": "schema",
+    "schema": "web -schema", "structured": "web -schema", "jsonld": "web -schema", "microdata": "web -schema",
     // headers-check
     "hcheck": "headers-check", "security-headers": "headers-check",
     // clip
@@ -158,8 +158,8 @@ export const CMD_ALIASES = {
     // edit
     "designmode": "edit", "modify": "edit",
     // emails & phones
-    "scrape-emails": "emails", "contacts": "emails",
-    "scrape-phones": "phones", "numbers": "phones",
+    "emails": "extract -emails", "scrape-emails": "extract -emails", "contacts": "extract -emails",
+    "phones": "extract -phones", "scrape-phones": "extract -phones", "numbers": "extract -phones",
     // map
     "journey": "map", "flow": "map", "dns-map": "map", "path": "map",
     // fullscreen
@@ -167,7 +167,7 @@ export const CMD_ALIASES = {
     // nav
     "menu": "nav", "gui": "nav", "explorer": "nav",
     // watch
-    "monitor": "watch", "waterfall": "watch", "live": "watch", "netwatch": "watch"
+    "monitor": "watch", "live": "watch", "netwatch": "watch"
 };
 
 export const ALL_KNOWN_CMDS = [
@@ -178,9 +178,9 @@ export const ALL_KNOWN_CMDS = [
     "dkim", "robots", "sec", "target", "help", "clear",
     "rev-dns", "port-scan", "ftp-check", "export",
     "blacklist", "ssllabs", "securityheaders", "whois-ext",
-    "errors", "pixels", "socials", "stack", "load", "rank", "seo", "og", "alt", "csp", "waf", "hsts", "minify", "schema", "diff", "headers-check",
+    "errors", "pixels", "socials", "stack", "load", "rank", "csp", "waf", "hsts", "minify", "diff", "headers-check",
     "registrar", "hosting", "exit", "switch", "reload",
     "start", "config", "isup", "jitter", "speedtest", "clip", "matrix", "coffee",
     "ip", "security-txt", "vitals", "flush", "tabs", "actual", "current", "here",
-    "useragent", "mobile", "throttle", "geo", "block", "fonts", "palette", "comments", "cms", "malware", "edit", "emails", "phones", "map", "fullscreen", "nav", "watch"
+    "useragent", "mobile", "throttle", "geo", "block", "fonts", "palette", "comments", "cms", "malware", "edit", "map", "fullscreen", "nav", "watch"
 ].filter(c => /^[a-z]/i.test(c));

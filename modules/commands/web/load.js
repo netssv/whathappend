@@ -44,8 +44,12 @@ export async function cmdLoad(args) {
             );
         }
 
+        if (d.navStatus >= 400) {
+            o += `\n  ${ANSI.red}✗ MAIN DOCUMENT ERROR: HTTP ${d.navStatus}${ANSI.reset}\n`;
+        }
+
         // ── Connection Timing ──
-        o += `${ANSI.white}${ANSI.bold}  CONNECTION${ANSI.reset}\n`;
+        o += `\n${ANSI.white}${ANSI.bold}  CONNECTION${ANSI.reset}\n`;
         o += fmtMetric("DNS Lookup", d.dns);
         o += fmtMetric("TCP Connect", d.tcp);
         o += fmtMetric("TLS Handshake", d.tls);
@@ -67,6 +71,14 @@ export async function cmdLoad(args) {
             o += `  ${ANSI.dim}Total requests:${ANSI.reset}  ${ANSI.white}${d.resourceCount}${ANSI.reset}\n`;
             o += `  ${ANSI.dim}Transfer size:${ANSI.reset}   ${ANSI.white}${formatBytes(d.transferSize)}${ANSI.reset}\n`;
             o += `  ${ANSI.dim}Decoded size:${ANSI.reset}    ${ANSI.white}${formatBytes(d.decodedSize)}${ANSI.reset}\n`;
+
+            if (d.failed && d.failed.length > 0) {
+                o += `\n  ${ANSI.red}✗ Failed Requests (${d.failed.length})${ANSI.reset}\n`;
+                for (const f of d.failed.slice(0, 3)) {
+                    const short = f.length > 50 ? "…" + f.slice(-49) : f;
+                    o += `    ${ANSI.dim}${short}${ANSI.reset}\n`;
+                }
+            }
         }
 
         o += `\n${ANSI.dim}Executed: Performance API (window.performance)${ANSI.reset}`;
@@ -105,9 +117,19 @@ export async function cmdLoad(args) {
         // TLS
         if (d.tls > 200) ins.push({ level: "WARN", text: `TLS ${d.tls}ms — slow handshake. Check certificate chain.` });
 
+        // Document Status
+        if (d.navStatus >= 400) {
+            ins.push({ level: "CRIT", text: `HTTP ${d.navStatus} on main document. Check server logs.` });
+        }
+
         // Resource count
         if (d.resourceCount > 100) ins.push({ level: "WARN", text: `${d.resourceCount} requests — consider bundling/lazy loading.` });
         if (d.transferSize > 5 * 1024 * 1024) ins.push({ level: "WARN", text: `${formatBytes(d.transferSize)} transferred — heavy page.` });
+
+        // Failed requests
+        if (d.failed && d.failed.length > 0) {
+            ins.push({ level: "CRIT", text: `${d.failed.length} request(s) failed. Use 'tabs diag' for details.` });
+        }
 
         ins.push({ level: "INFO", text: `External Check: https://pagespeed.web.dev/analysis?url=https://${domain}` });
 

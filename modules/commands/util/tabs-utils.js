@@ -4,11 +4,32 @@
  *
  * @connections
  * - Imports: ANSI from '../../formatter.js'
- * - Exports: icon, truncate
+ * - Exports: icon, truncate, disposeListener, waitForKeyThenRestart
  * - Layer: Command Layer (Util) — zero side-effects, no Chrome API calls.
  */
 
 import { ANSI } from "../../formatter.js";
+
+/**
+ * Safely disposes the onData terminal listener.
+ */
+export function disposeListener(watcher) {
+    if (watcher.onDataDisposable) {
+        watcher.onDataDisposable.dispose();
+        watcher.onDataDisposable = null;
+    }
+}
+
+/**
+ * Waits for any key press, then restarts the watcher.
+ */
+export function waitForKeyThenRestart(watcher, term, doneCallback) {
+    term.write(`\n  ${ANSI.dim}Press ANY KEY to return to Tabs Menu...${ANSI.reset}`);
+    watcher.onDataDisposable = term.onData(() => {
+        disposeListener(watcher);
+        watcher.start(term, doneCallback);
+    });
+}
 
 /**
  * Returns a single-character colored status icon for a tab.

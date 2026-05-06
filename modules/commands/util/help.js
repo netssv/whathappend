@@ -1,128 +1,195 @@
 /**
  * @module modules/commands/util/help.js
- * @description Architectural connections and module role.
- * 
- * @connections
- * - Imports: 
- *     - ANSI, isIPAddress from '../../formatter.js'
- *     - ContextManager from '../../context.js'
- *     - getTermCols from '../../state.js'
- * - Exports: HELP_SECTIONS, cmdHelp
- * - Layer: Command Layer (Util) - Terminal utilities and internal tools.
+ * @description Interactive help TUI (watcher mode) + flag-based text output.
+ * @exports cmdHelp
  */
 
 import { ANSI, isIPAddress } from "../../formatter.js";
 import { ContextManager } from "../../context.js";
 import { getTermCols } from "../../state.js";
 import { HELP_SECTIONS } from "../../data/help-data.js";
+import { HelpRenderer, HELP_CATEGORIES } from "./help-ui.js";
 
 // ===================================================================
-//  help — Responsive layout (adapts to terminal width)
+//  help — Interactive TUI (no args) | Text output (with flags)
 // ===================================================================
 
+export function cmdHelp(args = [], flags = []) {
+    // Parse flag/query
+    let query = "";
+    if (flags.length > 0 && flags[0].startsWith("-")) {
+        query = flags[0].replace(/^-+/, "").toLowerCase();
+    } else if (args.length > 0) {
+        query = args[0].toLowerCase();
+    }
 
+    // ── No query → launch interactive TUI ────────────────────────────
+    if (!query) {
+        return createHelpWatcher();
+    }
 
-export function cmdHelp(args = []) {
+    // ── Flag mode → text output (help -web, help -dns, etc.) ─────────
+    return renderTextHelp(query);
+}
+
+// ── Interactive Watcher ──────────────────────────────────────────────
+
+function createHelpWatcher() {
+    return {
+        __watch: true,
+        watcher: {
+            onDataDisposable: null,
+            _renderer: null,
+            _mouseEnabled: false,
+
+            start(term, doneCallback) {
+                this._renderer = new HelpRenderer(term);
+                this._renderer.draw(-1);
+
+                term.write("\x1b[?1003h\x1b[?1006h");
+                this._mouseEnabled = true;
+
+                this.onDataDisposable = term.onData(async (e) => {
+                    let lower = e.toLowerCase();
+
+                    // SGR Mouse
+                    if (e.startsWith("\x1b[<")) {
+                        const m = e.match(/\x1b\[<(\d+);(\d+);(\d+)([mM])/);
+                        if (m) {
+                            const btn = parseInt(m[1]), x = parseInt(m[2]);
+                            const rawY = parseInt(m[3]), isPress = m[4] === "M";
+                            // Convert viewport Y to absolute buffer Y (accounts for scroll)
+                            const absY = (term.buffer?.active?.baseY ?? 0) + rawY;
+                            const action = this._renderer.getActionAt(absY, x);
+
+                            if (btn === 35) {
+                                if (action !== this._renderer.hoveredAction) {
+                                    this._renderer.draw(this._renderer.currentSection, action);
+                                }
+                                return;
+                            }
+                            if (btn === 0 && isPress) {
+                                if (action) lower = action; else return;
+                            } else return;
+                        }
+                    }
+
+                    if (lower === "q" || e === "\x03") {
+                        this._dispose();
+                        doneCallback();
+                        return;
+                    }
+
+                    if (this._renderer.currentSection === -1) {
+                        const num = parseInt(lower);
+                        if (num >= 1 && num <= HELP_CATEGORIES.length) {
+                            this._renderer.draw(num - 1);
+                        }
+                    } else {
+                        if (lower === "b" || lower === "back") {
+                            this._renderer.draw(-1);
+                            return;
+                        }
+
+                        const num = parseInt(lower);
+                        const cmdName = this._renderer.getCommandAt(num - 1);
+                        if (cmdName) {
+                            this._dispose();
+                            if (this._mouseEnabled) {
+                                term.write("\x1b[?1003l\x1b[?1006l");
+                                this._mouseEnabled = false;
+                            }
+
+                            // Show detailed help (documentation), not execute
+                            try {
+                                const { cmdDetailedHelp } = await import("./detailed-help.js");
+                                const { suggestCommand } = await import("../../core/parser.js");
+                                const baseName = cmdName.split(" ")[0].toLowerCase();
+                                const helpText = cmdDetailedHelp(baseName, suggestCommand);
+                                if (helpText) term.write(`\n${helpText}\n`);
+                            } catch (err) {
+                                term.write(`\n${ANSI.red}[ERROR] ${err.message}${ANSI.reset}\n`);
+                            }
+                            term.write(`\n  ${ANSI.dim}Press ANY KEY or click to return to Help...${ANSI.reset}`);
+
+                            // Re-enable mouse so clicks also count as "any key"
+                            term.write("\x1b[?1003h\x1b[?1006h");
+                            this._mouseEnabled = true;
+
+                            this.onDataDisposable = term.onData((ev) => {
+                                // Accept any keypress OR any mouse button press
+                                if (ev.startsWith("\x1b[<")) {
+                                    const mp = ev.match(/\x1b\[<(\d+);.*;.*M/);
+                                    if (!mp || parseInt(mp[1]) !== 0) return; // only left-click press
+                                }
+                                this._dispose();
+                                if (this._mouseEnabled) {
+                                    term.write("\x1b[?1003l\x1b[?1006l");
+                                    this._mouseEnabled = false;
+                                }
+                                this.start(term, doneCallback);
+                            });
+                        }
+                    }
+                });
+            },
+
+            _dispose() {
+                if (this.onDataDisposable) {
+                    this.onDataDisposable.dispose();
+                    this.onDataDisposable = null;
+                }
+            },
+
+            stop(term) {
+                if (this._mouseEnabled) {
+                    term.write("\x1b[?1003l\x1b[?1006l");
+                    this._mouseEnabled = false;
+                }
+                this._dispose();
+            },
+        },
+    };
+}
+
+// ── Text Renderer (flag mode) ────────────────────────────────────────
+
+function renderTextHelp(query) {
     const cols = getTermCols();
-
-    // IP-aware dimming: domain-only commands are dimmed when target is an IP
     const currentTarget = ContextManager.getDomain();
     const targetIsIP = currentTarget ? isIPAddress(currentTarget) : false;
-    const domainOnlyCmds = ["email", "spf", "dmarc", "dkim", "openssl", "whois", "audit", "pixels", "socials", "stack", "robots", "web", "sec"];
+    const domainOnly = ["email", "spf", "dmarc", "dkim", "openssl", "whois",
+                        "audit", "pixels", "socials", "stack", "robots", "web", "sec"];
 
-    let o = "";
+    let titles = [];
+    if (query === "audit" || query === "audits") titles = ["AUDIT TOOLS"];
+    else if (query === "dns") titles = ["DNS"];
+    else if (query === "short" || query === "shortcuts") titles = ["DNS SHORTCUTS"];
+    else if (query === "email" || query === "mail") titles = ["EMAIL"];
+    else if (query === "web") titles = ["WEB TOOLS"];
+    else if (query === "net" || query === "network") titles = ["NETWORK"];
+    else if (query === "ext" || query === "external") titles = ["EXTERNAL"];
+    else if (query === "util" || query === "utils") titles = ["UTIL"];
+    else if (query === "all") titles = HELP_SECTIONS.map(s => s.title);
+    else return `\n  ${ANSI.red}Unknown category: ${query}${ANSI.reset}\n  ${ANSI.dim}Type 'help' for categories.${ANSI.reset}\n`;
 
-    if (targetIsIP) {
-        o += `\n${ANSI.yellow}  ⚠ IP target detected (${currentTarget}) — domain-only commands dimmed${ANSI.reset}\n`;
-    }
+    let o = targetIsIP ? `\n${ANSI.yellow}  [WARNING] IP target — domain-only commands dimmed${ANSI.reset}\n` : "";
 
-    if (args.length === 0) {
-        // Exploratory Menu
-        const sepLen = Math.min(cols - 4, 42);
-        const sep = ANSI.dim + "━".repeat(Math.min(50, Math.max(10, sepLen))) + ANSI.reset;
-
-        o += `\n${ANSI.white}${ANSI.bold}  EXPLORE COMMANDS${ANSI.reset}\n  ${sep}\n`;
-        o += `  ${ANSI.cyan}help${ANSI.reset}         Show this menu (alias: ls, ?)\n`;
-        o += `  ${ANSI.cyan}nav${ANSI.reset}          Interactive platform explorer menu (alias: menu)\n`;
-        o += `  ${ANSI.cyan}target${ANSI.reset}       Set or view the active target domain\n`;
-        o += `  ${ANSI.dim}Type ${ANSI.white}help <category>${ANSI.dim} to view commands:${ANSI.reset}\n\n`;
-
-        const categories = [
-            ["audit", "High-level checks (email, web, sec)"],
-            ["dns", "DNS resolution (dig, host, nslookup...)"],
-            ["short", "DNS quick shortcuts (a, mx, txt...)"],
-            ["email", "Email infrastructure (spf, dkim, dmarc)"],
-            ["web", "Web auditing tools (whois, curl...)"],
-            ["net", "Network & topology (ping, isup...)"],
-            ["ext", "External third-party tools (opens link)"],
-            ["util", "Terminal utilities (config, tabs...)"],
-            ["all", "Show all commands"]
-        ];
-
-        for (const [cat, desc] of categories) {
-            const label = `[${cat}]`;
-            o += `  ${ANSI.cyan}${label.padEnd(9)}${ANSI.reset} ${ANSI.dim}${desc}${ANSI.reset}\n`;
-        }
-
-        o += `\n${ANSI.dim}  💡 Tip: Add ${ANSI.white}?${ANSI.dim} to any command for examples (e.g. ${ANSI.white}mx?${ANSI.dim})${ANSI.reset}\n`;
-        o += `${ANSI.dim}  📚 Full Docs: ${ANSI.cyan}\x1b[4mhttps://github.com/netssv/whathappend/blob/main/COMMANDS.md\x1b[0m\n`;
-        return o;
-    }
-
-    // Specific category requested
-    const query = args[0].toLowerCase();
-    
-    // Mapping keywords to sections
-    let targetSectionTitles = [];
-    if (query === "audit" || query === "audits") targetSectionTitles = ["AUDITS"];
-    else if (query === "dns") targetSectionTitles = ["DNS"];
-    else if (query === "short" || query === "shortcuts") targetSectionTitles = ["DNS SHORTCUTS"];
-    else if (query === "email" || query === "mail") targetSectionTitles = ["EMAIL"];
-    else if (query === "web") targetSectionTitles = ["WEB"];
-    else if (query === "net" || query === "network") targetSectionTitles = ["NETWORK"];
-    else if (query === "ext" || query === "external") targetSectionTitles = ["EXTERNAL"];
-    else if (query === "util" || query === "utils" || query === "utility") targetSectionTitles = ["UTIL"];
-    else if (query === "all") targetSectionTitles = HELP_SECTIONS.map(s => s.title);
-    else {
-        return `\n  ${ANSI.red}Unknown category: ${query}${ANSI.reset}\n  ${ANSI.dim}Type 'help' to see available categories.${ANSI.reset}\n`;
-    }
-
-    const filteredSections = HELP_SECTIONS.filter(s => targetSectionTitles.includes(s.title));
-
-    for (const section of filteredSections) {
+    for (const section of HELP_SECTIONS.filter(s => titles.includes(s.title))) {
         const sub = section.subtitle ? ` ${ANSI.dim}${section.subtitle}${ANSI.reset}` : "";
-        const sepLen = Math.min(cols - 4, 42);
-        const sep = ANSI.dim + "━".repeat(Math.min(50, Math.max(10, sepLen))) + ANSI.reset;
-
+        const sep = ANSI.dim + "━".repeat(Math.min(50, Math.max(10, cols - 4))) + ANSI.reset;
         o += `\n${ANSI.white}${ANSI.bold}  ${section.title}${ANSI.reset}${sub}\n  ${sep}\n`;
 
         for (const [name, desc, aliases] of section.cmds) {
-            // Check if this command is domain-only and target is IP
-            const cmdBase = name.split(" ")[0].toLowerCase();
-            const isDimmed = targetIsIP && domainOnlyCmds.includes(cmdBase);
-            const nameColor = isDimmed ? ANSI.dim : ANSI.cyan;
-            const descColor = ANSI.dim;
-            const dimTag = isDimmed ? ` ${ANSI.yellow}[domain]${ANSI.reset}` : "";
-
-            if (cols < 50) {
-                // Ultra narrow (mobile/squeezed side panel)
-                o += `  ${nameColor}${name}${ANSI.reset}${dimTag}\n`;
-                o += `    ${descColor}${desc}${ANSI.reset}\n`;
-                if (aliases) {
-                    o += `    ${ANSI.gray}↪ ${aliases}${ANSI.reset}\n`;
-                }
-            } else {
-                // Standard mode (clean 2-column layout with alias below)
-                const pad = Math.max(1, 16 - name.length);
-                o += `  ${nameColor}${name}${ANSI.reset}${" ".repeat(pad)}${descColor}${desc}${ANSI.reset}${dimTag}\n`;
-                if (aliases) {
-                    o += `  ${" ".repeat(16)}${ANSI.gray}↪ ${aliases}${ANSI.reset}\n`;
-                }
-            }
+            const base = name.split(" ")[0].toLowerCase();
+            const dim = targetIsIP && domainOnly.includes(base);
+            const nc = dim ? ANSI.dim : ANSI.cyan;
+            const tag = dim ? ` ${ANSI.yellow}[domain]${ANSI.reset}` : "";
+            const pad = Math.max(1, 16 - name.length);
+            o += `  ${nc}${name}${ANSI.reset}${" ".repeat(pad)}${ANSI.dim}${desc}${ANSI.reset}${tag}\n`;
+            if (aliases) o += `  ${" ".repeat(16)}${ANSI.gray}↪ ${aliases}${ANSI.reset}\n`;
         }
     }
-
     o += `\n${ANSI.dim}  Add ${ANSI.white}?${ANSI.dim} for details: ${ANSI.white}email?${ANSI.dim}  ${ANSI.white}mx?${ANSI.reset}\n`;
-    o += `${ANSI.dim}  Omit domain = active tab | Ctrl+C cancel${ANSI.reset}\n`;
     return o;
 }

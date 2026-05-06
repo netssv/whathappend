@@ -41,7 +41,8 @@ export async function resolveIPGeoRow(renderer, originalDomain) {
         }
 
         // Push IP immediately
-        renderer?.updateRow("ip", ip);
+        const ipUrl = `https://ipinfo.io/${ip}`;
+        renderer?.updateRow("ip", ip, ipUrl);
         updateIPField(ip);
         setSessionTriad("ip", ip);
 
@@ -57,7 +58,8 @@ export async function resolveIPGeoRow(renderer, originalDomain) {
                 const geoLabel = geoResp.city
                     ? `${geoResp.city}, ${geoResp.country}`
                     : geoResp.country;
-                renderer?.updateRow("geo", geoLabel);
+                const geoUrl = `https://www.google.com/maps/search/${encodeURIComponent(geoLabel)}`;
+                renderer?.updateRow("geo", geoLabel, geoUrl);
                 updateGeoField(geoLabel);
                 setSessionTriad("geo", geoLabel);
                 return { ip, geo: geoLabel };
@@ -105,18 +107,21 @@ export async function resolveSSLCDNRow(renderer, originalDomain) {
 
             if (daysLeft !== null) {
                 sslLabel = daysLeft >= 0 ? `Active ${daysLeft}d` : `Expired ${daysLeft}d`;
-                renderer?.updateRow("ssl", sslLabel);
+                const sslUrl = `https://crt.sh/?q=${originalDomain}`;
+                renderer?.updateRow("ssl", sslLabel, sslUrl);
                 updateSSLField(null, daysLeft);
                 setSessionTriad("ssl", sslLabel);
                 setSessionTriad("sslDays", daysLeft);
             } else if (cert?.issuer && cert.issuer !== "Unknown") {
                 sslLabel = cleanSSLIssuer(cert.issuer);
-                renderer?.updateRow("ssl", sslLabel);
+                const sslUrl = `https://crt.sh/?q=${originalDomain}`;
+                renderer?.updateRow("ssl", sslLabel, sslUrl);
                 updateSSLField(sslLabel);
                 setSessionTriad("ssl", sslLabel);
             } else if (resp.data.connectivity) {
                 sslLabel = "Active";
-                renderer?.updateRow("ssl", sslLabel);
+                const sslUrl = `https://crt.sh/?q=${originalDomain}`;
+                renderer?.updateRow("ssl", sslLabel, sslUrl);
                 updateSSLField(sslLabel);
                 setSessionTriad("ssl", sslLabel);
             } else {
@@ -134,7 +139,8 @@ export async function resolveSSLCDNRow(renderer, originalDomain) {
             // CDN / WAF detection from server headers
             const headers = resp.data.serverHeaders || {};
             cdnLabel = detectCDN(headers) || "N/A";
-            renderer?.updateRow("cdn", cdnLabel);
+            const cdnUrl = `https://www.wappalyzer.com/lookup/${originalDomain}`;
+            renderer?.updateRow("cdn", cdnLabel, cdnUrl);
             updateCDNField(cdnLabel);
             setSessionTriad("cdn", cdnLabel);
         } else {

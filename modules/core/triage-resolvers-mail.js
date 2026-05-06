@@ -29,7 +29,8 @@ export async function resolveMyIPRow(renderer) {
         if (renderer?.isCancelled()) return;
 
         if (resp?.success && resp.data?.ip) {
-            renderer?.updateRow("myip", resp.data.ip);
+            const myipUrl = `https://ipinfo.io/${resp.data.ip}`;
+            renderer?.updateRow("myip", resp.data.ip, myipUrl);
             updateMyIPField(resp.data.ip);
             setSessionTriad("myip", resp.data.ip);
             return { myip: resp.data.ip, error: false };
@@ -64,8 +65,9 @@ export async function resolveMXRow(renderer, originalDomain) {
                 ?.replace(/\.$/, "")
                 || "";
             if (mxHost) {
-                renderer?.updateRow("mx", mxHost);
-                updateMXField(mxHost, `https://mxtoolbox.com/SuperTool.aspx?action=mx:${originalDomain}`);
+                const mxUrl = `https://mxtoolbox.com/SuperTool.aspx?action=mx:${originalDomain}`;
+                renderer?.updateRow("mx", mxHost, mxUrl);
+                updateMXField(mxHost, mxUrl);
                 setSessionTriad("mx", mxHost);
                 return { mx: mxHost, error: false };
             } else {

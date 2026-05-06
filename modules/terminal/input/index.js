@@ -58,7 +58,7 @@ export function initInputManager() {
         // Stop any active live watcher first
         const watcher = getWatcher();
         if (watcher) {
-            watcher.stop();
+            watcher.stop(term);
             setWatcher(null);
             setProcessing(false);
             setKeyboardLock(false);

@@ -98,6 +98,19 @@ export async function processCommand(rawInput) {
                 setTimeout(() => InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, result.chainedCommand), 50);
                 return;
             }
+            // Start post-triage interactive hover/click watcher
+            if (result.triageWatcher) {
+                _activeWatcher = result.triageWatcher.watcher;
+                const doneCallback = () => {
+                    if (_activeWatcher) _activeWatcher.stop(term);
+                    _activeWatcher = null;
+                    _isProcessing = false;
+                    setKeyboardLock(false);
+                    writePrompt();
+                };
+                _activeWatcher.start(term, doneCallback);
+                return;
+            }
         } else {
             const output = result;
             if (output === "__CLEAR__") {
@@ -106,7 +119,7 @@ export async function processCommand(rawInput) {
             } else if (output && typeof output === "object" && output.__watch) {
                 _activeWatcher = output.watcher;
                 const doneCallback = () => {
-                    if (_activeWatcher) _activeWatcher.stop();
+                    if (_activeWatcher) _activeWatcher.stop(term);
                     _activeWatcher = null;
                     _isProcessing = false;
                     setKeyboardLock(false);

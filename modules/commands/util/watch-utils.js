@@ -106,6 +106,7 @@ export class WatchLifecycle {
         this._host = "";
         this._modalPending = false;
         this._disposed = false;
+        this._suppressUntil = 0; // timestamp — suppress popup until this time
     }
 
     /** Start the badge and tab-switch listener. */
@@ -125,6 +126,8 @@ export class WatchLifecycle {
         this._onActivated = async (info) => {
             if (this._disposed || this._modalPending) return;
             if (info.tabId === this._tabId) return;
+            // Suppress popup for 30s after user dismisses it
+            if (Date.now() < this._suppressUntil) return;
 
             this._modalPending = true;
 
@@ -149,8 +152,10 @@ export class WatchLifecycle {
                     this._callbacks?.onSwitch?.(info.tabId);
                 } else if (result === "stop") {
                     this._callbacks?.onStop?.();
+                } else {
+                    // Cancel/dismiss — suppress popup for 30 seconds
+                    this._suppressUntil = Date.now() + 30000;
                 }
-                // null (Cancel) = keep watching original tab
             } catch {
                 // Modal failed — keep watching
             } finally {

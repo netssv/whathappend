@@ -3,12 +3,8 @@
  * @description Shared formatting utilities for the extract command.
  */
 
-import { ANSI } from "../../formatter.js";
-
-/** OSC 8 clickable hyperlink. */
-export function linkify(url, label) {
-    return `\x1b]8;;${url}\x07${label || url}\x1b]8;;\x07`;
-}
+import { ANSI, linkify } from "../../formatter.js";
+export { linkify };
 
 /** Extract file extension (uppercase) from URL. */
 export function extTag(url) {

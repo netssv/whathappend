@@ -23,8 +23,8 @@ import { createTabWatcher } from "./tabs-watch.js";
 
 // ── Mode aliases ─────────────────────────────────────────────────────
 
-const DASHBOARD_ALIASES = new Set(["dashboard", "dash"]);
 const RAW_ALIASES       = new Set(["raw", "log", "stream"]);
+const WATERFALL_ALIASES = new Set(["waterfall", "timeline", "flow"]);
 
 // ── Entry Point ──────────────────────────────────────────────────────
 
@@ -37,16 +37,12 @@ export async function cmdWatch(args) {
     try {
         const tab = await getActiveTab();
 
-        if (DASHBOARD_ALIASES.has(sub)) {
-            return { __watch: true, watcher: createTabWatcher(tab.id, "⬤") };
+        if (WATERFALL_ALIASES.has(sub)) {
+            return { __watch: true, watcher: createWaterfallWatcher(tab.id) };
         }
 
-        if (RAW_ALIASES.has(sub)) {
-            return { __watch: true, watcher: createRawWatcher(tab.id) };
-        }
-
-        // Default: waterfall
-        return { __watch: true, watcher: createWaterfallWatcher(tab.id) };
+        // Default: dashboard
+        return { __watch: true, watcher: createTabWatcher(tab.id, "⬤") };
     } catch (errorMsg) {
         return errorMsg; // Already formatted ANSI error from getActiveTab
     }

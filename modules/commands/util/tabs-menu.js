@@ -16,28 +16,12 @@
  */
 
 import { ANSI } from "../../formatter.js";
-import { renderTabList, renderActionMenu, MODE_KEYS } from "./tabs-menu-ui.js";
+import { MODE_KEYS, TabsMenuRenderer } from "./tabs-menu-ui.js";
 import { handleFocus, handleClose, handleDelegatedAction } from "./tabs-menu-actions.js";
+import { disposeListener, waitForKeyThenRestart } from "./tabs-utils.js";
 
 // ── Exit keys ────────────────────────────────────────────────────────
 const isQuitKey = (e) => e === "q" || e === "Q" || e === "\x03" || e === "\r" || e === "\n";
-
-// ── Helper: safely dispose listener ──────────────────────────────────
-function disposeListener(watcher) {
-    if (watcher.onDataDisposable) {
-        watcher.onDataDisposable.dispose();
-        watcher.onDataDisposable = null;
-    }
-}
-
-// ── Helper: wait for any key, then restart the menu ──────────────────
-function waitForKeyThenRestart(watcher, term, doneCallback) {
-    term.write(`\n  ${ANSI.dim}Press ANY KEY to return to Tabs Menu...${ANSI.reset}`);
-    watcher.onDataDisposable = term.onData(() => {
-        disposeListener(watcher);
-        watcher.start(term, doneCallback);
-    });
-}
 
 /**
  * Builds the interactive watcher object for the tabs TUI menu.
@@ -57,28 +41,56 @@ export function createTabMenu(cmdTabs) {
                 let tabsList = [];
                 let message = "";
                 let selectedTabIndex = null;
+                let _mouseEnabled = false;
+                let renderer = new TabsMenuRenderer(term);
 
                 // ── Draw: query tabs → render the appropriate screen ─
                 const draw = () => {
                     chrome.tabs.query({}, (tabs) => {
                         tabsList = tabs;
-                        term.write("\x1b[2J\x1b[H"); // clear screen
-
-                        if (selectedTabIndex === null) {
-                            term.write(renderTabList(tabs, message));
-                        } else {
-                            const tab = tabs[selectedTabIndex];
-                            if (!tab) { selectedTabIndex = null; draw(); return; }
-                            term.write(renderActionMenu(tab, message));
-                        }
-
+                        renderer.draw(tabsList, selectedTabIndex, message, renderer.hoveredAction);
                         message = "";
                     });
                 };
 
+                // Enable All Motion SGR Mouse Tracking (clicks + hover)
+                term.write("\x1b[?1003h\x1b[?1006h");
+                _mouseEnabled = true;
+
                 // ── Input router ─────────────────────────────────────
                 this.onDataDisposable = term.onData(async (e) => {
-                    const lower = e.toLowerCase();
+                    let lower = e.toLowerCase();
+
+                    // Parse SGR Mouse Event: \x1b[<b;x;yM
+                    if (e.startsWith("\x1b[<")) {
+                        const match = e.match(/\x1b\[<(\d+);(\d+);(\d+)([mM])/);
+                        if (match) {
+                            const btn = parseInt(match[1]);
+                            const x = parseInt(match[2]);
+                            const rawY = parseInt(match[3]);
+                            const isPress = match[4] === 'M';
+                            // Convert viewport Y to absolute buffer Y (scroll offset)
+                            const absY = (term.buffer?.active?.baseY ?? 0) + rawY;
+                            let action = renderer.getActionAt(absY, x);
+
+                            // Hover
+                            if (btn === 35) {
+                                if (action !== renderer.hoveredAction) {
+                                    renderer.hoveredAction = action || null;
+                                    renderer.draw(tabsList, selectedTabIndex, message, renderer.hoveredAction);
+                                }
+                                return;
+                            }
+
+                            // Left click press
+                            if (btn === 0 && isPress) {
+                                if (action) lower = action;
+                                else return; // Empty space
+                            } else {
+                                return; // Ignore release
+                            }
+                        }
+                    }
 
                     // Global quit
                     if (isQuitKey(lower)) {
@@ -131,6 +143,10 @@ export function createTabMenu(cmdTabs) {
 
                     // ── Delegated actions (sub-commands) ─────────────
                     disposeListener(this);
+                    if (_mouseEnabled) {
+                        term.write("\x1b[?1003l\x1b[?1006l");
+                        _mouseEnabled = false;
+                    }
                     term.write(`\n\n  ${ANSI.dim}Running: tabs ${mode} ${label}...${ANSI.reset}\n`);
 
                     const result = await handleDelegatedAction(cmdTabs, mode, label);
@@ -167,6 +183,7 @@ export function createTabMenu(cmdTabs) {
             },
 
             stop(term) {
+                term.write("\x1b[?1003l\x1b[?1006l");
                 this._subWatcher?.stop(term);
                 this._subWatcher = null;
                 disposeListener(this);

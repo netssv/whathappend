@@ -20,8 +20,8 @@ export const TRIVIA_QUESTIONS = [...JUNIOR_QUESTIONS, ...MID_QUESTIONS, ...SENIO
 
 /** Map level names to question pools */
 export const TRIVIA_LEVELS = {
-    junior: { label: "JUNIOR", questions: JUNIOR_QUESTIONS, color: "\x1b[32m", icon: "🟢" },
-    mid:    { label: "MID",    questions: MID_QUESTIONS,    color: "\x1b[33m", icon: "🟡" },
-    senior: { label: "SENIOR", questions: SENIOR_QUESTIONS, color: "\x1b[31m", icon: "🔴" },
-    random: { label: "RANDOM", questions: TRIVIA_QUESTIONS, color: "\x1b[35m", icon: "🎲" },
+    junior: { label: "JUNIOR", questions: JUNIOR_QUESTIONS, color: "\x1b[32m", icon: "[JNR]" },
+    mid:    { label: "MID",    questions: MID_QUESTIONS,    color: "\x1b[33m", icon: "[MID]" },
+    senior: { label: "SENIOR", questions: SENIOR_QUESTIONS, color: "\x1b[31m", icon: "[SNR]" },
+    random: { label: "RANDOM", questions: TRIVIA_QUESTIONS, color: "\x1b[35m", icon: "[RND]" },
 };

@@ -1,11 +1,9 @@
 /**
  * @module modules/terminal/triage-history.js
- * @description Architectural connections and module role.
- * 
+ * @description Static string builder for export / command history.
+ *
  * @connections
- * - Imports: 
- *     - ANSI from '../formatter.js'
- *     - ROW_KEYS, ROW_LABELS from './progressive-renderer.js'
+ * - Imports: ANSI from '../formatter.js', ROW_KEYS, ROW_LABELS from './progressive-renderer.js'
  * - Exports: buildTriageHistory
  * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
  */
@@ -32,7 +30,7 @@ export function buildTriageHistory(resolved, providers) {
     lines.push(`\n${ANSI.cyan}${ANSI.bold}[INFO] Infrastructure Triage:${ANSI.reset}`);
 
     for (const key of ROW_KEYS) {
-        const val = resolved[key] || "N/A";
+        let val = resolved[key] || "N/A";
         lines.push(`       ${ROW_LABELS[key]} ━ ${val}`);
     }
 

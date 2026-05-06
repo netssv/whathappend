@@ -30,8 +30,6 @@ export { cmdComments } from "./comments.js";
 export { cmdCms } from "./cms.js";
 export { cmdMalware } from "./malware.js";
 export { cmdEdit } from "./edit.js";
-export { cmdEmails } from "./emails.js";
-export { cmdPhones } from "./phones.js";
 export { cmdIsUp } from "./isup.js";
 export { cmdJitter } from "./jitter.js";
 export { cmdSpeedtest } from "./speedtest.js";
