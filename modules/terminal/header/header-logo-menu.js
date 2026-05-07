@@ -38,7 +38,7 @@ export function initLogoMenu() {
                     btnHide.replaceChildren();
                     const s1 = document.createElement("span"); s1.textContent = "◫";
                     btnHide.appendChild(s1);
-                    btnHide.appendChild(document.createTextNode(` Triage: ${isHidden ? "ON" : "OFF"}`));
+                    btnHide.appendChild(document.createTextNode(` Auto-Hide Triage: ${isHidden ? "ON" : "OFF"}`));
                 }
                 
                 const btnBlocker = document.getElementById("menu-toggle-blocker");
@@ -46,7 +46,7 @@ export function initLogoMenu() {
                     btnBlocker.replaceChildren();
                     const s2 = document.createElement("span"); s2.textContent = "🛡";
                     btnBlocker.appendChild(s2);
-                    btnBlocker.appendChild(document.createTextNode(` Blocker: ${isBlockerHidden ? "ON" : "OFF"}`));
+                    btnBlocker.appendChild(document.createTextNode(` Auto-Hide Blocker: ${isBlockerHidden ? "ON" : "OFF"}`));
                 }
             });
         } catch {}

@@ -12,9 +12,7 @@
         "cookies",
         "browsingData",
         "contentSettings",
-        "declarativeNetRequest"
-    ],
-    "optional_permissions": [
+        "declarativeNetRequest",
         "debugger"
     ],
     "host_permissions": [
