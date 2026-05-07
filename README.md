@@ -13,7 +13,7 @@ Our documentation is modularized to ensure maximum readability and context reten
 - [📖 Quick Start Guide](docs/guides/quick-start.md)
 - [🏗 Architecture & Internals](docs/core/architecture.md)
 - [🔒 Security & Privacy Policy](docs/core/security.md)
-- [🛠 All Commands (API Reference)](docs/cmds/README.md)
+- [🛠 All Commands (API Reference)](COMMANDS.md)
 
 ---
 

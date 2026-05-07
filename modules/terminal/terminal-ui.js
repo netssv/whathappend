@@ -75,6 +75,7 @@ export function initTerminalUI(containerId) {
             fitAddon.fit();
             setTermCols(term.cols);
             term.refresh(0, Math.max(0, term.rows - 1));
+            term.scrollToBottom();
         }
     };
 
@@ -124,12 +125,18 @@ function updateFontSize(delta) {
     if (next === current) return;
     
     term.options.fontSize = next;
-    fitAddon.fit();
-    setTermCols(term.cols);
     
-    // Force full re-render to avoid layout ghosting
-    term.refresh(0, term.rows - 1);
-    term.focus();
+    // Defer the fit calculation slightly to allow the DOM to reflow with the new font size
+    setTimeout(() => {
+        if (!term || !fitAddon) return;
+        fitAddon.fit();
+        setTermCols(term.cols);
+        
+        // Force full re-render to avoid layout ghosting
+        term.refresh(0, Math.max(0, term.rows - 1));
+        term.scrollToBottom();
+        term.focus();
+    }, 50);
     
     try { chrome.storage.local.set({ termFontSize: next }); } catch (_) {}
 }

@@ -57,10 +57,13 @@ async function bootstrap() {
             // This prevents auto-switching and enables the tab-switch popup.
             ContextManager.setManualTarget(initialDomain);
             
-            // Helpful hint if auto-triage is OFF
+            // Check auto-triage setting
             const autoTriage = await getConfig("auto-triage");
-            if (!autoTriage) {
-                term.writeln(`\x1b[90m  (Auto-triage is OFF. Type \x1b[37mstart\x1b[90m to scan active tab)\x1b[0m`);
+            if (autoTriage) {
+                setTimeout(() => {
+                    term.write("start\r\n");
+                    executeCommand("start");
+                }, 100);
             }
         } else if (!restored) {
             writePrompt();

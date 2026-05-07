@@ -46,8 +46,10 @@ export function createTriageWatcher(resolved, urls, skeletonHeight) {
                 }
 
                 // Write instruction + status line (cursor stays on status line)
-                term.write(`\n  ${ANSI.dim}Hover to highlight · Click to open · ${ANSI.red}[Q]${ANSI.dim} exit${ANSI.reset}\n`);
+                term.write(`\n  ${ANSI.dim}Hover to highlight · Click to open · ${ANSI.reset}\x1b[31;1m[Q] exit\x1b[0m\n`);
                 term.write(`  ${ANSI.dim}↳ —${ANSI.reset}`);
+                
+                this._qExitY = absBottom + 1;
 
                 term.write("\x1b[?1003h\x1b[?1006h");
                 this._mouseEnabled = true;
@@ -75,13 +77,20 @@ export function createTriageWatcher(resolved, urls, skeletonHeight) {
                         }
 
                         // Left click
-                        if (btn === 0 && isPress && key) {
-                            const url = urls[key];
-                            if (url) {
-                                try { chrome.tabs.create({ url, active: false }); } catch (_) {}
-                                this._updateStatus(term, key, `${ANSI.green}✓ Opened${ANSI.reset}`);
+                        if (btn === 0 && isPress) {
+                            if (absY === this._qExitY) {
+                                this._cleanup(term);
+                                doneCallback();
+                                return;
                             }
-                            return;
+                            if (key) {
+                                const url = urls[key];
+                                if (url) {
+                                    try { chrome.tabs.create({ url, active: false }); } catch (_) {}
+                                    this._updateStatus(term, key, `${ANSI.green}✓ Opened${ANSI.reset}`);
+                                }
+                                return;
+                            }
                         }
                         return;
                     }
