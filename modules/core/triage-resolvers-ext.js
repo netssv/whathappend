@@ -139,7 +139,7 @@ export async function resolveSSLCDNRow(renderer, originalDomain) {
             // CDN / WAF detection from server headers
             const headers = resp.data.serverHeaders || {};
             cdnLabel = detectCDN(headers) || "N/A";
-            const cdnUrl = `https://www.wappalyzer.com/lookup/${originalDomain}`;
+            const cdnUrl = `https://builtwith.com/${originalDomain}`;
             renderer?.updateRow("cdn", cdnLabel, cdnUrl);
             updateCDNField(cdnLabel);
             setSessionTriad("cdn", cdnLabel);

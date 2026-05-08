@@ -38,10 +38,91 @@ export function suggestCommand(input) {
 // Command Parser
 // ---------------------------------------------------------------------------
 
+export function parsePipeline(input) {
+    // 1. Split by pipes respecting quotes
+    const pipeline = [];
+    const regex = /("[^"]*"|'[^']*'|[^|]+)/g;
+    const parts = (input.match(regex) || []).map(p => p.trim()).filter(Boolean);
+    
+    // Sometimes the regex leaves trailing/leading spaces or splits weirdly if pipes are mixed
+    // A more robust pipe splitter:
+    let currentPart = "";
+    let inQuotes = false;
+    let quoteChar = "";
+    const commands = [];
+    
+    for (let i = 0; i < input.length; i++) {
+        const char = input[i];
+        if ((char === '"' || char === "'") && (i === 0 || input[i-1] !== '\\')) {
+            if (inQuotes && quoteChar === char) {
+                inQuotes = false;
+            } else if (!inQuotes) {
+                inQuotes = true;
+                quoteChar = char;
+            }
+            currentPart += char;
+        } else if (char === '|' && !inQuotes) {
+            commands.push(currentPart.trim());
+            currentPart = "";
+        } else {
+            currentPart += char;
+        }
+    }
+    if (currentPart) commands.push(currentPart.trim());
+
+    return commands.map(cmd => parseCommandNode(cmd));
+}
+
+function parseCommandNode(input) {
+    const tokens = [];
+    let currentToken = "";
+    let inQuotes = false;
+    let quoteChar = "";
+
+    for (let i = 0; i < input.length; i++) {
+        const char = input[i];
+        if ((char === '"' || char === "'") && (i === 0 || input[i-1] !== '\\')) {
+            if (inQuotes && quoteChar === char) {
+                inQuotes = false;
+                // keep quotes out of the final token value if desired, but here we just leave them or strip them
+            } else if (!inQuotes) {
+                inQuotes = true;
+                quoteChar = char;
+            }
+        } else if (char === ' ' && !inQuotes) {
+            if (currentToken) {
+                tokens.push(currentToken);
+                currentToken = "";
+            }
+        } else {
+            currentToken += char;
+        }
+    }
+    if (currentToken) tokens.push(currentToken);
+
+    const flags = [];
+    const opts = [];
+    const args = [];
+
+    for (const t of tokens) {
+        if (t.startsWith("--")) {
+            flags.push(t); // Long flag
+        } else if (t.startsWith("-") && t !== "-") {
+            // Short flags expansion (e.g. -la -> -l, -a)
+            for (let i = 1; i < t.length; i++) {
+                flags.push("-" + t[i]);
+            }
+        } else if (t.startsWith("+")) {
+            opts.push(t);
+        } else {
+            args.push(t.replace(/^["']|["']$/g, "")); // strip outer quotes
+        }
+    }
+
+    return { cmd: args[0]?.toLowerCase() || "", args: args.slice(1), flags, opts };
+}
+
+// For backwards compatibility, parseCommand returns the first node
 export function parseCommand(input) {
-    const tokens = input.split(/\s+/);
-    const flags = tokens.filter(t => t.startsWith("-") && t !== "-");
-    const opts = tokens.filter(t => t.startsWith("+"));
-    const nf = tokens.filter(t => !(t.startsWith("-") && t !== "-") && !t.startsWith("+"));
-    return { cmd: nf[0]?.toLowerCase()||"", args: nf.slice(1), flags, opts };
+    return parsePipeline(input)[0];
 }

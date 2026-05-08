@@ -77,9 +77,15 @@ export async function processCommand(rawInput) {
     let input = rawInput.trim().replace(/\\+$/, "").trim();
     if (input.startsWith("> ")) input = input.substring(2).trim();
 
-    const mappedInput = translateRawCommand(input);
+    // Only translate the FIRST pipe segment — preserve the rest of the pipeline
+    const pipeIndex = input.indexOf(" | ");
+    const firstSegment = pipeIndex !== -1 ? input.slice(0, pipeIndex) : input;
+    const restOfPipeline = pipeIndex !== -1 ? input.slice(pipeIndex) : "";
+
+    const mappedFirst = translateRawCommand(firstSegment);
+    const mappedInput = mappedFirst + restOfPipeline;
     if (mappedInput !== input) {
-        term.writeln(`\r\x1b[90m> Translating raw command to: ${mappedInput}\x1b[0m`);
+        term.writeln(`\r\x1b[90m> Translating raw command to: ${mappedFirst}${restOfPipeline}\x1b[0m`);
         input = mappedInput;
     }
 
@@ -90,7 +96,10 @@ export async function processCommand(rawInput) {
     _currentAbortId = myAbortId;
 
     const cmd = input.split(/\s+/)[0]?.toLowerCase();
-    let spinnerInterval = SPINNER_CMDS.has(cmd) ? showSpinner() : null;
+    // For pipelines, check if the FIRST segment needs a spinner
+    const pipelineFirstCmd = firstSegment.split(/\s+/)[0]?.toLowerCase();
+    let spinnerInterval = SPINNER_CMDS.has(pipelineFirstCmd) || SPINNER_CMDS.has(cmd) ? showSpinner() : null;
+    const _startTime = Date.now();
 
     try {
         const result = await executeCommand(input);
@@ -157,7 +166,8 @@ export async function processCommand(rawInput) {
         term.writeln(`\x1b[31m[FATAL] ${err.message}\x1b[0m`);
     }
 
+    const _execMs = Date.now() - _startTime;
     _isProcessing = false;
     setKeyboardLock(false);
-    writePrompt();
+    writePrompt(_execMs);
 }

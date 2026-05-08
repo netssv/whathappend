@@ -58,13 +58,13 @@ async function bootstrap() {
             ContextManager.setManualTarget(initialDomain);
             
             // Check auto-triage setting
-            const autoTriage = await getConfig("auto-triage");
+            /* const autoTriage = await getConfig("auto-triage");
             if (autoTriage) {
                 setTimeout(() => {
                     term.write("start\r\n");
                     executeCommand("start");
-                }, 100);
-            }
+                }, 100); 
+            }*/
         } else if (!restored) {
             writePrompt();
         }

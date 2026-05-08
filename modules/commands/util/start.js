@@ -21,24 +21,18 @@ import { ContextManager } from "../../context.js";
 // ===================================================================
 
 export async function cmdStart(args) {
-    // If a domain was provided, use it directly
     if (args.length > 0) {
         const domain = args[0];
         ContextManager.setManualTarget(domain);
-        return { __switch: true, domain: domain + " -go" };
+        return { __switch: true, domain: domain + " --go" };
     }
 
-    // 2. If no args, query the active tab
-    try {
-        const resp = await chrome.runtime.sendMessage({ command: "get-active-domain" });
-        if (!resp?.domain) {
-            return `${ANSI.red}[ERROR] No active tab detected.${ANSI.reset}\n${ANSI.dim}Open a website in a browser tab first.${ANSI.reset}`;
-        }
-
-        const domain = resp.domain;
-        ContextManager.setManualTarget(domain);
-        return { __switch: true, domain: domain + " -go" };
-    } catch (err) {
-        return `${ANSI.red}[ERROR] ${err.message || "Failed to query active tab."}${ANSI.reset}`;
+    // 2. If no args, use the current target
+    const domain = ContextManager.getDomain();
+    
+    if (!domain || domain === "restricted") {
+        return `${ANSI.red}[ERROR] No active target detected.${ANSI.reset}\n${ANSI.dim}Open a website or use 'target <domain>' first.${ANSI.reset}`;
     }
+
+    return { __switch: true, domain: domain + " --go" };
 }

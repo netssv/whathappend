@@ -2,6 +2,7 @@ import { InputEvents } from "./events.js";
 import { term, writePrompt, isSystemWriting } from "../terminal-ui.js";
 import { deleteCharBefore, deleteWordBefore, deleteCharAfter, deleteWordAfter, moveCursorWordLeft, moveCursorWordRight } from "./buffer-ops.js";
 import { getTermCols } from "../../state.js";
+import { handleCtrlShortcut } from "./keyboard-shortcuts.js";
 
 import {
     getCurrentLine,
@@ -78,6 +79,9 @@ function setupTerminalListener() {
             clearBuffer();
             return;
         }
+        // ── Readline shortcuts (Ctrl+A/E/W/K) — delegated to keyboard-shortcuts.js
+        if (ctrlKey && handleCtrlShortcut(keyCode)) return;
+
         if (keyCode === 13) {
             const currentLine = getCurrentLine();
             if (currentLine === "") {

@@ -15,6 +15,32 @@ If you are extending the terminal or adding new commands, you MUST verify the fo
 7. `modules/commands/.../index.js`: Ensure your function is exported from its domain folder.
 8. `dev-lint.js`: Run this script to verify your code respects the 200-line ceiling and subcommand conventions.
 
+## [2.8.3] - 2026-05-08
+
+**The "Power User & POSIX Pipelines" Update**
+
+### What's New?
+
+- **AST Pipeline Engine**: The terminal now features a real command execution engine with support for pipes (`|`). You can chain commands like `dig google.com mx +short | grep google | wc -l`.
+- **POSIX-Style Flags**: Complete refactor of the argument parser to support standard Linux conventions:
+    - **Grouped short flags**: `-la` is now correctly expanded to `-l -a`.
+    - **Long flags**: Proper differentiation between `-v` and `--version`.
+- **Native Pipe Utilities**: Added dedicated filter stages to the command registry:
+    - `grep`: Native implementation for filtering output lines (supports `-i` and `-v`).
+    - `wc`: Word, line (`-l`), and character count utility.
+    - `sort`: ASCII-based alphabetical and numerical (`-n`) sorting.
+- **Dynamic Shell Prompt**: The prompt now reflects the **active tab target** (like a hostname) and displays the **execution time** for heavy commands (e.g., `[1.2s]`).
+- **Readline Editing Shortcuts**: Increased keyboard efficiency with standard shell shortcuts:
+    - `Ctrl+A` / `Ctrl+E`: Jump to start/end of line.
+    - `Ctrl+W`: Delete word before cursor.
+    - `Ctrl+K`: Kill text from cursor to end of line.
+- **Privileged Mode (sudo)**: Introduced a formal `ContextManager` state for privileged operations, enabling future high-impact network diagnostic commands.
+
+### Fixes & Refinement
+
+- **Parser Sanitization**: Pipelines now strip cosmetic terminal extras (like `[INFO]` or command echoes) when passing data between stages, ensuring `wc` and `sort` receive only raw data.
+- **Terminal UI Modularization**: Refactored `terminal-ui.js` and `keyboard-events.js` into smaller modules (`terminal-prompt.js`, `keyboard-shortcuts.js`) to maintain a strict <200 line ceiling for better maintainability.
+
 ## [2.8.2] - 2026-05-06
 
 **The "Smarter Triage & Better Visibility" Update**

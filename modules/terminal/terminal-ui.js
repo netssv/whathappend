@@ -17,14 +17,15 @@ import { showBanner as _showBanner } from "./terminal-banner.js";
 import { THEMES, DEFAULT_THEME_ID } from "../data/themes.js";
 import { initThemeEngine } from "./theme-engine.js";
 
+// Prompt rendering delegated to terminal-prompt.js (keeps this file under 200 lines)
+export { writePrompt, PROMPT, PROMPT_PREFIX } from "./terminal-prompt.js";
+
 // ---------------------------------------------------------------------------
 // Terminal Configuration — Uses default theme from themes.js
 // ---------------------------------------------------------------------------
 
 const TERMINAL_THEME = THEMES[DEFAULT_THEME_ID].xterm;
 
-export const PROMPT_PREFIX = "\x1b[36m~\x1b[0m\r\n";
-export const PROMPT = "\x1b[35m❯\x1b[0m ";
 
 export let term;
 export let fitAddon;
@@ -166,14 +167,6 @@ export function showBanner() {
     _showBanner(term);
 }
 
-export function writePrompt() {
-    // Write the prompt, and the dim placeholder only if it's the very first command
-    if (getHistory().length === 0) {
-        term.write(PROMPT_PREFIX + PROMPT + "\x1b[90mgoogle.com\x1b[0m\x1b[10D");
-    } else {
-        term.write(PROMPT_PREFIX + PROMPT);
-    }
-}
 
 export function writeOutput(output) {
     _isSystemWriting = true;

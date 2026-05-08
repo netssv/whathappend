@@ -20,6 +20,9 @@ Control the terminal environment itself.
 | `errors`| Common diagnostic insights and network error explanations. | `error` |
 | `about` | Philosophy, identity, and architecture. | - |
 | `clear` | Clears the terminal screen. | `cls`, `reset` |
+| `grep` | Filters input lines based on a pattern (used with pipes). | `filter` |
+| `wc` | Counts lines (`-l`), words (`-w`), or characters (`-c`). | `count` |
+| `sort` | Sorts lines alphabetically or numerically (`-n`). | `order` |
 | `exit` | Ends the session, clears history, and closes out. | `quit`, `logout` |
 | `help` | Shows the quick-reference menu in the terminal. | `?`, `ls`, `man` |
 | `nav` | Interactive platform explorer menu for discovering commands. | `menu`, `gui`, `explorer` |
@@ -27,7 +30,7 @@ Control the terminal environment itself.
 | `dog` | Dynamic two-dog ASCII animation & wellness reminder. | `perro`, `pet`, `mascota` |
 | `matrix` | Code rain visual overlay (katakana + hex). | `rain` |
 | `hack` | 10-question technical trivia: DNS, SEO, Web Security. | `trivia`, `quiz` |
-| `sudo` | Attempts root escalation. Receives a firm but witty rejection. | `su` |
+| `sudo` | Toggles Privileged Mode via ContextManager. | `su` |
 | `snake` | Classic Snake in ASCII. Arrow keys or WASD to move. | `juego`, `game` |
 | `signal` | Displays a random ASCII signal generator | `intercept` |
 | `btc` | Live Bitcoin price fetched from Binance public API. | - |

@@ -79,7 +79,8 @@ export function formatStackOutput({ domain, foundCMS, foundFrameworks, foundServ
         ins.push(liveDomInsight);
     }
 
-    ins.push({ level: "INFO", text: `Test Stack: https://builtwith.com/${encodeURIComponent(domain)}` });
+    ins.push({ level: "INFO", text: `Test Stack [1]: https://whatcms.org/?s=${encodeURIComponent(domain)}` });
+    ins.push({ level: "INFO", text: `Test Stack [2]: https://builtwith.com/${encodeURIComponent(domain)}` });
 
     o += insights(ins);
     return o;

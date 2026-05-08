@@ -76,7 +76,7 @@ export async function handleAutoTarget(cmd, args, opts, flags = []) {
         if (mt && DNS_TYPES.includes(mt)) {
             output = await cmdDig([cleanCmd], { forcedType: mt, opts, isShortcut: true });
         } else {
-            const isGo = flags.includes("-go") || flags.includes("--go");
+            const isGo = flags.includes("--go") || flags.includes("-go") || (flags.includes("-g") && flags.includes("-o"));
             output = `\n${getSeparator()}\n${ANSI.green}Target set: ${ANSI.yellow}${cleanCmd}${ANSI.reset}\n`;
 
             // Write "Target set" directly
@@ -186,7 +186,7 @@ export async function handleAutoTarget(cmd, args, opts, flags = []) {
 
     // Unrecognized string -> provide suggestions
     const suggestion = suggestCommand(cmd);
-    let errMsg = `${ANSI.red}Unknown command: '${cmd}'${ANSI.reset}`;
+    let errMsg = `${ANSI.red}bash: ${cmd}: command not found${ANSI.reset}`;
     if (suggestion) {
         errMsg += `\n${ANSI.yellow}Did you mean '${suggestion}'?${ANSI.reset}`;
     }

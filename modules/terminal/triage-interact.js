@@ -46,10 +46,11 @@ export function createTriageWatcher(resolved, urls, skeletonHeight) {
                 }
 
                 // Write instruction + status line (cursor stays on status line)
-                term.write(`\n  ${ANSI.dim}Hover to highlight · Click to open · ${ANSI.reset}\x1b[31;1m[Q] exit\x1b[0m\n`);
+                term.write(`\n  ${ANSI.dim}Hover to highlight · Click to open${ANSI.reset}\n`);
+                term.write(`  \x1b[31;1m Press [Q] or click here to exit\x1b[0m\n`);
                 term.write(`  ${ANSI.dim}↳ —${ANSI.reset}`);
                 
-                this._qExitY = absBottom + 1;
+                this._qExitY = absBottom + 3;
 
                 term.write("\x1b[?1003h\x1b[?1006h");
                 this._mouseEnabled = true;

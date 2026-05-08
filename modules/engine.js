@@ -27,7 +27,7 @@ import { ANSI, generateImpactSection, isIPAddress, resolveTargetDomain, cmdError
 import { CMD_ALIASES, DNS_SHORTCUTS } from "./data/aliases.js";
 
 // Core logic modules
-import { parseCommand, suggestCommand } from "./core/parser.js";
+import { parsePipeline, suggestCommand } from "./core/parser.js";
 import { checkTargetGuards } from "./core/guards.js";
 import { handleAutoTarget } from "./core/fallback.js";
 import { COMMAND_REGISTRY } from "./core/registry.js";
@@ -50,11 +50,55 @@ export async function executeCommand(input) {
         return cmdHelp();
     }
 
-    const { cmd, args, flags, opts } = parseCommand(trimmed);
-    const hasImpact = flags.includes("--impact");
-    let output = "";
+    const pipeline = parsePipeline(trimmed);
+    let currentOutput = "";
+    let currentStdin = null;
 
+    for (let i = 0; i < pipeline.length; i++) {
+        const node = pipeline[i];
+        
+        // Execute single node
+        const nodeResult = await executeSingleNode(node, currentStdin);
+        
+        // If it's a special object (switch, clear, triage watcher), return immediately
+        if (nodeResult === "__CLEAR__") return nodeResult;
+        if (nodeResult && typeof nodeResult === "object") {
+            if (nodeResult.__switch) return await executeCommand(nodeResult.domain);
+            if (nodeResult.backgroundTriage !== undefined || nodeResult.__watch) {
+                return nodeResult;
+            }
+        }
+        
+        // Extract string output for the next pipe.
+        // For non-terminal stages, strip cosmetic lines (command echo, INSIGHTS)
+        // so only raw data flows — mirrors real Linux pipe behavior.
+        currentOutput = nodeResult;
+        const isLastNode = i === pipeline.length - 1;
+        const raw = typeof nodeResult === "string" ? nodeResult : (nodeResult?.output || "");
+        currentStdin = isLastNode ? raw : cleanForPipe(raw);
+    }
+
+    // Only apply impact on the first command's resolution (for backwards compatibility)
+    const { cmd, flags } = pipeline[0];
+    const hasImpact = flags.includes("--impact");
     let resolved = CMD_ALIASES[cmd] || cmd;
+    if (resolved.includes(" ")) resolved = resolved.split(" ")[0];
+
+    if (hasImpact && !["help","clear","target"].includes(resolved) && typeof currentOutput === "string") {
+        try {
+            const ic = DNS_SHORTCUTS[resolved] ? "dig" : resolved;
+            const imp = await generateImpactSection(ic, currentOutput);
+            if (imp) currentOutput += "\n\n" + imp;
+        } catch (_) { /* impact is non-critical, silently skip */ }
+    }
+
+    return currentOutput;
+}
+
+async function executeSingleNode({ cmd, args, flags, opts }, stdin) {
+    let output = "";
+    let resolved = CMD_ALIASES[cmd] || cmd;
+    
     if (resolved.includes(" ")) {
         const parts = resolved.split(" ");
         resolved = parts[0];
@@ -73,46 +117,52 @@ export async function executeCommand(input) {
             output = await cmdDig(args, { forcedType: DNS_SHORTCUTS[resolved], opts, isShortcut: true });
         } else {
             if (resolved === "clear") return "__CLEAR__";
-
-            if (resolved === "switch") {
-                const result = await cmdSwitch();
-                if (result && typeof result === "object" && result.__switch) {
-                    // Re-enter engine with the domain — triggers handleAutoTarget
-                    return await executeCommand(result.domain);
-                }
-                output = result;
-            } else if (resolved === "start") {
-                const result = await cmdStart(args);
-                if (result && typeof result === "object" && result.__switch) {
-                    return await executeCommand(result.domain);
-                }
-                output = result;
-            } else if (COMMAND_REGISTRY[resolved]) {
-                output = await COMMAND_REGISTRY[resolved](args, flags, opts);
+            if (resolved === "switch") return await cmdSwitch();
+            if (resolved === "start") return await cmdStart(args);
+            
+            if (COMMAND_REGISTRY[resolved]) {
+                // Pass stdin as a 4th parameter for pipeline support
+                output = await COMMAND_REGISTRY[resolved](args, flags, opts, stdin);
             } else {
                 // If not a known command, check if it's an auto-target domain/IP
                 output = await handleAutoTarget(cmd, args, opts, flags);
-                // Progressive triage returns an object — pass through directly
-                if (output && typeof output === "object" && output.backgroundTriage !== undefined) {
-                    return output;
-                }
             }
         }
     } catch (err) {
-        output = cmdError(` ${err.message || "Unknown error occurred"}`);
+        output = cmdError(`bash: ${cmd}: ${err.message || "command not found"}`);
         output += `\n${ANSI.dim}If this persists, try a different domain or check your connection.${ANSI.reset}`;
     }
 
-    if (output && typeof output === "object" && output.__watch) {
-        return output;
-    }
-
-    if (hasImpact && !["help","clear","target"].includes(resolved)) {
-        try {
-            const ic = DNS_SHORTCUTS[resolved] ? "dig" : resolved;
-            const imp = await generateImpactSection(ic, output);
-            if (imp) output += "\n\n" + imp;
-        } catch (_) { /* impact is non-critical, silently skip */ }
-    }
     return output;
+}
+
+// ---------------------------------------------------------------------------
+// Pipe stdin sanitizer — strips cosmetic/display-only lines
+// ---------------------------------------------------------------------------
+
+/**
+ * Remove terminal-display lines that should not flow through a pipe.
+ * In real Linux, `dig +short` stdout only contains raw answers.
+ * Our commands include echoes and INSIGHTS for readability — these must
+ * be stripped when the output is used as stdin for the next command.
+ *
+ * Stripped patterns:
+ *   - Command echo:   "> dig ..." / "> curl ..."
+ *   - INSIGHTS header: "── INSIGHTS ──"
+ *   - Insight entries: "[INFO] ..." / "[WARN] ..." / "[PASS] ..." / "[CRIT] ..."
+ */
+function cleanForPipe(output) {
+    if (!output) return "";
+    return output
+        .split("\n")
+        .filter(line => {
+            // Strip ANSI codes for the check, keep original line in output
+            const clean = line.replace(/\x1b\[[0-9;]*m/g, "").trim();
+            if (!clean) return false;
+            if (clean.startsWith(">")) return false;           // command echo
+            if (clean.startsWith("──") || clean.startsWith("--")) return false; // INSIGHTS separator
+            if (/^\[(INFO|WARN|PASS|CRIT|FAIL|ERROR)\]/.test(clean)) return false; // insights
+            return true;
+        })
+        .join("\n");
 }

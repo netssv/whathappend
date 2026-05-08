@@ -178,4 +178,12 @@ export const ContextManager = {
         if (this._isManual && this._manualTarget) return this._manualTarget;
         return this.currentTarget;
     },
+
+    setPrivileged(val) {
+        this._privileged = val;
+    },
+
+    isPrivileged() {
+        return this._privileged === true;
+    }
 };
