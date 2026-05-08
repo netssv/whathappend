@@ -28,10 +28,13 @@ import { cmdDig } from "../commands/dns/index.js";
 import { cmdRevDNS } from "../commands/native/index.js";
 import { suggestCommand } from "./parser.js";
 import { resolveRegistrarRow, resolveNSRow, resolveWebHostRow } from "./triage-resolvers.js";
+import { resolveIPGeoRow, resolveSSLCDNRow } from "./triage-resolvers-ext.js";
+import { resolveMyIPRow, resolveMXRow } from "./triage-resolvers-mail.js";
 import { term } from "../terminal/terminal-ui.js";
-import { ProgressiveRenderer } from "../terminal/progressive-renderer.js";
+import { ProgressiveRenderer, ROW_KEYS } from "../terminal/progressive-renderer.js";
 import { buildTriageHistory } from "../terminal/triage-history.js";
 import { retryEmptyHeaderFields } from "./triage-retries.js";
+import { createTriageWatcher } from "../terminal/triage-interact.js";
 
 // ---------------------------------------------------------------------------
 // Module-level state
@@ -73,7 +76,7 @@ export async function handleAutoTarget(cmd, args, opts, flags = []) {
         if (mt && DNS_TYPES.includes(mt)) {
             output = await cmdDig([cleanCmd], { forcedType: mt, opts, isShortcut: true });
         } else {
-            const isGo = flags.includes("-go") || flags.includes("--go");
+            const isGo = flags.includes("--go") || flags.includes("-go") || (flags.includes("-g") && flags.includes("-o"));
             output = `\n${getSeparator()}\n${ANSI.green}Target set: ${ANSI.yellow}${cleanCmd}${ANSI.reset}\n`;
 
             // Write "Target set" directly
@@ -95,7 +98,7 @@ export async function handleAutoTarget(cmd, args, opts, flags = []) {
 
             if (!isGo) {
                 // Silent Mode — Just resolve the Triad in the background
-                retryEmptyHeaderFields(cleanCmd, apexDomain, { registrar: null, ns: null, webhost: null });
+                retryEmptyHeaderFields(cleanCmd, apexDomain, { registrar: null, ns: null, webhost: null, ip: null, myip: null, geo: null, ssl: null, cdn: null, mx: null, dns: null });
                 return { output, backgroundTriage: false, chainedCommand };
             }
 
@@ -126,6 +129,10 @@ export async function handleAutoTarget(cmd, args, opts, flags = []) {
                 resolveRegistrarRow(renderer, apexDomain, isSubdomain),
                 resolveNSRow(renderer, cleanCmd, opts),
                 resolveWebHostRow(renderer, cleanCmd, opts),
+                resolveIPGeoRow(renderer, cleanCmd, opts),
+                resolveSSLCDNRow(renderer, cleanCmd),
+                resolveMyIPRow(renderer),
+                resolveMXRow(renderer, apexDomain),
             ]);
             clearTimeout(bannerTimer);
 
@@ -146,12 +153,20 @@ export async function handleAutoTarget(cmd, args, opts, flags = []) {
             if (_activeRenderer === renderer) _activeRenderer = null;
 
             // ── Background Header Retry ─────────────────────────────
-            // If any triad field is still empty, keep trying in the
-            // background with a longer timeout (best-effort, fire-and-forget)
             const resolved = renderer._resolved;
             retryEmptyHeaderFields(cleanCmd, apexDomain, resolved);
 
-            return { output, backgroundTriage: bannerShown, chainedCommand };
+            // Return interactive watcher for hover/click on results
+            const hasUrls = Object.keys(renderer._resolvedUrls).length > 0;
+            const triageLines = ROW_KEYS.length + 2 + renderer._extraLines; // header + rows + blank
+            return {
+                output,
+                backgroundTriage: bannerShown,
+                chainedCommand,
+                triageWatcher: hasUrls
+                    ? createTriageWatcher(renderer._resolved, renderer._resolvedUrls, triageLines)
+                    : null,
+            };
         }
         return output;
     }
@@ -171,7 +186,7 @@ export async function handleAutoTarget(cmd, args, opts, flags = []) {
 
     // Unrecognized string -> provide suggestions
     const suggestion = suggestCommand(cmd);
-    let errMsg = `${ANSI.red}Unknown command: '${cmd}'${ANSI.reset}`;
+    let errMsg = `${ANSI.red}bash: ${cmd}: command not found${ANSI.reset}`;
     if (suggestion) {
         errMsg += `\n${ANSI.yellow}Did you mean '${suggestion}'?${ANSI.reset}`;
     }

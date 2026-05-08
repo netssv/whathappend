@@ -16,10 +16,10 @@
     --bg-scrollbar-thumb-active: #4a4a4a;
 
     /* Text Colors */
-    --text-dim: #737373;
+    --text-dim: #999999;
     --text-light: #a0a0a0;
     --text-bright: #d4d4d4;
-    --text-dark: #3a3a3a;
+    --text-dark: #555555;
     --text-btn: #888;
 
     /* Accents (Green) */

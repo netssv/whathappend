@@ -4,7 +4,6 @@
  */
 
 import {ANSI, insights, formatError, cmdUsage} from "../../formatter.js";
-import { executeCommand } from "../../engine.js";
 
 export async function cmdDiff(args) {
     if (args.length < 2) return cmdUsage("diff", "<domain1> <domain2>");
@@ -21,8 +20,8 @@ export async function cmdDiff(args) {
             chrome.runtime.sendMessage({ command: "dns", payload: { domain: d2, type: "A" } })
         ]);
 
-        const a1 = r1?.data?.records?.map(r => r.address).sort() || [];
-        const a2 = r2?.data?.records?.map(r => r.address).sort() || [];
+        const a1 = r1?.data?.Answer?.map(r => r.data).sort() || [];
+        const a2 = r2?.data?.Answer?.map(r => r.data).sort() || [];
 
         o += `${ANSI.cyan}${d1}${ANSI.reset} -> ${a1.join(", ") || "(none)"}\n`;
         o += `${ANSI.cyan}${d2}${ANSI.reset} -> ${a2.join(", ") || "(none)"}\n\n`;

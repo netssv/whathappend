@@ -1,0 +1,243 @@
+/* =========================================================================
+ * Modern UI Theme — Layout & Chrome overrides
+ * Scoped: :is([data-theme="wh_ui"], [data-theme="wh_dark"])
+ * 
+ * Handles: Context bar, domain input, peek tab, terminal container,
+ *          menus, modals, emulation pills.
+ * Companion: modern-ui-triad.css (dashboard cards & accent bars)
+ * ========================================================================= */
+
+/* Theme variables for the modern layout structure */
+[data-theme="wh_ui"] {
+    --page-bg: #acb9c0;
+    --bar-bg: rgba(43, 53, 59, 0.92);
+    --bar-active-bg: rgba(36, 45, 50, 0.9);
+    --domain-bg: rgba(60, 74, 82, 0.6);
+    --menu-bg: #242d32;
+    --menu-item-bg: #333f46;
+    --menu-hover-bg: #88c0d0;
+    --menu-hover-text: #242d32;
+}
+
+[data-theme="wh_dark"] {
+    --page-bg: #000000;
+    --bar-bg: rgba(17, 17, 17, 0.95);
+    --bar-active-bg: rgba(10, 10, 10, 0.95);
+    --domain-bg: rgba(26, 26, 26, 0.6);
+    --menu-bg: #0a0a0a;
+    --menu-item-bg: #161616;
+    --menu-hover-bg: #00ff88;
+    --menu-hover-text: #0a0a0a;
+}
+
+body:is([data-theme="wh_ui"], [data-theme="wh_dark"]) {
+    background: var(--page-bg);
+    transition: background 0.3s ease;
+}
+
+/* --- Layout: Floating Card Context Bar ----------------------------------- */
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #context-bar {
+    position: absolute;  /* Detach from normal flow so expansion overlays perfectly */
+    top: 0; left: 0; right: 0;
+    margin: 6px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bar-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+    overflow: visible;   /* allows logo-menu to render outside */
+    height: auto;        /* Let it grow naturally to contain expanding panels */
+    z-index: 30;         /* Paint above #terminal-container */
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #context-bar.active {
+    border-color: rgba(136, 192, 208, 0.2);
+    background: var(--bar-active-bg);
+    box-shadow: 0 2px 16px rgba(48, 209, 88, 0.06);
+}
+
+/* --- Top Row ------------------------------------------------------------- */
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .context-row.context-top {
+    padding: 8px 10px;
+    height: auto;
+    background: rgba(255, 255, 255, 0.025);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px 10px 0 0;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #context-domain {
+    background: var(--domain-bg);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 13px;
+    color: var(--text-bright);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #context-domain:focus,
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #context-domain.editing {
+    border-color: var(--accent-green);
+    background: var(--bg-input-focus);
+    box-shadow: 0 0 0 2px rgba(48, 209, 88, 0.15);
+}
+
+
+/* --- Peek Tab ------------------------------------------------------------ */
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #header-peek-tab { height: 28px; background: rgba(48, 209, 88, 0.03); border: none; border-top: 1px solid rgba(255, 255, 255, 0.06); transition: background 0.2s ease; }
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #header-peek-tab:hover {
+    background: rgba(48, 209, 88, 0.08);
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .peek-label { font-size: 11px !important; font-weight: 800 !important; letter-spacing: 3px !important; color: var(--accent-green) !important; }
+
+/* --- Terminal Container -------------------------------------------------- */
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #terminal-container {
+    margin: 82px 8px 8px 8px; /* Offset for the absolute context-bar (70px height + 12px gaps) */
+    border-radius: 12px;
+    background: var(--bg-main);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Kill the retro CRT scanline overlay */
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #terminal-container::after { display: none; }
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #font-controls button {
+    border: 1px solid transparent;
+}
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #font-controls button,
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .shield-btn {
+    border-radius: 5px;
+    transition: all 0.15s ease;
+}
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #font-controls button:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: var(--accent-green);
+}
+
+/* --- Block Panel & Emulation ----------------------------------------------- */
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #block-panel { 
+    background: transparent; 
+    border-top: 1px solid rgba(255, 255, 255, 0.06); 
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .emulation-bar {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: none;
+}
+
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-bar {
+    position: fixed;
+    top: auto;
+    bottom: 30px;
+    left: 50%;
+    right: auto;
+    z-index: 100;
+    transform: translateX(-50%) translateY(150%);
+    background: rgba(10, 20, 30, 0.96); /* Deep dark contrasting background */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 229, 255, 0.5); /* Vibrant cyan border */
+    border-radius: 24px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.6), 0 0 20px rgba(0, 229, 255, 0.15); /* Soft glowing shadow */
+    height: auto !important;
+    padding: 10px 18px !important;
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+    width: max-content;
+    max-width: 90%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-bar.visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-label {
+    color: #e0e0e0;
+    font-weight: 500;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-domain {
+    color: #00e5ff;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-btn {
+    background: rgba(0, 229, 255, 0.15);
+    border: 1px solid rgba(0, 229, 255, 0.4);
+    color: #00e5ff;
+    border-radius: 14px;
+    padding: 4px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-btn:hover {
+    background: #00e5ff;
+    color: #001122;
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.5);
+    transform: translateY(-1px);
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-dismiss {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 16px;
+    transition: color 0.2s ease;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #tab-switch-dismiss:hover {
+    color: #ff4444;
+}
+
+/* --- Modal Dialog -------------------------------------------------------- */
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .wh-modal {
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--bg-main);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .wh-modal-header { background: rgba(48, 209, 88, 0.04); border-bottom: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px 14px 0 0; }
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .wh-modal-btn-primary,
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .wh-modal-btn-cancel {
+    border-radius: 8px;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+/* --- Emulation Pills ----------------------------------------------------- */
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .emu-pill {
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .emu-dropdown { background: var(--bg-panel); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; }
+
+/* --- Scrollbar ----------------------------------------------------------- */
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .xterm-viewport::-webkit-scrollbar-track { background: transparent; }

@@ -10,6 +10,9 @@
  */
 
 import { ANSI } from "../../formatter.js";
+import { applyTheme } from "../../terminal/theme-engine.js";
+import { CONFIG_SCHEMA, loadConfig, saveConfig, resolveValue, validateAndParse } from "./config-schema.js";
+import { startInteractiveConfig } from "./config-interactive.js";
 
 // ===================================================================
 //  config — User preferences via chrome.storage.local
@@ -19,117 +22,20 @@ import { ANSI } from "../../formatter.js";
 //    config <key>              → Show value for a specific key
 //    config <key> <value>      → Set a key-value pair
 //    config reset              → Reset all settings to defaults
-//
-//  Schema: All keys and validation rules are defined in CONFIG_SCHEMA.
-//  Security: Timeout values are numeric-only, capped at 10s (10000ms).
 // ===================================================================
 
-const CONFIG_SCHEMA = {
-    timeout: {
-        default: 3500,
-        type: "number",
-        min: 500,
-        max: 10000,
-        unit: "ms",
-        desc: "Network request timeout",
-    },
-    "retry-timeout": {
-        default: 8000,
-        type: "number",
-        min: 1000,
-        max: 10000,
-        unit: "ms",
-        desc: "Background header retry timeout",
-    },
-    "auto-triage": {
-        default: true,
-        type: "boolean",
-        desc: "Auto-analyze on panel open",
-    },
-    "tab-notify": {
-        default: true,
-        type: "boolean",
-        desc: "Show tab-switch notification bar",
-    },
-    "autoHide": {
-        default: true,
-        type: "boolean",
-        desc: "Auto-hide header panels when data loaded",
-    },
-    "autoHideDelay": {
-        default: 5000,
-        type: "number",
-        min: 1000,
-        max: 30000,
-        unit: "ms",
-        desc: "Delay before header auto-hides",
-    },
-    "expert-mode": {
-        default: false,
-        type: "boolean",
-        desc: "Show raw technical data in diagnostics",
-    },
-};
-
-const STORAGE_KEY = "wh_config";
-
-// ---------------------------------------------------------------------------
-// Internal helpers
-// ---------------------------------------------------------------------------
-
-async function loadConfig() {
-    try {
-        const data = await chrome.storage.local.get(STORAGE_KEY);
-        return data[STORAGE_KEY] || {};
-    } catch (_) {
-        return {};
-    }
-}
-
-async function saveConfig(config) {
-    try {
-        await chrome.storage.local.set({ [STORAGE_KEY]: config });
-    } catch (_) { }
-}
-
-function resolveValue(key, stored) {
-    const schema = CONFIG_SCHEMA[key];
-    if (!schema) return undefined;
-    return stored[key] !== undefined ? stored[key] : schema.default;
-}
-
-function validateAndParse(key, rawValue) {
-    const schema = CONFIG_SCHEMA[key];
-    if (!schema) return { error: `Unknown config key: '${key}'` };
-
-    if (schema.type === "number") {
-        const num = Number(rawValue);
-        if (isNaN(num) || !Number.isFinite(num)) {
-            return { error: `'${key}' must be a number. Got: '${rawValue}'` };
-        }
-        if (num < schema.min || num > schema.max) {
-            return { error: `'${key}' must be between ${schema.min}–${schema.max}${schema.unit || ""}. Got: ${num}` };
-        }
-        return { value: Math.round(num) };
-    }
-
-    if (schema.type === "boolean") {
-        const lower = String(rawValue).toLowerCase();
-        if (["true", "1", "on", "yes"].includes(lower)) return { value: true };
-        if (["false", "0", "off", "no"].includes(lower)) return { value: false };
-        return { error: `'${key}' must be true/false. Got: '${rawValue}'` };
-    }
-
-    return { value: rawValue };
-}
-
-// ---------------------------------------------------------------------------
-// Public command handler
-// ---------------------------------------------------------------------------
-
 export async function cmdConfig(args) {
-    // config reset — restore defaults
+    // config reset — restore defaults (with confirmation)
     if (args[0] === "reset") {
+        const { showConfirm } = await import("../../terminal/modal.js");
+        const confirmed = await showConfirm({
+            title: "⚙️ Reset Configuration",
+            message: `This will restore <strong style="color:#ffd740">all settings</strong> to their default values.<br><br><span style="color:#888">Timeout, theme, auto-hide, and all other preferences will be reset.</span>`,
+            confirmLabel: "Reset All",
+            cancelLabel: "Cancel",
+            danger: true,
+        });
+        if (!confirmed) return `${ANSI.dim}Reset cancelled.${ANSI.reset}`;
         await saveConfig({});
         return `${ANSI.green}✓ All settings reset to defaults.${ANSI.reset}`;
     }
@@ -138,6 +44,12 @@ export async function cmdConfig(args) {
 
     // config (no args) or config list — show all settings
     if (args.length === 0 || args[0] === "list") {
+        if (args.length === 0) {
+            // Interactive Mode
+            return startInteractiveConfig(stored);
+        }
+
+        // List Mode
         let out = `\n${ANSI.white}${ANSI.bold}  Configuration${ANSI.reset}\n`;
         out += `  ${ANSI.dim}${"━".repeat(28)}${ANSI.reset}\n`;
 
@@ -158,13 +70,14 @@ export async function cmdConfig(args) {
         return out;
     }
 
-    const key = args[0].toLowerCase();
+    const inputKey = args[0].toLowerCase();
+    const key = Object.keys(CONFIG_SCHEMA).find(k => k.toLowerCase() === inputKey);
 
     // config <key> — show single value
     if (args.length === 1) {
-        if (!CONFIG_SCHEMA[key]) {
+        if (!key) {
             const available = Object.keys(CONFIG_SCHEMA).join(", ");
-            return `${ANSI.red}Unknown key: '${key}'${ANSI.reset}\n${ANSI.dim}Available: ${available}${ANSI.reset}`;
+            return `${ANSI.red}Unknown key: '${args[0]}'${ANSI.reset}\n${ANSI.dim}Available: ${available}${ANSI.reset}`;
         }
         const val = resolveValue(key, stored);
         const isCustom = stored[key] !== undefined;
@@ -176,6 +89,11 @@ export async function cmdConfig(args) {
     }
 
     // config <key> <value> — set value
+    if (!key) {
+        const available = Object.keys(CONFIG_SCHEMA).join(", ");
+        return `${ANSI.red}Unknown key: '${args[0]}'${ANSI.reset}\n${ANSI.dim}Available: ${available}${ANSI.reset}`;
+    }
+
     const rawValue = args.slice(1).join(" ");
     const result = validateAndParse(key, rawValue);
 
@@ -185,6 +103,11 @@ export async function cmdConfig(args) {
 
     stored[key] = result.value;
     await saveConfig(stored);
+
+    // Side-effect: apply theme immediately when changed
+    if (key === "theme") {
+        applyTheme(result.value);
+    }
 
     const schema = CONFIG_SCHEMA[key];
     const unit = schema.unit || "";

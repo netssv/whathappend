@@ -12,15 +12,26 @@
 
 import {ANSI, insights, resolveTargetDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
 import { resolveProvider } from "../../utils.js";
+import { cmdAudit } from "./audit.js";
+import { cmdSeo } from "./seo.js";
+import { cmdOg } from "./og.js";
+import { cmdSchema } from "./schema.js";
+import { cmdAlt } from "./alt.js";
 
 // ===================================================================
 //  web — Composite DNS + Headers + SSL
 // ===================================================================
 
-export async function cmdWeb(args) {
+export async function cmdWeb(args, flags = []) {
+    if (flags.includes("-audit")) return cmdAudit(args);
+    if (flags.includes("-seo")) return cmdSeo(args);
+    if (flags.includes("-og")) return cmdOg(args);
+    if (flags.includes("-schema")) return cmdSchema(args);
+    if (flags.includes("-alt")) return cmdAlt(args);
+
     const info = {};
     const domain = resolveTargetDomain(args[0], info);
-    if (!domain) return cmdUsage("web", "<domain>");
+    if (!domain) return cmdUsage("web", "<domain> [-full | -audit | -seo | -og | -schema | -alt]");
 
     let o = "";
 
@@ -96,5 +107,10 @@ export async function cmdWeb(args) {
 
     ins.push({ level: "INFO", text: `External Check: https://builtwith.com/${encodeURIComponent(domain)}` });
     o += insights(ins);
+
+    if (flags.includes("-full")) {
+        o += "\n" + await cmdAudit(args);
+    }
+
     return o;
 }

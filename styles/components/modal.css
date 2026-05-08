@@ -1,0 +1,179 @@
+/* -------------------------------------------------------------------------
+ * Internal Modal Dialog — Reusable popup overlay
+ * @see modules/terminal/modal.js — JS controller
+ * ------------------------------------------------------------------------- */
+
+.wh-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+    z-index: 9000;
+    justify-content: center;
+    align-items: center;
+    animation: modalFadeIn 0.2s ease;
+}
+
+.wh-modal-overlay.open {
+    display: flex;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+    from { opacity: 0; transform: translateY(-12px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.wh-modal {
+    background: var(--bg-main, #1a1b26);
+    border: 1px solid var(--accent-green-alpha, rgba(0, 255, 136, 0.2));
+    border-radius: 10px;
+    width: 90%;
+    max-width: 340px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05);
+    animation: modalSlideIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    overflow: hidden;
+}
+
+.wh-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 255, 136, 0.04);
+}
+
+.wh-modal-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent-green, #00ff88);
+    letter-spacing: 0.3px;
+}
+
+.wh-modal-close {
+    background: none;
+    border: none;
+    color: var(--text-dark, #555);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.15s, background 0.15s;
+}
+
+.wh-modal-close:hover {
+    color: #ff5252;
+    background: rgba(255, 82, 82, 0.1);
+}
+
+.wh-modal-body {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.wh-modal-body label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted, #8a8a8a);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    margin-bottom: -4px;
+}
+
+.wh-modal-body input[type="text"],
+.wh-modal-body input[type="number"] {
+    width: 100%;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: var(--font-family, "JetBrains Mono", monospace);
+    color: #fff;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.wh-modal-body input:focus {
+    border-color: var(--accent-green, #00ff88);
+    box-shadow: 0 0 0 2px rgba(0, 255, 136, 0.1);
+}
+
+.wh-modal-body input::placeholder {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.wh-modal-body .wh-modal-row {
+    display: flex;
+    gap: 8px;
+}
+
+.wh-modal-body .wh-modal-row > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.wh-modal-body .wh-modal-hint {
+    font-size: 10px;
+    color: var(--text-dark, #555);
+    margin-top: -4px;
+}
+
+.wh-modal-body .wh-modal-error {
+    font-size: 11px;
+    color: #ff5252;
+    display: none;
+}
+
+.wh-modal-footer {
+    display: flex;
+    gap: 8px;
+    padding: 10px 14px 14px;
+    justify-content: flex-end;
+}
+
+.wh-modal-footer button {
+    padding: 7px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    transition: background 0.15s, transform 0.1s;
+    font-family: var(--font-family, "JetBrains Mono", monospace);
+}
+
+.wh-modal-footer button:active {
+    transform: scale(0.97);
+}
+
+.wh-modal-btn-cancel {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-muted, #8a8a8a);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.wh-modal-btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.wh-modal-btn-primary {
+    background: var(--accent-green, #00ff88);
+    color: var(--bg-main, #1a1b26);
+}
+
+.wh-modal-btn-primary:hover {
+    background: #33ffaa;
+}

@@ -17,35 +17,38 @@ import { createAbort, completeAbort, getNextAbortSeq } from "../abort.js";
 
 export async function handlePortProbe({ target, ports, abortId }) {
     const signal = createAbort(abortId || `port-${getNextAbortSeq()}`, 30000);
-    const results = [];
-
-    for (const port of ports) {
-        if (signal.aborted) return { error: "Command cancelled." };
+    const probePromises = ports.map(async (port) => {
+        if (signal.aborted) return null;
         const portNum = parseInt(port);
         const start = performance.now();
+        // Individual 3-second timeout per port to avoid hanging on filtered ports
+        const portSignal = AbortSignal.timeout(3000);
+        
         try {
             const proto = (portNum === 443 || portNum === 8443) ? "https" : "http";
             await fetch(`${proto}://${target}:${portNum}`, {
                 method: "HEAD",
                 mode: "no-cors",
-                signal,
+                signal: portSignal,
                 cache: "no-store",
             });
-            // If fetch completes (even opaque), something is listening
-            results.push({ port: portNum, open: true, time: Math.round(performance.now() - start) });
+            // If fetch completes, something is listening
+            return { port: portNum, open: true, time: Math.round(performance.now() - start) };
         } catch (err) {
-            if (err.name === "AbortError") return { error: "Command cancelled." };
             const elapsed = performance.now() - start;
-            // Fast rejection (<500ms) usually means connection refused (closed)
-            // Slow timeout (>2000ms) could mean filtered or open
-            results.push({
+            // Timeout usually means filtered (firewall dropped the packet silently)
+            // Fast rejection means connection refused (closed)
+            return {
                 port: portNum,
-                open: elapsed > 2000,
+                open: err.name === "TimeoutError" || elapsed >= 3000,
                 time: Math.round(elapsed),
-                hint: elapsed > 2000 ? "filtered/open" : "closed",
-            });
+                hint: (err.name === "TimeoutError" || elapsed >= 3000) ? "filtered/open" : "closed",
+            };
         }
-    }
+    });
+
+    const resolved = await Promise.all(probePromises);
+    const results = resolved.filter(Boolean).sort((a, b) => a.port - b.port);
 
     completeAbort(abortId);
     return { success: true, data: { target, results } };

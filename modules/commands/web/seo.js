@@ -9,7 +9,7 @@
  * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
  */
 
-import {ANSI, insights, resolveTargetDomain, formatError, cmdUsage} from "../../formatter.js";
+import {ANSI, insights, resolveTargetDomain, formatError, cmdUsage, getLiveDomNote} from "../../formatter.js";
 
 // ===================================================================
 //  seo — Search Engine Optimization baseline check
@@ -117,7 +117,7 @@ export async function cmdSeo(args) {
 
         if (!isLive) {
             ins.push({level: "INFO", text: "Scanned static HTML. If this is an SPA (React/Vue), you may be missing client-rendered SEO tags."});
-            ins.push({level: "INFO", text: "To scan the final DOM, navigate to the site in your browser and run: seo here"});
+            ins.push(await getLiveDomNote(domain));
         }
 
         ins.push({level: "INFO", text: "External Check: https://totheweb.com/tools/seo-browser-simulator/"});

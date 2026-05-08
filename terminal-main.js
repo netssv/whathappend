@@ -1,8 +1,10 @@
 import { ContextManager } from "./modules/context.js";
 import { isIPAddress, toApex } from "./modules/formatter.js";
 import { pushHistory, restoreSession, setSessionTarget } from "./modules/state.js";
-import { initTerminalUI, showBanner, writePrompt, term } from "./modules/terminal/terminal-ui.js";
-import { initHeaderController, updateWhoisFields, updateNSField, updateHostField, clearWhoisFields, showTabSwitch, hideTabSwitch, initBlockPanel, updateBlockState, initLogoMenu } from "./modules/terminal/header-controller.js";
+import { initTerminalUI, showBanner, writePrompt, term, refitTerminal } from "./modules/terminal/terminal-ui.js";
+import { initHeaderController, clearWhoisFields, showTabSwitch, hideTabSwitch, initBlockPanel, updateBlockState, initLogoMenu } from "./modules/terminal/header-controller.js";
+import { triggerPeekTease } from "./modules/terminal/header/header-triad-ui.js";
+import { handleSessionRestore } from "./modules/terminal/session-restorer.js";
 import { initInputManager } from "./modules/terminal/input/index.js";
 import { InputEvents } from "./modules/terminal/input/events.js";
 import { setKeyboardLock } from "./modules/terminal/input/keyboard-events.js";
@@ -10,116 +12,163 @@ import { getConfig } from "./modules/commands/util/config.js";
 import { retryEmptyHeaderFields } from "./modules/core/triage-retries.js";
 
 // ---------------------------------------------------------------------------
+// Isolated Block-Panel Sync — fire-and-forget, never crashes triage
+// ---------------------------------------------------------------------------
+
+async function syncBlockPanelSafe() {
+    try {
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tabs[0]?.url) await updateBlockState(tabs[0].url);
+    } catch (e) {
+        console.warn("[WH] Block panel sync failed (non-fatal):", e);
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Bootstrapping
 // ---------------------------------------------------------------------------
 
 async function bootstrap() {
-    // 1. Setup the terminal UI visually
-    await initTerminalUI("terminal-container");
+    try {
+        // 1. Setup the terminal UI visually
+        await initTerminalUI("terminal-container");
 
-    // 2. Setup the header logic
-    initHeaderController(term);
-    initBlockPanel();
-    initLogoMenu();
+        // 2. Initialize header UI, block panel, logo menu
+        initHeaderController(term);
+        initBlockPanel();
+        initLogoMenu();
 
-    // 3. Setup the input manager (keyboard, paste, execution)
-    initInputManager();
+        // 3. Initialize the input loop and event listeners
+        initInputManager();
 
-    // 4. Show initial prompt
-    showBanner();
+        // 4. Show initial prompt
+        showBanner();
 
-    // 5. Restore previous session (if panel was closed and reopened)
-    const session = await restoreSession();
+        // 5. Restore previous session (if panel was closed and reopened)
+        const session = await restoreSession();
 
-    // 6. Context Manager Init + Initial Auto-Analysis
-    const initialDomain = await ContextManager.init();
+        // 6. Context Manager Init + Initial Auto-Analysis
+        const initialDomain = await ContextManager.init();
 
-    if (session.target && session.history.length > 0) {
-        // Resume previous session — replay history + restore target
-        ContextManager.setManualTarget(session.target);
-
-        // Restore header triad immediately (no re-fetch needed)
-        if (session.triad) {
-            const domain = session.target;
-            const apex = toApex(domain);
-            if (session.triad.registrar) updateWhoisFields(session.triad.registrar, `https://www.whois.com/whois/${apex}`);
-            if (session.triad.ns) updateNSField(session.triad.ns, `https://intodns.com/${domain}`);
-            if (session.triad.host) updateHostField(session.triad.host, `https://ipinfo.io/${domain}`);
-        }
-
-        // Replay saved command/output pairs into the terminal
-        for (const entry of session.history) {
-            if (entry.command) {
-                term.writeln(`\x1b[90m~\x1b[0m`);
-                term.writeln(`\x1b[35m❯\x1b[0m ${entry.command}`);
-            }
-            if (entry.output) {
-                const lines = entry.output.split("\n");
-                for (const line of lines) {
-                    term.writeln(line);
-                }
-            }
-        }
-
-        term.writeln(`\x1b[90m── Session restored (${session.history.length} cmd) → \x1b[36m${session.target}\x1b[90m ──\x1b[0m`);
-        writePrompt();
-
-        // If active tab differs from restored target, suggest switching
-        if (initialDomain && toApex(initialDomain) !== toApex(session.target)) {
-            showTabSwitch(initialDomain, (newDomain) => {
-                ContextManager.setManualTarget(newDomain);
-                writePrompt();
-                term.write(newDomain + "\r\n");
-                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, newDomain);
-            });
-        }
-    } else if (session.target) {
-        // Target exists but no history
-        ContextManager.setManualTarget(session.target);
-        if (session.triad) {
-            const domain = session.target;
-            const apex = toApex(domain);
-            if (session.triad.registrar) updateWhoisFields(session.triad.registrar, `https://www.whois.com/whois/${apex}`);
-            if (session.triad.ns) updateNSField(session.triad.ns, `https://intodns.com/${domain}`);
-            if (session.triad.host) updateHostField(session.triad.host, `https://ipinfo.io/${domain}`);
-        }
-        term.writeln(`\x1b[90m── Session restored → \x1b[36m${session.target}\x1b[90m ──\x1b[0m`);
-        writePrompt();
-
-        // If active tab differs from restored target, suggest switching
-        if (initialDomain && toApex(initialDomain) !== toApex(session.target)) {
-            showTabSwitch(initialDomain, (newDomain) => {
-                ContextManager.setManualTarget(newDomain);
-                writePrompt();
-                term.write(newDomain + "\r\n");
-                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, newDomain);
-            });
-        }
-    } else if (initialDomain) {
-        // Test de inicio eliminado (no auto-start terminal output).
-        // Pero sí disparamos la recolección de triada silenciosa si auto-triage está activo.
-        writePrompt();
-        
-        const autoTriage = await getConfig("auto-triage");
-        if (autoTriage) {
+        const restored = handleSessionRestore(session, initialDomain);
+        if (!restored && initialDomain && initialDomain !== "restricted") {
+            writePrompt();
+            // ALWAYS set manual target so the Side Panel is "sticky" to the starting domain.
+            // This prevents auto-switching and enables the tab-switch popup.
             ContextManager.setManualTarget(initialDomain);
+            
+            // Check auto-triage setting
+            /* const autoTriage = await getConfig("auto-triage");
+            if (autoTriage) {
+                setTimeout(() => {
+                    term.write("start\r\n");
+                    executeCommand("start");
+                }, 100); 
+            }*/
+        } else if (!restored) {
+            writePrompt();
         }
-    } else {
-        writePrompt();
-    }
 
-    // 6. Ensure terminal captures keyboard focus (deferred to ensure Side Panel is fully ready)
+        // Fallback: auto-focus if user clicks anywhere in the panel background
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest("button") && e.target.tagName !== "INPUT" && e.target.tagName !== "A") {
+                grabFocus();
+            }
+        });
+
+        // Final refit: ensure terminal dimensions are correct after all header
+        // UI (triad cards, block panel) has settled. Without this, the banner
+        // can scroll off-screen if the header takes more space than expected.
+        setTimeout(() => {
+            refitTerminal();
+            term.scrollToBottom();
+        }, 400);
+
+    } catch (err) {
+        console.error("[WhatHappened] Bootstrap failed:", err);
+        showBootstrapError(err);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Internal Execution Bridge
+// ---------------------------------------------------------------------------
+
+/**
+ * Execute a command by simulating it passing through the input loop.
+ */
+function executeCommand(commandName, args = []) {
+    const input = [commandName, ...args].join(" ").trim();
+    InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, input);
+}
+
+// Ensure terminal always grabs focus on open
+function grabFocus() {
     setTimeout(() => {
-        window.focus();
-        const textarea = document.querySelector('.xterm-helper-textarea');
+        const textarea = document.querySelector(".xterm-helper-textarea");
         if (textarea) textarea.focus();
-        term.focus();
-    }, 150);
+    }, 50);
+}
+
+window.addEventListener("focus", grabFocus);
+
+function showBootstrapError(err) {
+    const termC = document.getElementById("terminal-container");
+    if (termC) {
+        termC.replaceChildren();
+
+        const wrapper = document.createElement("div");
+        wrapper.style.cssText = "padding: 20px; font-family: monospace;";
+
+        const h3 = document.createElement("h3");
+        h3.style.cssText = "color:#ff3366;margin-top:0";
+        h3.textContent = "⚠️ Terminal Core Failure";
+        wrapper.appendChild(h3);
+
+        const desc = document.createElement("p");
+        desc.style.cssText = "color:#aaa;margin:0 0 8px";
+        desc.textContent = "The terminal could not initialize. This is usually caused by a corrupt extension state or a failed module import.";
+        wrapper.appendChild(desc);
+
+        const pre = document.createElement("pre");
+        pre.style.cssText = "color:#ff6b6b;background:#0f0f23;padding:12px;border-radius:6px;overflow:auto;max-height:120px;font-size:12px";
+        pre.textContent = `${err?.message || "Unknown error"}\n${err?.stack || ""}`;
+        wrapper.appendChild(pre);
+
+        const fixTitle = document.createElement("p");
+        fixTitle.style.cssText = "color:#888;margin:16px 0 8px";
+        fixTitle.textContent = "Try one of these fixes:";
+        wrapper.appendChild(fixTitle);
+
+        const ol = document.createElement("ol");
+        ol.style.cssText = "color:#ccc;padding-left:20px;line-height:1.8";
+        const fixes = [
+            "Close and reopen the Side Panel",
+            "Go to chrome://extensions → click Reload on WhatHappened",
+            "If the issue persists, clear extension storage via DevTools"
+        ];
+        for (const fix of fixes) {
+            const li = document.createElement("li");
+            li.textContent = fix;
+            ol.appendChild(li);
+        }
+        wrapper.appendChild(ol);
+
+        termC.appendChild(wrapper);
+    }
 }
 
 bootstrap();
 
-// Async Header: When a manual target is set, clear stale header badges.
+// Async Header: When ANY target domain changes (auto or manual)
+ContextManager.onDomainChanged((domain) => {
+    if (!domain || domain === "restricted" || isIPAddress(domain)) return;
+    
+    // Clear stale badges immediately — triage resolvers will repopulate
+    clearWhoisFields();
+});
+
+// Async Header: When a manual target is set.
 // The progressive triage resolvers in triage-resolvers.js will populate
 // the header triad as each row resolves — single source of truth.
 ContextManager.onTargetChanged(async (domain) => {
@@ -137,24 +186,26 @@ ContextManager.onTargetChanged(async (domain) => {
 
     // Persist target for session restore
     setSessionTarget(domain);
+    
+    // Trigger the bounce and tease animation
+    triggerPeekTease();
 
-    // Clear stale badges immediately — triage resolvers will repopulate
-    clearWhoisFields();
-
-    // Trigger silent background triage if auto-triage is enabled
-    const autoTriage = await getConfig("auto-triage");
-    if (autoTriage) {
-        retryEmptyHeaderFields(domain, toApex(domain), { registrar: null, ns: null, webhost: null });
+    // Trigger silent background triage for the header triad (always runs)
+    try {
+        retryEmptyHeaderFields(domain, toApex(domain), { registrar: null, ns: null, webhost: null, ip: null, myip: null, geo: null, ssl: null, cdn: null, http: null, mx: null });
+    } catch (e) {
+        console.warn("[WH] Background triage init error:", e);
     }
 
-    // Sync content-block shield state for new domain
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tabs[0]?.url) updateBlockState(tabs[0].url);
+    // Sync content-block shield state (isolated — must never affect triage)
+    syncBlockPanelSafe();
 });
 
 // Tab-change notification: Show interactive bar so user can choose to switch
 ContextManager.onTabChanged((domain, prev) => {
-    // Don't suggest switching if the new domain matches the current target
+    // Don't suggest switching if the new domain is invalid or matches the current target
+    if (domain === "restricted" || !domain) return;
+    
     const current = ContextManager.getDomain();
     if (current && toApex(domain) === toApex(current)) return;
 

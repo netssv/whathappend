@@ -9,7 +9,7 @@
  * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
  */
 
-import {ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError } from "../../formatter.js";
+import {ANSI, insights, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError, getLiveDomNote } from "../../formatter.js";
 
 // ===================================================================
 //  pixels — Ad & Tracking Pixel Detection
@@ -62,7 +62,7 @@ export async function cmdPixels(args) {
     const domain = resolveTargetDomain(args[0], info);
     if (!domain) return cmdUsage("pixels", "<domain>");
 
-    let o = `> curl -s https://${domain} | grep -iE 'google-analytics|fbq|gtag'\n`;
+    let o = `> pixels ${domain}\n`;
     
     let html = "";
     let fetchMethod = "";
@@ -134,7 +134,7 @@ export async function cmdPixels(args) {
         }
 
         if (isStatic) {
-            ins.push({level:"INFO",text:"Tip: Run this command while the site is open in the active tab for deeper JS/DOM analysis."});
+            ins.push(await getLiveDomNote(domain));
         }
 
         // Category insights
@@ -152,9 +152,9 @@ export async function cmdPixels(args) {
             ins.push({level:"INFO",text:"Consider Google Tag Manager to consolidate tags."});
         }
         
-        ins.push({level:"INFO",text:`Test Trackers: https://builtwith.com/${encodeURIComponent(domain)}`});
-        ins.push({ level: "INFO", text: `External Check: https://themarkup.org/blacklight?url=${domain}` });
+        if (ins.length > 0) o += "\n";
         o += insights(ins);
+        o += `\n${ANSI.dim}External:${ANSI.reset} ${ANSI.blue}https://themarkup.org/blacklight?url=${domain}${ANSI.reset}\n`;
         return o;
 
     } catch (err) {

@@ -1,49 +1,94 @@
-/* --- Infrastructure Triad ---------------------------------------------- */
-
 @keyframes slideDownFadeIn {
-    0% { height: 0; opacity: 0; transform: translateY(-5px); }
-    100% { height: 28px; opacity: 1; transform: translateY(0); }
+    0% { opacity: 0; transform: translateY(-5px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes triadTease {
+    0%   { height: 0; opacity: 0; }
+    20%  { height: 30px; opacity: 0.6; }
+    40%  { height: 20px; opacity: 0.4; }
+    55%  { height: 25px; opacity: 0.5; }
+    70%  { height: 15px; opacity: 0.3; }
+    100% { height: 0; opacity: 0; }
 }
 
 #context-triad {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0; /* CRITICAL: Prevent flexbox from squishing when parent has fixed height */
+    gap: 4px;
     height: 0; overflow: hidden; opacity: 0;
-    padding: 0 8px;
+    padding: 0 10px;
     border-top: 1px solid transparent;
-    transition: height 0.3s ease, opacity 0.35s ease, padding 0.3s ease, border-color 0.3s ease;
+    transition: height 0.3s ease, opacity 0.3s ease, padding 0.3s ease, border-color 0.3s ease;
+    
+    /* Solid background for when it overflows/overlays the terminal */
+    background: var(--bg-panel);
 
     &.visible {
-        height: 32px; opacity: 1;
-        padding: 6px 8px;
+        height: auto; opacity: 1;
+        padding: 10px;
         border-top-color: var(--bg-active-border);
-        background: linear-gradient(to right, rgba(0,255,136,0.03), transparent);
+        border-bottom: 1px solid var(--bg-panel-border);
+        background: var(--bg-active);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        pointer-events: auto;
         animation: slideDownFadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
+
+    /* Brief peek: shows a sliver of content then collapses back */
+    &.peek-tease {
+        animation: triadTease 2s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
+        border-top-color: var(--bg-active-border);
+    }
+}
+
+.triad-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
 }
 
 .triad-col {
     display: flex; align-items: center;
     gap: 6px; overflow: hidden; min-width: 0;
-    padding: 2px 6px 2px 2px;
+    padding: 3px 6px 3px 4px;
     border-radius: 4px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.04);
-
-    &:not(:first-child) { 
-        margin-left: 6px;
-    }
-
-    /* Distinct accessible colors for labels */
-    &:nth-child(1) .triad-label { background: #40c4ff; } /* REG: Light Blue */
-    &:nth-child(2) .triad-label { background: #b388ff; } /* NS: Purple */
-    &:nth-child(3) .triad-label { background: #69f0ae; } /* HOST: Green */
 }
 
+/* Full-width column (MX row) */
+.triad-col--full { grid-column: 1 / -1; }
+
+/* Registration labels (Row 2) */
+.triad-row:nth-child(2) .triad-col:nth-child(1) .triad-label { background: #40c4ff; } /* REG */
+.triad-row:nth-child(2) .triad-col:nth-child(2) .triad-label { background: #b388ff; } /* NS */
+
+/* Hosting labels (Row 2) */
+.triad-label--host { background: #69f0ae !important; } /* Green */
+
+/* Network labels (Row 3) */
+.triad-label--net { background: #ffab40 !important; } /* Orange */
+.triad-label--my  { background: #00e5ff !important; } /* Cyan */
+
+/* Status / Security labels */
+.triad-label--http { background: #448aff !important; } /* Blue */
+.triad-label--sec { background: #ff5252 !important; } /* Red */
+
+/* Mail labels */
+.triad-label--mail { background: #ce93d8 !important; } /* Light Purple */
+
+/* SSL status coloring */
+.triad-value.ssl-active  { color: #69f0ae !important; }
+.triad-value.ssl-warning { color: #ffd740 !important; }
+.triad-value.ssl-expired { color: #ff5252 !important; }
+
 .triad-label {
-    font-size: 9px; font-weight: 800; letter-spacing: 0.5px;
+    font-size: 9.5px; font-weight: 800; letter-spacing: 0.5px;
     color: var(--bg-main); flex-shrink: 0; text-transform: uppercase;
-    padding: 2px 5px; border-radius: 3px;
+    padding: 3px 4px; border-radius: 3px;
+    width: 44px; text-align: center; box-sizing: border-box;
 }
 
 @keyframes valuePop {
@@ -62,7 +107,7 @@
 }
 
 .triad-value {
-    font-size: 11.5px; color: #ffffff;
+    font-size: 12px; color: #ffffff;
     font-weight: 600; 
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     min-width: 0; transition: color 0.2s ease;
@@ -113,49 +158,3 @@
     }
 }
 
-/* --- Triad Toggle Handle ----------------------------------------------- */
-
-.triad-handle {
-    display: none;
-    justify-content: center;
-    align-items: center;
-    height: 12px;
-    width: 60px;
-    background: rgba(0, 255, 136, 0.08);
-    border: 1px solid var(--accent-green-alpha);
-    border-top: none;
-    border-bottom-left-radius: 6px;
-    border-bottom-right-radius: 6px;
-    cursor: pointer;
-    transition: background 0.2s, opacity 0.3s, border-color 0.2s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    position: absolute;
-    bottom: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-
-    span {
-        display: block;
-        width: 24px;
-        height: 3px;
-        background: var(--accent-green);
-        border-radius: 2px;
-        transition: background 0.2s;
-        opacity: 0.8;
-    }
-
-    &:hover {
-        background: rgba(0, 255, 136, 0.15);
-        border-color: var(--accent-green);
-        
-        span {
-            background: #fff;
-            opacity: 1;
-        }
-    }
-
-    &.visible {
-        display: flex;
-    }
-}

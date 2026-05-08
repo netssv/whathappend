@@ -1,0 +1,172 @@
+/* -------------------------------------------------------------------------
+ * Emulation Bar — Active debugger override indicators
+ * Compact pill badges with hover dropdowns
+ * ------------------------------------------------------------------------- */
+
+.emulation-bar {
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    flex-shrink: 0; /* CRITICAL: Prevent flexbox squishing */
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(0, 0, 0, 0.6); /* Slightly more opaque for overlay */
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-top: 1px solid var(--bg-panel-border);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    min-height: 0;
+    overflow: visible;
+    transition: all 0.25s ease;
+}
+
+.emulation-bar.visible { display: flex; }
+
+/* --- Pill ---------------------------------------------------------------- */
+
+.emu-pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-family: var(--font-mono, monospace);
+    color: var(--text-light, #e0e0e0);
+    background: rgba(100, 200, 255, 0.12);
+    border: 1px solid rgba(100, 200, 255, 0.25);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    animation: emuPillIn 0.3s ease;
+}
+
+.emu-pill:hover {
+    background: rgba(100, 200, 255, 0.22);
+    border-color: rgba(100, 200, 255, 0.45);
+}
+
+.emu-pill-arrow {
+    font-size: 8px;
+    opacity: 0.5;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.emu-pill:hover .emu-pill-arrow {
+    opacity: 1;
+    transform: rotate(180deg);
+}
+
+/* Color variants */
+.emu-pill[data-type="throttle"] {
+    background: rgba(255, 180, 50, 0.12);
+    border-color: rgba(255, 180, 50, 0.25);
+}
+.emu-pill[data-type="throttle"]:hover {
+    background: rgba(255, 180, 50, 0.22);
+    border-color: rgba(255, 180, 50, 0.45);
+}
+
+.emu-pill[data-type="geo"] {
+    background: rgba(130, 255, 130, 0.10);
+    border-color: rgba(130, 255, 130, 0.22);
+}
+.emu-pill[data-type="geo"]:hover {
+    background: rgba(130, 255, 130, 0.18);
+    border-color: rgba(130, 255, 130, 0.4);
+}
+
+.emu-pill[data-type="mobile"] {
+    background: rgba(200, 130, 255, 0.10);
+    border-color: rgba(200, 130, 255, 0.22);
+}
+.emu-pill[data-type="mobile"]:hover {
+    background: rgba(200, 130, 255, 0.18);
+    border-color: rgba(200, 130, 255, 0.4);
+}
+
+/* --- Dropdown ------------------------------------------------------------ */
+
+.emu-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 140px;
+    background: var(--bg-panel, #111);
+    border: 1px solid var(--bg-active-border, #1a3a28);
+    border-radius: 6px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+    padding: 4px 0;
+    z-index: 200;
+}
+
+.emu-pill:hover > .emu-dropdown {
+    display: block;
+    animation: emuDropIn 0.15s ease-out;
+}
+
+.emu-dropdown-header {
+    padding: 3px 10px 2px;
+    font-size: 9px;
+    font-family: var(--font-mono);
+    color: var(--text-dark);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.emu-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 5px 10px;
+    background: transparent;
+    border: none;
+    color: var(--text-bright, #ccc);
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.1s ease;
+    white-space: nowrap;
+}
+
+.emu-dropdown-item:hover {
+    background: rgba(0, 255, 136, 0.08);
+    color: var(--text-bright, #fff);
+}
+.emu-dropdown-item:active {
+    background: rgba(0, 255, 136, 0.15);
+}
+
+.emu-dropdown-item.active::after {
+    content: " ✓";
+    color: var(--accent-green, #0f8);
+    font-size: 10px;
+}
+
+.emu-dropdown-sep {
+    height: 1px;
+    margin: 3px 8px;
+    background: var(--bg-scrollbar-thumb, #333);
+}
+
+.emu-dropdown-disable {
+    color: #ff6b6b;
+}
+.emu-dropdown-disable:hover {
+    background: rgba(255, 80, 80, 0.12);
+    color: #ff4444;
+}
+
+/* --- Animations ---------------------------------------------------------- */
+
+@keyframes emuPillIn {
+    0%   { opacity: 0; transform: translateY(-4px) scale(0.9); }
+    100% { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+@keyframes emuDropIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}

@@ -1,6 +1,10 @@
 /* -------------------------------------------------------------------------
- * Logo Menu — Dropdown utility menu from the favicon/logo
+ * Logo Menu — Core dropdown container and menu items
+ * @see logo-submenu.css  — nested submenu flyout & inline modes
+ * @see logo-utils.css    — shortcut badges, disable state, reload button
  * ------------------------------------------------------------------------- */
+
+/* --- Logo Wrapper -------------------------------------------------------- */
 
 #logo-wrapper {
     position: relative; flex-shrink: 0;
@@ -8,41 +12,62 @@
     cursor: pointer;
 }
 
-#context-logo { transition: opacity 0.4s ease, filter 0.4s ease, transform 0.15s ease; }
-#logo-wrapper:hover #context-logo { transform: scale(1.1); }
-#logo-wrapper:active #context-logo { transform: scale(0.95); }
+#context-logo { transition: opacity 0.4s ease; }
+#logo-wrapper:hover #context-logo { transform: scale(1.1); transition: opacity 0.4s ease, filter 0.4s ease, transform 0.15s ease; }
+#logo-wrapper:active #context-logo { transform: scale(0.95); transition: opacity 0.4s ease, transform 0.1s ease; }
+
+.logo-caret {
+    font-size: 12px;
+    color: var(--text-dark, #555);
+    margin-left: 4px;
+    margin-right: 4px;
+    margin-top: -2px;
+    transition: transform 0.2s ease, color 0.2s ease;
+    user-select: none;
+}
+#logo-wrapper:hover .logo-caret { color: var(--accent-green, #00ff88); }
+#logo-wrapper.menu-active .logo-caret {
+    transform: rotate(180deg);
+    color: var(--accent-green, #00ff88);
+}
 
 /* Animation to suggest clicking the logo */
 .pulse-hint {
-    animation: logoGlowSpin 3s infinite ease-in-out;
+    animation: logoBounceHint 2s infinite ease-in-out;
+    transition: none !important; /* Prevent transition from fighting the animation */
 }
 
-@keyframes logoGlowSpin {
-    0%, 100% { filter: drop-shadow(0 0 2px var(--accent-green, #00ff88)); transform: rotate(0deg); }
-    50% { filter: drop-shadow(0 0 8px var(--accent-green, #00ff88)); transform: rotate(10deg) scale(1.05); }
+@keyframes logoBounceHint {
+    0%, 100% { filter: drop-shadow(0 0 2px var(--accent-green, #00ff88)); transform: translateY(0) scale(1); }
+    50% { filter: drop-shadow(0 0 8px var(--accent-green, #00ff88)); transform: translateY(-4px) scale(1.05); }
 }
 
-/* --- Dropdown ------------------------------------------------------------ */
+/* --- Dropdown Container -------------------------------------------------- */
 
 .logo-menu {
     display: none;
     position: absolute; top: 100%; left: 0;
     margin-top: 4px; z-index: 100;
-    min-width: 150px;
+    min-width: 155px;
+    max-width: calc(100vw - 16px);
     background: var(--bg-panel, #111);
     border: 1px solid var(--bg-active-border, #1a3a28);
     border-radius: 6px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
     padding: 4px 0;
-    overflow: hidden;
+    cursor: default;
+    /* NO overflow — submenus must render outside this box */
 }
 
 .logo-menu.open { display: block; animation: menuFadeIn 0.15s ease-out; }
+.logo-menu.submenu-inline { max-height: 80vh; overflow-y: auto; }
 
 @keyframes menuFadeIn {
     from { opacity: 0; transform: translateY(-4px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* --- Menu Items ---------------------------------------------------------- */
 
 .logo-menu-item {
     display: flex; align-items: center; gap: 8px;
@@ -55,9 +80,10 @@
     white-space: nowrap;
 }
 
-.logo-menu-item:hover {
+.logo-menu-item:hover, .logo-menu-item:focus {
     background: rgba(0, 255, 136, 0.08);
     color: var(--text-bright, #fff);
+    outline: none;
 }
 
 .logo-menu-item:active { background: rgba(0, 255, 136, 0.15); }
@@ -66,25 +92,38 @@
     font-size: 12px; width: 16px; text-align: center; flex-shrink: 0;
 }
 
+/* --- Separators & Group Labels ------------------------------------------- */
+
 .logo-menu-sep {
     height: 1px; margin: 3px 8px;
-    background: var(--bg-scrollbar-thumb, #333);
+    background: var(--bg-scrollbar-thumb-hover, #404040);
+    cursor: default;
 }
 
-/* --- Block Panel Reload Button ------------------------------------------- */
-
-.block-reload-btn {
-    display: none;
-    width: 22px; height: 18px;
-    border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 4px;
-    background: rgba(0, 255, 136, 0.1);
-    color: var(--accent-green, #00ff88);
-    font-size: 13px; line-height: 1;
-    cursor: pointer;
-    align-items: center; justify-content: center;
-    transition: all 0.15s ease; flex-shrink: 0;
+.logo-menu-theme-group {
+    padding: 2px 0;
 }
 
-.block-reload-btn.show { display: flex; }
-.block-reload-btn:hover { background: rgba(0, 255, 136, 0.2); transform: rotate(180deg); }
-.block-reload-btn:active { transform: rotate(360deg) scale(0.9); }
+.logo-menu-group-label {
+    display: block;
+    padding: 3px 12px 2px;
+    font-size: 9px;
+    font-family: var(--font-mono);
+    color: var(--text-dim, #737373);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    cursor: default;
+    white-space: normal;
+    line-height: 1.3;
+}
+
+.logo-menu-item.active-theme::after {
+    content: "✓";
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--text-dim);
+}

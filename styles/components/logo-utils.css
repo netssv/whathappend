@@ -1,0 +1,43 @@
+/* -------------------------------------------------------------------------
+ * Logo Menu Utilities — Disable state, shortcut badges, reload button
+ * Companion to logo-menu.css (core dropdown)
+ * ------------------------------------------------------------------------- */
+
+/* --- Destructive / Disable State ----------------------------------------- */
+
+.logo-menu-disable {
+    color: #ff6b6b;
+}
+.logo-menu-disable:hover {
+    background: rgba(255, 80, 80, 0.12);
+    color: #ff4444;
+}
+
+/* --- Keyboard Shortcut Badge --------------------------------------------- */
+
+.logo-menu-shortcut {
+    margin-left: auto;
+    font-size: 9px;
+    font-family: var(--font-mono);
+    color: var(--text-dark);
+    opacity: 0.5;
+    letter-spacing: 0.5px;
+}
+
+/* --- Block Panel Reload Button ------------------------------------------- */
+
+.block-reload-btn {
+    display: none;
+    width: 22px; height: 18px;
+    border: 1px solid rgba(0, 255, 136, 0.3); border-radius: 4px;
+    background: rgba(0, 255, 136, 0.1);
+    color: var(--accent-green, #00ff88);
+    font-size: 13px; line-height: 1;
+    cursor: pointer;
+    align-items: center; justify-content: center;
+    transition: all 0.15s ease; flex-shrink: 0;
+}
+
+.block-reload-btn.show { display: flex; }
+.block-reload-btn:hover { background: rgba(0, 255, 136, 0.2); transform: rotate(180deg); }
+.block-reload-btn:active { transform: rotate(360deg) scale(0.9); }

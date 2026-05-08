@@ -1,10 +1,10 @@
 /**
  * @module modules/commands/util/index.js
- * @description Architectural connections and module role.
+ * @description Re-export barrel for all utility commands.
  * 
  * @connections
  * - Imports: None (Dependency-free)
- * - Exports: cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig, cmdNotes, cmdTabs
+ * - Exports: cmdTarget, cmdHelp, cmdDetailedHelp, cmdErrors, cmdAbout, cmdInfo, cmdExit, cmdSwitch, cmdStart, cmdConfig, cmdNotes, cmdTabs, cmdReload, cmdClip, cmdMatrix
  * - Layer: Command Layer (Util) - Terminal utilities and internal tools.
  */
 
@@ -20,3 +20,20 @@ export { cmdStart } from "./start.js";
 export { cmdConfig } from "./config.js";
 export { cmdTabs } from "./tabs.js";
 export { cmdReload } from "./reload.js";
+export { cmdClip } from "./clip.js";
+export { cmdMatrix } from "./matrix.js";
+export { cmdCoffee } from "./coffee.js";
+export { cmdSudo } from "./sudo.js";
+export { cmdDog } from "./dog.js";
+export { cmdSnake } from "./snake.js";
+export { cmdHack } from "./hack.js";
+export { cmdBTC } from "./btc.js";
+export { cmdSignal }   from "./games/signal.js";
+export { cmdUserAgent } from "./useragent.js";
+export { cmdMobile }    from "./mobile.js";
+export { cmdThrottle }  from "./throttle.js";
+export { cmdGeo }       from "./geo.js";
+export { cmdBlock }     from "./block.js";
+export { cmdFullscreen } from "./fullscreen.js";
+export { cmdNavMenu }   from "./menu.js";
+export { cmdWatch }     from "./watch.js";

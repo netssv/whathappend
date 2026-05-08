@@ -11,7 +11,7 @@
  * - Layer: Command Layer (Stack) - Tech stack identification.
  */
 
-import {ANSI, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError } from "../../formatter.js";
+import {ANSI, resolveTargetDomain, formatError, cmdUsage, cmdError, workerError, getLiveDomNote } from "../../formatter.js";
 import { detectTechnologies } from "./detector.js";
 import { formatStackOutput } from "./formatter.js";
 
@@ -24,12 +24,13 @@ export async function cmdStack(args) {
     const domain = resolveTargetDomain(args[0], info);
     if (!domain) return cmdUsage("stack", "<domain>");
 
-    let o = `> curl -I -s https://${domain} && wappalyzer https://${domain}\n`;
+    let o = `> stack ${domain}\n`;
     o += `${ANSI.dim}Detecting technology stack...${ANSI.reset}\n\n`;
 
     let html = "";
     let headers = {};
     let fetchMethod = "";
+    let isLive = false;
 
     // ── Step 1: Get HTML ──
     try {
@@ -39,6 +40,7 @@ export async function cmdStack(args) {
             if (domResp?.success && domResp.data?.html && domResp.data.url.includes(domain)) {
                 html = domResp.data.html.toLowerCase();
                 fetchMethod = "Live DOM (active tab)";
+                isLive = true;
             }
         }
 
@@ -74,6 +76,11 @@ export async function cmdStack(args) {
         );
     }
 
+    let liveDomInsight = null;
+    if (!isLive) {
+        liveDomInsight = await getLiveDomNote(domain);
+    }
+
     const { foundCMS, foundFrameworks, foundServers, headersLower } = detectTechnologies(html, headers);
-    return o + formatStackOutput({ domain, foundCMS, foundFrameworks, foundServers, headers, headersLower, fetchMethod });
+    return o + formatStackOutput({ domain, foundCMS, foundFrameworks, foundServers, headers, headersLower, fetchMethod, liveDomInsight });
 }

@@ -11,12 +11,21 @@
  * - Layer: Core Layer (Engine) - Central triaging, parsing, and execution routing.
  */
 
-import { updateWhoisFields, updateNSField, updateHostField, markFieldRetryable } from "../terminal/header-controller.js";
-import { setSessionTriad } from "../state.js";
-import { resolveProvider, isRdapMaintainer, getProviderFromCNAME } from "../utils.js";
+import { markFieldRetryable } from "../terminal/header-controller.js";
+import { retryRegistrar, retryNS, retryWebHost } from "./triage-retries-infra.js";
+import { resolveIPGeoRow, resolveSSLCDNRow } from "./triage-resolvers-ext.js";
+import { resolveMyIPRow, resolveMXRow } from "./triage-resolvers-mail.js";
 
 // ---------------------------------------------------------------------------
 // Background Header Retry — Best-effort for empty triad fields
+// 
+// WORKFLOW EXPLANATION:
+// 1. Initial Triage: fallback.js calls progressive-renderer and resolves initial data.
+// 2. Background Retry: Once terminal is ready, it calls retryEmptyHeaderFields()
+//    to silently attempt to resolve any fields that failed (e.g., DNS timeouts).
+// 3. User Retry: If background fails, fields are marked retryable (↻ icon).
+//    When clicked, header-retry.js calls these exact same resolver functions, 
+//    but handles the UI loading state directly.
 // ---------------------------------------------------------------------------
 
 const RETRY_TIMEOUT = 15000;
@@ -27,6 +36,12 @@ export function retryEmptyHeaderFields(domain, apexDomain, resolved) {
     if (!resolved.registrar) missing.push("registrar");
     if (!resolved.ns) missing.push("ns");
     if (!resolved.webhost) missing.push("webhost");
+    if (!resolved.ip) missing.push("ip");
+    if (!resolved.myip) missing.push("myip");
+    if (!resolved.ssl) missing.push("ssl");
+    if (!resolved.cdn) missing.push("cdn");
+    if (!resolved.http) missing.push("http");
+    if (!resolved.mx) missing.push("mx");
     if (missing.length === 0) return;
 
     // Increment generation — any in-flight retries from a previous target
@@ -35,128 +50,98 @@ export function retryEmptyHeaderFields(domain, apexDomain, resolved) {
 
     // Fire-and-forget — no terminal output, only header updates
     for (const field of missing) {
-        if (field === "registrar") {
-            retryRegistrar(apexDomain, gen);
-        } else if (field === "ns") {
-            retryNS(apexDomain, gen); // Subdomains usually inherit NS from apex
-        } else if (field === "webhost") {
-            retryWebHost(domain, gen);
+        try {
+            if (field === "registrar") {
+                retryRegistrar(apexDomain, isStale, gen);
+            } else if (field === "ns") {
+                retryNS(domain, isStale, gen);
+            } else if (field === "webhost") {
+                retryWebHost(domain, isStale, gen);
+            } else if (field === "ip") {
+                retryIPGeo(domain, gen);
+            } else if (field === "myip") {
+                retryMyIP(gen);
+            } else if (field === "ssl" || field === "http" || field === "cdn") {
+                retrySSLCDN(domain, gen);
+            } else if (field === "mx") {
+                retryMXDNS(apexDomain, gen);
+            }
+        } catch (e) {
+            console.warn(`[WH] Failed to init retry for ${field}:`, e);
         }
     }
 }
 
 function isStale(gen) { return gen !== _retryGeneration; }
 
-async function retryRegistrar(apexDomain, gen) {
+// ---------------------------------------------------------------------------
+// Retry: IP + GEO — reuses the extended resolver with null renderer (bg mode)
+// ---------------------------------------------------------------------------
+
+async function retryIPGeo(domain, gen) {
     try {
-        const resp = await raceRetry(
-            chrome.runtime.sendMessage({ command: "whois", payload: { domain: apexDomain } })
-        );
+        const res = await resolveIPGeoRow(null, domain);
         if (isStale(gen)) return;
-        if (resp?.success && resp.registrar && resp.registrar !== "Unknown") {
-            updateWhoisFields(resp.registrar, `https://www.whois.com/whois/${apexDomain}`);
-            setSessionTriad("registrar", resp.registrar);
-            return;
+        if (res?.error) {
+            if (!res?.ip) markFieldRetryable("ip");
+            if (!res?.geo) markFieldRetryable("geo");
         }
-    } catch (_) {}
-    // Still empty — mark as user-retryable
-    if (!isStale(gen)) markFieldRetryable("registrar");
-}
-
-async function retryNS(domain, gen) {
-    try {
-        const resp = await raceRetry(
-            chrome.runtime.sendMessage({ command: "dns", payload: { domain, type: "NS" } })
-        );
-        if (isStale(gen)) return;
-        const nsRecords = resp?.data?.Answer?.filter(a => a.type === 2);
-        if (!nsRecords || nsRecords.length === 0) {
-            if (!isStale(gen)) markFieldRetryable("ns");
-            return;
-        }
-
-        const nsHost = nsRecords[0].data.replace(/\.$/, "");
-        const targetRoot = domain.split(".").slice(-2).join(".");
-        const nsRoot = nsHost.split(".").slice(-2).join(".");
-        const nsUrl = `https://intodns.com/${domain}`;
-
-        if (nsRoot === targetRoot) {
-            const label = `Self-hosted (${targetRoot})`;
-            updateNSField(label, nsUrl);
-            setSessionTriad("ns", label);
-            return;
-        }
-
-        // Resolve NS hostname IP → provider
-        try {
-            const aResp = await raceRetry(
-                chrome.runtime.sendMessage({ command: "dns", payload: { domain: nsHost, type: "A" } })
-            );
-            if (isStale(gen)) return;
-            const nsA = aResp?.data?.Answer?.find(a => a.type === 1);
-            if (nsA?.data) {
-                const provider = await raceRetry(resolveProvider(nsA.data));
-                if (isStale(gen)) return;
-                // Filter out RDAP maintainer refs (e.g. "AS8560-MNT", "CLDIN-MNT")
-                if (provider && !isRdapMaintainer(provider)) {
-                    updateNSField(provider, nsUrl);
-                    setSessionTriad("ns", provider);
-                    return;
-                }
-            }
-        } catch (_) {}
-
-        if (isStale(gen)) return;
-        // Fallback: capitalize domain root
-        const fb = nsRoot.split(".")[0];
-        const label = fb.charAt(0).toUpperCase() + fb.slice(1);
-        updateNSField(label, nsUrl);
-        setSessionTriad("ns", label);
     } catch (_) {
-        if (!isStale(gen)) markFieldRetryable("ns");
+        if (!isStale(gen)) {
+            markFieldRetryable("ip");
+            markFieldRetryable("geo");
+        }
     }
 }
 
-async function retryWebHost(domain, gen) {
+// ---------------------------------------------------------------------------
+// Retry: SSL + CDN — reuses the extended resolver with null renderer (bg mode)
+// ---------------------------------------------------------------------------
+
+async function retrySSLCDN(domain, gen) {
     try {
-        const resp = await raceRetry(
-            chrome.runtime.sendMessage({ command: "dns", payload: { domain, type: "A" } })
-        );
+        const res = await resolveSSLCDNRow(null, domain);
         if (isStale(gen)) return;
-        const aRecord = resp?.data?.Answer?.find(a => a.type === 1);
-        
-        let finalProv = null;
-        let ip = null;
-
-        if (aRecord?.data) {
-            ip = aRecord.data;
-            const provider = await raceRetry(resolveProvider(ip));
-            if (isStale(gen)) return;
-            if (provider && !isRdapMaintainer(provider)) {
-                finalProv = provider;
-            }
+        if (res?.error) {
+            if (!res?.ssl) markFieldRetryable("ssl");
+            if (!res?.cdn) markFieldRetryable("cdn");
+            if (!res?.http) markFieldRetryable("http");
         }
-
-        if (!finalProv) {
-            const cnameRec = resp?.data?.Answer?.find(a => a.type === 5);
-            if (cnameRec?.data) {
-                finalProv = getProviderFromCNAME(cnameRec.data);
-            }
+    } catch (_) {
+        if (!isStale(gen)) {
+            markFieldRetryable("ssl");
+            markFieldRetryable("cdn");
+            markFieldRetryable("http");
         }
-
-        if (finalProv) {
-            updateHostField(finalProv, ip ? `https://ipinfo.io/${ip}` : `https://intodns.com/${domain}`);
-            setSessionTriad("host", finalProv);
-            return;
-        }
-    } catch (_) {}
-    // Still empty — mark as user-retryable
-    if (!isStale(gen)) markFieldRetryable("host");
+    }
 }
 
-function raceRetry(promise) {
-    return Promise.race([
-        promise,
-        new Promise((_, reject) => setTimeout(() => reject(new Error("RETRY_TIMEOUT")), RETRY_TIMEOUT)),
-    ]);
+// ---------------------------------------------------------------------------
+// Retry: MY IP — reuses the extended resolver
+// ---------------------------------------------------------------------------
+
+async function retryMyIP(gen) {
+    try {
+        const res = await resolveMyIPRow(null);
+        if (isStale(gen)) return;
+        if (res?.error) markFieldRetryable("myip");
+    } catch (_) {
+        if (!isStale(gen)) markFieldRetryable("myip");
+    }
 }
+
+// ---------------------------------------------------------------------------
+// Retry: MX + DNS — reuses the extended resolver
+// ---------------------------------------------------------------------------
+
+async function retryMXDNS(apexDomain, gen) {
+    try {
+        const res = await resolveMXRow(null, apexDomain);
+        if (isStale(gen)) return;
+        if (res?.error) markFieldRetryable("mx");
+    } catch (_) {
+        if (!isStale(gen)) markFieldRetryable("mx");
+    }
+}
+
+

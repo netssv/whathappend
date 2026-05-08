@@ -6,45 +6,26 @@
  * - Imports: 
  *     - setTermCols, getHistory from '../state.js'
  *     - showBanner as _showBanner from './terminal-banner.js'
+ *     - THEMES, DEFAULT_THEME_ID from '../data/themes.js'
+ *     - initThemeEngine from './theme-engine.js'
  * - Exports: PROMPT_PREFIX, PROMPT, term, fitAddon, isSystemWriting, initTerminalUI, refitTerminal, showBanner, writePrompt, writeOutput, showSpinner, stopSpinner
  * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
  */
 
 import { setTermCols, getHistory } from "../state.js";
 import { showBanner as _showBanner } from "./terminal-banner.js";
+import { THEMES, DEFAULT_THEME_ID } from "../data/themes.js";
+import { initThemeEngine } from "./theme-engine.js";
+
+// Prompt rendering delegated to terminal-prompt.js (keeps this file under 200 lines)
+export { writePrompt, PROMPT, PROMPT_PREFIX } from "./terminal-prompt.js";
 
 // ---------------------------------------------------------------------------
-// Terminal Configuration — WCAG AA Compliant Palette
+// Terminal Configuration — Uses default theme from themes.js
 // ---------------------------------------------------------------------------
 
-const TERMINAL_THEME = {
-    background: "#0a0a0a",
-    foreground: "#d4d4d4",
-    cursor: "#00ff88",
-    cursorAccent: "#0a0a0a",
-    selectionBackground: "rgba(0, 255, 136, 0.18)",
+const TERMINAL_THEME = THEMES[DEFAULT_THEME_ID].xterm;
 
-    black: "#0a0a0a",
-    red: "#ff6b6b",
-    green: "#00ff88",
-    yellow: "#ffd866",
-    blue: "#7aa2f7",
-    magenta: "#d4a0ff",
-    cyan: "#41d8e8",
-    white: "#d4d4d4",
-
-    brightBlack: "#737373",
-    brightRed: "#ff8585",
-    brightGreen: "#5cffaa",
-    brightYellow: "#ffe08a",
-    brightBlue: "#8fb4ff",
-    brightMagenta: "#e0b8ff",
-    brightCyan: "#6be5f0",
-    brightWhite: "#ffffff",
-};
-
-export const PROMPT_PREFIX = "\x1b[36m~\x1b[0m\r\n";
-export const PROMPT = "\x1b[35m❯\x1b[0m ";
 
 export let term;
 export let fitAddon;
@@ -78,15 +59,36 @@ export function initTerminalUI(containerId) {
     const container = document.getElementById(containerId);
     term.open(container);
 
+    // Let Ctrl+V pass through to the browser so the native 'paste' event
+    // fires. clipboard-handler.js Layer 1/2 will process it.
+    // Returning false tells xterm to NOT intercept the event.
+    term.attachCustomKeyEventHandler((e) => {
+        if (e.ctrlKey && e.key === 'v') return false;
+        return true;
+    });
+
+    // Initialize theme engine (restores saved theme from storage)
+    initThemeEngine(term);
+
+    let resizeTimeout;
+    const doResize = () => {
+        if (term && fitAddon) {
+            fitAddon.fit();
+            setTermCols(term.cols);
+            term.refresh(0, Math.max(0, term.rows - 1));
+            term.scrollToBottom();
+        }
+    };
+
     window.addEventListener("resize", () => {
-        fitAddon.fit();
-        setTermCols(term.cols);
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(doResize, 150);
     });
 
     // Watch for header geometry changes (triad/tab-switch bar show/hide)
     const observer = new ResizeObserver(() => {
-        fitAddon.fit();
-        setTermCols(term.cols);
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(doResize, 150);
     });
     observer.observe(container);
 
@@ -124,12 +126,18 @@ function updateFontSize(delta) {
     if (next === current) return;
     
     term.options.fontSize = next;
-    fitAddon.fit();
-    setTermCols(term.cols);
     
-    // Force full re-render to avoid layout ghosting
-    term.refresh(0, term.rows - 1);
-    term.focus();
+    // Defer the fit calculation slightly to allow the DOM to reflow with the new font size
+    setTimeout(() => {
+        if (!term || !fitAddon) return;
+        fitAddon.fit();
+        setTermCols(term.cols);
+        
+        // Force full re-render to avoid layout ghosting
+        term.refresh(0, Math.max(0, term.rows - 1));
+        term.scrollToBottom();
+        term.focus();
+    }, 50);
     
     try { chrome.storage.local.set({ termFontSize: next }); } catch (_) {}
 }
@@ -159,14 +167,6 @@ export function showBanner() {
     _showBanner(term);
 }
 
-export function writePrompt() {
-    // Write the prompt, and the dim placeholder only if it's the very first command
-    if (getHistory().length === 0) {
-        term.write(PROMPT_PREFIX + PROMPT + "\x1b[90mgoogle.com\x1b[0m\x1b[10D");
-    } else {
-        term.write(PROMPT_PREFIX + PROMPT);
-    }
-}
 
 export function writeOutput(output) {
     _isSystemWriting = true;

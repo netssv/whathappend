@@ -32,8 +32,8 @@ export const CMD_ALIASES = {
     lookup: "nslookup",
     // sec / security
     security: "sec", scan: "sec",
-    // web
-    audit: "web",
+    // web tools flags mapping
+    "audit": "web -audit", "marketing": "web -audit",
     // email
     mail: "email",
     // whois
@@ -64,11 +64,11 @@ export const CMD_ALIASES = {
     // socials
     "social": "socials",
     // stack / tech
-    "tech": "stack", "techstack": "stack", "wappalyzer": "stack", "cms": "stack",
+    "tech": "stack", "techstack": "stack", "wappalyzer": "stack",
     // load / performance
     "perf": "load", "performance": "load", "pagespeed": "load", "timing": "load",
     // registrar
-    "reg": "registrar", "lifecycle": "registrar",
+    "reg": "whois", "lifecycle": "whois", "registrar": "whois",
     // hosting
     "hoster": "hosting", "provider": "hosting", "webhost": "hosting",
     // exit
@@ -83,10 +83,10 @@ export const CMD_ALIASES = {
     "settings": "config", "set": "config", "prefs": "config",
     // isup
     "upcheck": "isup", "down": "isup", "downcheck": "isup", "status": "isup",
-    // speed
-    "jitter": "speed", "latency-test": "speed",
+    // jitter
+    "latency-test": "jitter",
     // speedtest
-    "bandwidth": "speedtest", "nettest": "speedtest",
+    "bandwidth": "speedtest", "nettest": "speedtest", 
     // ip
     "myip": "ip", "public-ip": "ip",
     // security-txt
@@ -95,16 +95,14 @@ export const CMD_ALIASES = {
     "cwv": "vitals", "web-vitals": "vitals", "core-vitals": "vitals",
     // flush
     "clearcache": "flush", "clear-cache": "flush",
-    // notes
-    "note": "notes", "memo": "notes", "annotation": "notes",
     // rank
     "ranking": "rank", "traffic": "rank",
     // seo
-    "meta": "seo", "tags": "seo",
+    "seo": "web -seo", "meta": "web -seo", "tags": "web -seo",
     // og
-    "thaks": "og", "opengraph": "og", "cards": "og",
+    "og": "web -og", "thaks": "web -og", "opengraph": "web -og", "cards": "web -og",
     // alt
-    "images": "alt", "a11y": "alt",
+    "alt": "web -alt", "images": "web -alt", "a11y": "web -alt",
     // reload
     "restart": "reload", "reboot": "reload",
     // waf
@@ -114,9 +112,62 @@ export const CMD_ALIASES = {
     // minify
     "min": "minify", "assets": "minify",
     // schema
-    "structured": "schema", "jsonld": "schema", "microdata": "schema",
+    "schema": "web -schema", "structured": "web -schema", "jsonld": "web -schema", "microdata": "web -schema",
     // headers-check
     "hcheck": "headers-check", "security-headers": "headers-check",
+    // clip
+    "copy": "clip", "clipboard": "clip",
+    // matrix
+    "rain": "matrix",
+    // coffee
+    "break": "coffee", "pomodoro": "coffee", "timer": "coffee",
+    // sudo
+    "su": "sudo",
+    // propagation
+    "global": "propagation", "resolve": "propagation",
+    // deliverability
+    "optimiza": "deliverability", "optimiza-mail": "deliverability",
+    // dog
+    "perro": "dog", "mascota": "dog", "pet": "dog",
+    // snake
+    "juego": "snake", "game": "snake", "play": "snake",
+    // hack
+    "trivia": "hack", "quiz": "hack",
+    // signal
+    "intercept": "signal", "wave": "signal", "oscilloscope": "signal",
+    // useragent
+    "ua": "useragent", "agent": "useragent", "spoof": "useragent",
+    // mobile
+    "mob": "mobile", "responsive": "mobile", "iphone": "mobile",
+    // throttle
+    "slow": "throttle", "lag": "throttle", "network": "throttle",
+    // geo
+    "gps": "geo", "location": "geo", "spoof-geo": "geo",
+    // block
+    "ban": "block", "deny": "block", "drop": "block",
+    // fonts
+    "typography": "fonts", "type": "fonts",
+    // palette
+    "colors": "palette", "theme": "palette",
+    // comments
+    "hidden": "comments", "notes": "comments", "note": "comments", "memo": "comments", "annotation": "comments",
+    // cms
+    "wordpress": "cms", "fingerprint": "cms",
+    // malware
+    "virus": "malware", "heuristics": "malware",
+    // edit
+    "designmode": "edit", "modify": "edit",
+    // emails & phones
+    "emails": "extract -emails", "scrape-emails": "extract -emails", "contacts": "extract -emails",
+    "phones": "extract -phones", "scrape-phones": "extract -phones", "numbers": "extract -phones",
+    // map
+    "journey": "map", "flow": "map", "dns-map": "map", "path": "map",
+    // fullscreen
+    "f11": "fullscreen", "fs": "fullscreen",
+    // nav
+    "menu": "nav", "gui": "nav", "explorer": "nav",
+    // watch
+    "monitor": "watch", "live": "watch", "netwatch": "watch"
 };
 
 export const ALL_KNOWN_CMDS = [
@@ -127,8 +178,9 @@ export const ALL_KNOWN_CMDS = [
     "dkim", "robots", "sec", "target", "help", "clear",
     "rev-dns", "port-scan", "ftp-check", "export",
     "blacklist", "ssllabs", "securityheaders", "whois-ext",
-    "errors", "pixels", "socials", "stack", "load", "rank", "seo", "og", "alt", "csp", "waf", "hsts", "minify", "schema", "diff", "headers-check",
+    "errors", "pixels", "socials", "stack", "load", "rank", "csp", "waf", "hsts", "minify", "diff", "headers-check",
     "registrar", "hosting", "exit", "switch", "reload",
-    "start", "config", "isup", "speed", "speedtest",
-    "ip", "security-txt", "vitals", "flush", "notes", "tabs", "actual", "current", "here",
+    "start", "config", "isup", "jitter", "speedtest", "clip", "matrix", "coffee",
+    "ip", "security-txt", "vitals", "flush", "tabs", "actual", "current", "here",
+    "useragent", "mobile", "throttle", "geo", "block", "fonts", "palette", "comments", "cms", "malware", "edit", "map", "fullscreen", "nav", "watch"
 ].filter(c => /^[a-z]/i.test(c));

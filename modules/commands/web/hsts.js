@@ -60,6 +60,7 @@ export async function cmdHsts(args) {
         }
 
         o += insights(ins);
+        o += `\n${ANSI.dim}External:${ANSI.reset} ${ANSI.blue}https://hstspreload.org/?domain=${url}${ANSI.reset}\n`;
         return o;
 
     } catch (err) {

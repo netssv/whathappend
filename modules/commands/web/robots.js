@@ -30,7 +30,7 @@ export async function cmdRobots(args) {
         o += insights([{level:"INFO",text:"No robots.txt or blocked."}]);
     } else {
         const fullLines = resp.data.text.split("\n");
-        const lines = fullLines.slice(0, 50);
+        const lines = fullLines.slice(0, 20);
         
         for (const rawLine of lines) {
             const line = rawLine.trim().toLowerCase();
@@ -41,7 +41,7 @@ export async function cmdRobots(args) {
             else if (line.startsWith("crawl-delay")) o += `${ANSI.magenta}${rawLine}${ANSI.reset}\n`;
             else o += `${ANSI.dim}${rawLine}${ANSI.reset}\n`;
         }
-        if (fullLines.length > 50) o += `${ANSI.dim}... (truncated)${ANSI.reset}\n`;
+        if (fullLines.length > 20) o += `${ANSI.dim}... (${fullLines.length - 20} more lines truncated)${ANSI.reset}\n`;
 
         const ins = [];
         let globalBlocked = false;
@@ -108,9 +108,10 @@ export async function cmdRobots(args) {
         if (hasCrawlDelay) {
             ins.push({level:"INFO",text:"Crawl-delay present (ignored by Googlebot)."});
         }
-        ins.push({ level: "INFO", text: `External Check: https://technicalseo.com/tools/robots-txt/` });
 
+        if (ins.length > 0) o += "\n";
         o += insights(ins);
+        o += `\n${ANSI.dim}External:${ANSI.reset} ${ANSI.blue}https://technicalseo.com/tools/robots-txt/${ANSI.reset}\n`;
     }
     return o;
 }

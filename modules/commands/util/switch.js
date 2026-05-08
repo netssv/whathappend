@@ -39,7 +39,7 @@ export async function cmdSwitch() {
         ContextManager.setManualTarget(domain);
 
         // Return __SWITCH__ sentinel so the engine knows to run triage
-        return { __switch: true, domain };
+        return { __switch: true, domain: domain + " --go" };
     } catch (err) {
         return `${ANSI.red}[ERROR] ${err.message || "Failed to query active tab."}${ANSI.reset}`;
     }

@@ -13,11 +13,14 @@
  * - Layer: Terminal Layer (Header) - Renders the top UI header blocks.
  */
 
-import { ContextManager } from "../../context.js";
-import { refitTerminal } from "../terminal-ui.js";
-import { toApex } from "../../formatter.js";
-import { setSessionTriad } from "../../state.js";
 import { initTriadEvents } from "./header-triad-events.js";
+import { ContextManager } from "../../context.js";
+import { 
+    contextHttp, contextRegistrar, contextNS, contextHost, contextIP, contextMyIP, 
+    contextGeo, contextSSL, contextCDN, contextMX, contextTriad, 
+    ALL_FIELDS, refreshTriadVisibility, setTriadValue, 
+    cancelAutoHide, setAutoHide, setTriadHoverState
+} from "./header-triad-ui.js";
 
 // ===================================================================
 // Header Triad — Infrastructure badges (REG / NS / HOST)
@@ -26,113 +29,39 @@ import { initTriadEvents } from "./header-triad-events.js";
 // single-field retry on user click.
 // ===================================================================
 
-const contextRegistrar = document.getElementById("context-registrar");
-const contextNS = document.getElementById("context-ns");
-const contextHost = document.getElementById("context-host");
-const contextTriad = document.getElementById("context-triad");
-
-// ---------------------------------------------------------------------------
-// Visibility + value management
-// ---------------------------------------------------------------------------
-
-let hideTimeout = null;
-let currentVisibilityCheck = 0;
-
-function refreshTriadVisibility() {
-    if (!contextTriad) return;
-    const hasAny = contextRegistrar?.textContent || contextNS?.textContent || contextHost?.textContent
-        || contextRegistrar?.classList.contains("retryable")
-        || contextNS?.classList.contains("retryable")
-        || contextHost?.classList.contains("retryable");
-
-    const handle = document.getElementById("triad-handle");
-
-    if (hasAny) {
-        contextTriad.classList.add("visible");
-        if (handle) handle.classList.add("visible");
-        if (hideTimeout) clearTimeout(hideTimeout);
-        
-        const checkId = ++currentVisibilityCheck;
-        chrome.storage.local.get("wh_config").then(data => {
-            if (checkId !== currentVisibilityCheck) return;
-            const config = data["wh_config"] || {};
-            const autoHide = config["autoHide"] !== undefined ? config["autoHide"] : true;
-            const autoHideDelay = config["autoHideDelay"] || 5000;
-            if (autoHide && contextTriad.classList.contains("visible")) {
-                hideTimeout = setTimeout(() => {
-                    contextTriad.classList.remove("visible");
-                    setTimeout(() => refitTerminal(), 350);
-                }, autoHideDelay);
-            }
-        });
-    } else {
-        contextTriad.classList.remove("visible");
-        if (handle) handle.classList.remove("visible");
-    }
-    // Re-fit terminal after CSS transition completes
-    setTimeout(() => refitTerminal(), 350);
-}
-
-function cleanProviderName(name) {
-    if (!name) return "";
-    return name
-        .replace(/,?\s+Inc\.?$/i, "")
-        .replace(/,?\s+LLC\.?$/i, "")
-        .replace(/,?\s+LTD\.?$/i, "")
-        .replace(/\s+GmbH$/i, "")
-        .replace(/\s+NOC$/i, "")
-        .replace(/\s+Group$/i, "")
-        .replace(/Amazon\.com Services LLC/i, "AWS")
-        .replace(/Amazon Data Services.*/i, "AWS")
-        .replace(/Google LLC/i, "Google")
-        .trim();
-}
-
-function setTriadValue(el, text, url) {
-    if (!el) return;
-    const cleanText = cleanProviderName(text);
-    el.textContent = cleanText || "";
-    el.title = url ? `${text} — click to verify` : (text || "");
-    // Clear loading/retryable state when a real value arrives
-    el.classList.remove("retryable", "retrying");
-    if (url) {
-        el.dataset.href = url;
-        el.classList.add("clickable");
-    } else {
-        delete el.dataset.href;
-        el.classList.remove("clickable");
-    }
-    
-    // Trigger subtle pop animation on value update
-    el.classList.remove("pop");
-    void el.offsetWidth; // Force DOM reflow to restart animation
-    if (cleanText) el.classList.add("pop");
-
-    refreshTriadVisibility();
-}
-
 // ---------------------------------------------------------------------------
 // Initialize Event Listeners
 // ---------------------------------------------------------------------------
 
 initTriadEvents({
-    contextTriad, contextRegistrar, contextNS, contextHost,
+    contextTriad, ALL_FIELDS,
     setTriadValue, refreshTriadVisibility,
-    cancelAutoHide: () => {
-        if (hideTimeout) clearTimeout(hideTimeout);
-        currentVisibilityCheck++;
-    },
-    setAutoHide: (delay) => {
-        hideTimeout = setTimeout(() => {
-            contextTriad.classList.remove("visible");
-            setTimeout(() => refitTerminal(), 350);
-        }, delay);
-    }
+    cancelAutoHide, setAutoHide, setTriadHoverState
 });
 
 // ---------------------------------------------------------------------------
 // Public update functions
 // ---------------------------------------------------------------------------
+
+export function updateHttpField(code, url) {
+    if (contextHttp) {
+        // Clear old color classes
+        contextHttp.classList.remove("ssl-active", "ssl-warning", "ssl-expired");
+        setTriadValue(contextHttp, code ? `${code}` : "", url);
+        
+        // Add color coding
+        if (code) {
+            const numericCode = parseInt(code, 10);
+            if (numericCode >= 200 && numericCode < 300) {
+                contextHttp.classList.add("ssl-active"); // Green
+            } else if (numericCode >= 300 && numericCode < 400) {
+                contextHttp.classList.add("ssl-warning"); // Yellow
+            } else if (numericCode >= 400) {
+                contextHttp.classList.add("ssl-expired"); // Red
+            }
+        }
+    }
+}
 
 export function updateWhoisFields(registrar, url) {
     setTriadValue(contextRegistrar, registrar, url);
@@ -146,12 +75,65 @@ export function updateHostField(host, url) {
     setTriadValue(contextHost, host, url);
 }
 
+export function updateIPField(ip) {
+    setTriadValue(contextIP, ip, `https://ipinfo.io/${ip}`);
+}
+
+export function updateMyIPField(ip) {
+    setTriadValue(contextMyIP, ip, `https://ipinfo.io/${ip}`);
+}
+
+export function updateGeoField(geo) {
+    const domain = ContextManager.getDomain();
+    setTriadValue(contextGeo, geo, domain ? `https://check-host.net/ip-info?host=${domain}` : null);
+}
+
+export function updateSSLField(ssl, daysLeft) {
+    // Clear previous SSL color classes
+    contextSSL?.classList.remove("ssl-active", "ssl-warning", "ssl-expired");
+    const domain = ContextManager.getDomain();
+    const url = domain ? `https://www.ssllabs.com/ssltest/analyze.html?d=${domain}` : null;
+
+    if (daysLeft !== undefined && daysLeft !== null) {
+        const label = daysLeft >= 0 ? `Active ${daysLeft}d` : `Expired ${daysLeft}d`;
+        setTriadValue(contextSSL, label, url);
+        if (daysLeft < 0) {
+            contextSSL?.classList.add("ssl-expired");
+        } else if (daysLeft <= 30) {
+            contextSSL?.classList.add("ssl-warning");
+        } else {
+            contextSSL?.classList.add("ssl-active");
+        }
+    } else {
+        setTriadValue(contextSSL, ssl, url);
+    }
+}
+
+export function updateCDNField(cdn) {
+    const domain = ContextManager.getDomain();
+    setTriadValue(contextCDN, cdn, domain ? `https://builtwith.com/${domain}` : null);
+}
+
+export function updateMXField(mx, url) {
+    setTriadValue(contextMX, mx, url);
+}
+
 /**
  * Mark a triad field as retryable (shows pulsing ↻ retry indicator).
- * @param {"registrar"|"ns"|"host"} field
  */
 export function markFieldRetryable(field) {
-    const el = { registrar: contextRegistrar, ns: contextNS, host: contextHost }[field];
+    const el = { 
+        http: contextHttp,
+        registrar: contextRegistrar, 
+        ns: contextNS, 
+        host: contextHost,
+        ip: contextIP,
+        myip: contextMyIP,
+        geo: contextGeo,
+        ssl: contextSSL,
+        cdn: contextCDN,
+        mx: contextMX
+    }[field];
     if (!el || el.textContent) return; // Only mark if empty
     el.classList.add("retryable");
     refreshTriadVisibility();
@@ -161,11 +143,11 @@ export function markFieldRetryable(field) {
  * Clear all infrastructure badges (called before a new async lookup starts).
  */
 export function clearWhoisFields() {
-    [contextRegistrar, contextNS, contextHost].forEach(el => {
+    ALL_FIELDS.forEach(el => {
         if (el) {
             el.textContent = ""; el.title = "";
             delete el.dataset.href;
-            el.classList.remove("clickable", "retryable", "retrying");
+            el.classList.remove("clickable", "retryable", "retrying", "ssl-active", "ssl-warning", "ssl-expired");
         }
     });
     refreshTriadVisibility();

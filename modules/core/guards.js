@@ -64,7 +64,7 @@ export async function checkTargetGuards(resolved, targetArg, targetIsIP) {
 
     // Chrome Web Store / Internal Pages Guard
     const chromeRestricted = ["chrome.google.com", "chromewebstore.google.com"];
-    const httpCommands = ["curl", "sec", "pixels", "load", "links", "vitals", "speed", "stack", "cookies", "isup"];
+    const httpCommands = ["curl", "sec", "pixels", "load", "links", "vitals", "jitter", "stack", "cookies", "isup"];
     if (!targetIsIP && chromeRestricted.includes(targetArg?.toLowerCase()) && httpCommands.includes(resolved)) {
         return `${ANSI.red}[BLOCKED]${ANSI.reset} Chrome Security Policy Violation.\n` +
                `${ANSI.dim}Google Chrome strictly prevents extensions from inspecting, fetching, or executing scripts on its Web Store and internal pages.\n` +

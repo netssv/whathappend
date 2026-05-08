@@ -38,13 +38,20 @@ export async function handleGetPerfTiming() {
 
                 // Resource summary
                 let transferSize = 0, decodedSize = 0;
+                const failed = [];
                 for (const r of res) {
                     transferSize += r.transferSize || 0;
                     decodedSize += r.decodedBodySize || 0;
+                    const isFailed = (r.transferSize === 0 && r.decodedBodySize === 0 && r.duration > 0) || 
+                                     (r.responseStatus >= 400);
+                    if (isFailed) {
+                        failed.push(r.responseStatus >= 400 ? `[HTTP ${r.responseStatus}] ${r.name}` : r.name);
+                    }
                 }
 
                 return {
                     url: location.href,
+                    navStatus: nav.responseStatus || 200,
                     dns: Math.round(nav.domainLookupEnd - nav.domainLookupStart) || 0,
                     tcp: Math.round(nav.connectEnd - nav.connectStart) || 0,
                     tls: nav.secureConnectionStart > 0
@@ -61,6 +68,7 @@ export async function handleGetPerfTiming() {
                     resourceCount: res.length,
                     transferSize,
                     decodedSize,
+                    failed,
                 };
             },
         });

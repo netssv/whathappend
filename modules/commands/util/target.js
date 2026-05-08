@@ -28,6 +28,10 @@ export function cmdTarget(args) {
         ContextManager.resetToAuto();
         return `${ANSI.green}Target reset to auto (active tab).${ANSI.reset}`;
     }
-    ContextManager.setManualTarget(args[0]);
-    return `${ANSI.green}Target set: ${ANSI.yellow}${args[0]}${ANSI.reset} ${ANSI.dim}[manual]${ANSI.reset}`;
+    const domain = args[0].replace(/https?:\/\//, "").replace(/\/.*$/, "");
+    if (!domain.includes('.') && !domain.includes(':') && domain !== 'localhost') {
+        return `${ANSI.red}Invalid domain format.${ANSI.reset} A domain must contain a dot (e.g. google.com).`;
+    }
+    ContextManager.setManualTarget(domain);
+    return `${ANSI.green}Target set: ${ANSI.yellow}${domain}${ANSI.reset} ${ANSI.dim}[manual]${ANSI.reset}`;
 }

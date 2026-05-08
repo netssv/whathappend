@@ -25,13 +25,28 @@ import { getConfig } from "../util/config.js";
 const ROOT_DOMAIN_TYPES = new Set(["MX", "TXT", "NS", "SOA"]);
 
 export async function cmdDig(args, options = {}) {
-    const { forcedType = null, opts = [], isShortcut = false } = options;
+    const { forcedType = null, opts = [], flags = [], isShortcut = false } = options;
     const info = {};
     let domain, recordType;
     const isRawShort = opts?.includes("+short");
 
+    // Check if any flag specifies a record type (e.g. -mx, -txt, -a)
+    let flagType = null;
+    for (const flag of flags) {
+        const cleanFlag = flag.substring(1).toUpperCase();
+        if (DNS_TYPES.includes(cleanFlag)) {
+            flagType = cleanFlag;
+            break;
+        } else if (Object.keys(DNS_SHORTCUTS).map(k => k.toUpperCase()).includes(cleanFlag)) {
+            flagType = DNS_SHORTCUTS[cleanFlag.toLowerCase()];
+            break;
+        }
+    }
+
     if (forcedType) {
         domain = resolveTargetDomain(args[0], info); recordType = forcedType;
+    } else if (flagType) {
+        domain = resolveTargetDomain(args[0], info); recordType = flagType;
     } else if (args.length === 0) {
         domain = resolveTargetDomain(undefined, info); recordType = "A";
     } else if (args.length === 1) {

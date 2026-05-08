@@ -39,11 +39,11 @@ export async function handleSSL({ domain, abortId }) {
             // Fast connectivity check (HEAD)
             (async () => {
                 const resp = await fetch(`https://${domain}`, {
-                    method: "HEAD", redirect: "manual", signal,
+                    method: "HEAD", redirect: "follow", signal,
                 });
                 const headers = {};
                 resp.headers.forEach((v, k) => { headers[k] = v; });
-                return { ok: true, headers };
+                return { ok: true, headers, status: resp.status };
             })(),
             // Certificate Transparency lookup (CertSpotter is much faster than crt.sh)
             (async () => {
@@ -79,14 +79,16 @@ export async function handleSSL({ domain, abortId }) {
             })(),
         ]);
 
-        const connectivity = connectResult.status === "fulfilled" && connectResult.value?.ok;
-        const serverHeaders = connectivity ? connectResult.value.headers : {};
+        const connectOk = connectResult.status === "fulfilled" && connectResult.value;
+        const connectivity = connectOk && (connectResult.value.ok || connectResult.value.status < 400);
+        const serverHeaders = connectOk ? connectResult.value.headers : {};
+        const httpStatus = connectOk ? connectResult.value.status : null;
         const certData = crtResult.status === "fulfilled" ? crtResult.value : null;
 
         completeAbort(abortId);
         return {
             success: true,
-            data: { domain, connectivity, certificate: certData, serverHeaders },
+            data: { domain, connectivity, certificate: certData, serverHeaders, httpStatus },
         };
     } catch (err) {
         if (err.name === "AbortError") return { error: "CONNECTION_TIMEOUT" };

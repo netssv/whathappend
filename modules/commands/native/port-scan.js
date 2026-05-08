@@ -77,7 +77,7 @@ export function formatPortResults(data, target, ports, isBrowser) {
     }
 
     o += `\n${ANSI.white}${openCount}/${results.length} ports responding${ANSI.reset}`;
-    o += `\n${ANSI.dim}Executed: ${isBrowser ? "Browser fetch timing heuristic" : "nc -zv via native host"}${ANSI.reset}`;
+    o += `\n${ANSI.dim}Executed: ${isBrowser ? "Browser fetch timing heuristic" : "nc -zv via native host"}${ANSI.reset}\n`;
 
     const ins = [];
     if (isBrowser) {
@@ -90,8 +90,9 @@ export function formatPortResults(data, target, ports, isBrowser) {
     if (openPorts.includes(5432)) ins.push({ level: "CRIT", text: "PostgreSQL (5432) exposed. Verify firewall." });
     if (openPorts.includes(3389)) ins.push({ level: "WARN", text: "RDP (3389) open. High brute-force risk." });
     if (openPorts.includes(21)) ins.push({ level: "WARN", text: "FTP (21) open. Consider SFTP migration." });
-    if (openCount === 0) ins.push({ level: "INFO", text: "No ports responding. Host may be firewalled." });
+    if (openCount === 0) ins.push({ level: "INFO", text: "No open ports responding. Host may be heavily firewalled." });
 
+    if (ins.length > 0) o += "\n";
     o += insights(ins);
     return o;
 }

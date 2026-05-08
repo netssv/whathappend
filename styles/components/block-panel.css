@@ -7,16 +7,16 @@
 
 .shield-btn {
     width: 22px; height: 22px;
-    border: 1px solid transparent; border-radius: 4px;
-    background: transparent; color: var(--text-dark);
+    border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px;
+    background: rgba(255, 255, 255, 0.04); color: var(--text-dark);
     font-size: 13px; line-height: 1;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     transition: all 0.2s ease; padding: 0; flex-shrink: 0;
-    opacity: 0.4;
+    opacity: 0.75;
 }
 
 .shield-btn:hover {
-    opacity: 0.8;
+    opacity: 1;
     border-color: var(--bg-scrollbar-thumb);
     background: var(--bg-btn);
 }
@@ -39,28 +39,34 @@
 #block-panel {
     display: flex;
     align-items: center;
-    gap: 8px;
-    height: 0; overflow: hidden; opacity: 0;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    gap: 5px 10px;
+    max-height: 0; overflow: hidden; opacity: 0;
     padding: 0 10px;
     border-top: 1px solid transparent;
-    transition: height 0.25s ease, opacity 0.2s ease, padding 0.25s ease, border-color 0.25s ease;
+    transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease, border-color 0.25s ease;
     background: linear-gradient(to right, rgba(255, 107, 107, 0.04), transparent);
+    background-color: var(--bg-panel);
 }
 
 #block-panel.visible {
-    height: 30px; opacity: 1;
+    max-height: 85px; opacity: 1;
     padding: 5px 10px;
     border-top-color: rgba(255, 107, 107, 0.15);
+    border-bottom: 1px solid var(--bg-panel-border);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
 }
 
 /* --- Toggle Switch Labels ------------------------------------------------ */
 
 .block-toggle {
-    display: flex; align-items: center; gap: 5px;
+    display: flex; align-items: center; gap: 4px;
     cursor: pointer; user-select: none;
-    font-size: 11px; color: var(--text-dim);
+    font-size: 12px; color: var(--text-dim);
     transition: color 0.15s ease;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .block-toggle:hover { color: var(--text-light); }
@@ -96,12 +102,12 @@
     background: #ff6b6b;
 }
 
-.block-label { font-size: 10px; letter-spacing: 0.3px; }
+.block-label { font-size: 11px; letter-spacing: 0.3px; }
 
 /* --- Status badge -------------------------------------------------------- */
 
 .block-status {
-    font-size: 9px; color: var(--text-dark);
+    font-size: 11px; color: var(--text-dark);
     margin-left: auto; flex-shrink: 0;
     white-space: nowrap;
 }

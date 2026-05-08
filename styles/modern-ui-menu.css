@@ -1,0 +1,104 @@
+/* =========================================================================
+ * Modern UI Theme — Logo Menu Overrides
+ * Scoped: :is([data-theme="wh_ui"], [data-theme="wh_dark"])
+ * ========================================================================= */
+
+/* --- Logo Wrapper: Smooth interactions ----------------------------------- */
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #context-logo {
+    width: 22px !important;
+    height: 22px !important;
+}
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #logo-wrapper:hover #context-logo { filter: drop-shadow(0 0 4px rgba(48, 209, 88, 0.4)); }
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #context-version { color: rgba(255, 255, 255, 0.45) !important; }
+
+/* --- Logo Menu ----------------------------------------------------------- */
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu {
+    background: var(--menu-bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid #3c4a52;
+    border-radius: 12px; /* Standard context menu radius */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    padding: 8px 6px; /* Desktop compact padding */
+    max-width: calc(100vw - 16px);
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu-submenu {
+    background: var(--menu-bg);
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu:not(.submenu-inline) .logo-menu-submenu {
+    border: 1px solid #3c4a52;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    padding: 6px;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu-item {
+    border-radius: 8px; /* Classic selection shape */
+    transition: background 0.2s cubic-bezier(0.2, 0, 0, 1), color 0.2s ease, transform 0.1s ease;
+    padding: 8px 12px; /* Desktop padding */
+    font-size: 12px; /* Standard UI text */
+    font-weight: 500;
+    color: var(--text-bright);
+    background: var(--menu-item-bg);
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu-item:last-child {
+    margin-bottom: 0;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu-submenu .logo-menu-item {
+    font-size: 12px;
+    padding: 6px 12px;
+    margin-bottom: 2px;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu-item span:first-child { 
+    font-size: 16px; 
+    width: 24px; 
+    text-align: left; 
+}
+
+/* Material You Active/Hover State */
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu-item:hover,
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu-item:focus,
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu-sub-wrap:hover > .logo-menu-has-sub,
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu-sub-wrap.sub-expanded > .logo-menu-has-sub {
+    background: var(--menu-hover-bg);
+    color: var(--menu-hover-text);
+    outline: none;
+    transform: scale(0.98); /* slight press effect */
+}
+
+/* Submenu Arrow in Active state */
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu-sub-wrap:hover .logo-menu-sub-arrow,
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu-sub-wrap.sub-expanded .logo-menu-sub-arrow {
+    color: var(--menu-hover-text); 
+    opacity: 0.8;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu-sep {
+    display: block;
+    height: 0px;
+    background: transparent;
+    margin: 8px 0;
+}
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) .logo-menu-group-label {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    white-space: normal;
+    line-height: 1.4;
+    margin-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 18px;
+    font-weight: 600;
+    text-transform: uppercase;
+}

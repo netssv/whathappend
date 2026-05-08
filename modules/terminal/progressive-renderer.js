@@ -1,11 +1,9 @@
 /**
  * @module modules/terminal/progressive-renderer.js
- * @description Architectural connections and module role.
- * 
+ * @description Live-updating triage skeleton with post-render interactive hover.
+ *
  * @connections
- * - Imports: 
- *     - ANSI from '../formatter.js'
- *     - RenderQueue from './render-queue.js'
+ * - Imports: ANSI from '../formatter.js', RenderQueue from './render-queue.js'
  * - Exports: ProgressiveRenderer, ROW_KEYS, ROW_LABELS
  * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
  */
@@ -20,18 +18,25 @@ import { RenderQueue } from "./render-queue.js";
 // Delegates all terminal writes to RenderQueue for atomic batching.
 // ===================================================================
 
-const ROW_KEYS = ["registrar", "ns", "webhost"];
+const ROW_KEYS = ["registrar", "ns", "webhost", "cdn", "ip", "myip", "geo", "ssl", "mx"];
 
 const ROW_LABELS = {
     registrar: `${ANSI.white}Registrar${ANSI.reset}`,
     ns:        `${ANSI.white}NameSrvs${ANSI.reset} `,
     webhost:   `${ANSI.white}Web Host${ANSI.reset} `,
+    cdn:       `${ANSI.white}CDN/WAF${ANSI.reset}  `,
+    ip:        `${ANSI.white}IP Addr${ANSI.reset}  `,
+    myip:      `${ANSI.white}My IP${ANSI.reset}    `,
+    geo:       `${ANSI.white}Location${ANSI.reset} `,
+    ssl:       `${ANSI.white}SSL${ANSI.reset}      `,
+    mx:        `${ANSI.white}Mail MX${ANSI.reset}  `,
 };
 
-const LOADING = `${ANSI.dim}⏳ loading...${ANSI.reset}`;
+const LOADING = `${ANSI.dim}[WAIT] loading...${ANSI.reset}`;
 const NA      = `${ANSI.dim}N/A${ANSI.reset}`;
 
-const BASE_OFFSET = { registrar: 4, ns: 3, webhost: 2 };
+// Offset from the bottom of the skeleton (empty line + N rows)
+const BASE_OFFSET = { registrar: 10, ns: 9, webhost: 8, cdn: 7, ip: 6, myip: 5, geo: 4, ssl: 3, mx: 2 };
 const SUMMARY_OFFSET = 1;
 
 export { ROW_KEYS, ROW_LABELS };
@@ -42,6 +47,7 @@ export class ProgressiveRenderer {
         this._rq = new RenderQueue(term);
         this._cancelled = false;
         this._resolved = {};
+        this._resolvedUrls = {};
         this._finalized = false;
         this._extraLines = 0;
     }
@@ -53,7 +59,7 @@ export class ProgressiveRenderer {
     renderSkeleton() {
         if (this._cancelled) return;
         const t = this._term;
-        t.writeln(`\n${ANSI.cyan}${ANSI.bold}[INFO] Domain Delegation:${ANSI.reset}`);
+        t.writeln(`\n${ANSI.cyan}${ANSI.bold}[INFO] Infrastructure Triage${ANSI.reset} ${ANSI.dim}(hover results to verify)${ANSI.reset}`);
         for (const key of ROW_KEYS) {
             t.writeln(this._formatRow(key, LOADING));
         }
@@ -67,11 +73,13 @@ export class ProgressiveRenderer {
     // Row update
     // -----------------------------------------------------------------
 
-    updateRow(rowKey, value) {
+    updateRow(rowKey, value, linkUrl = null) {
         if (this._cancelled || this._finalized) return;
         if (!ROW_KEYS.includes(rowKey)) return;
 
         this._resolved[rowKey] = value || null;
+        if (linkUrl) this._resolvedUrls[rowKey] = linkUrl;
+
         const delta = BASE_OFFSET[rowKey] + this._extraLines;
         this._rq.enqueue(delta, this._formatRow(rowKey, value || NA));
         this._term.scrollToBottom();
@@ -108,14 +116,13 @@ export class ProgressiveRenderer {
 
         const text = `↳ [INFO] Managed by ${unique.join(', ')}`;
         const cols = this._term.cols || 80;
-        const maxLen = cols - 9; // 7 spaces indent + 2 padding
+        const maxLen = cols - 9;
         let finalStr = text;
         if (finalStr.length > maxLen && maxLen > 15) {
             finalStr = finalStr.substring(0, maxLen - 3) + "...";
         }
 
         const summaryLine = `       ${ANSI.green}${finalStr}${ANSI.reset}`;
-
         const delta = SUMMARY_OFFSET + this._extraLines;
         this._rq.writeNow(delta, summaryLine);
         this._term.scrollToBottom();
@@ -144,7 +151,6 @@ export class ProgressiveRenderer {
 
         let strVal = String(value);
         if (strVal.length > maxValLen && maxValLen > 5) {
-            // keep the ANSI color codes if any, this might break if value has ANSI but values are usually plain text
             strVal = strVal.substring(0, maxValLen - 3) + "...";
         }
 

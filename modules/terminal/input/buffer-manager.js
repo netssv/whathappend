@@ -60,9 +60,49 @@ export function getVisualCol(absPos, cols) {
 // ---------------------------------------------------------------------------
 
 export function updateBufferState(newLine, newCursor, oldCursor) {
+    const textChanged = currentLine !== newLine;
     currentLine = newLine;
     cursorPosition = newCursor;
-    refreshLine(oldCursor);
+    
+    if (textChanged) {
+        refreshLine(oldCursor);
+    } else {
+        // Optimization: Prevent ghosting by moving the cursor without rewriting text
+        moveCursorVisually(oldCursor, newCursor);
+        InputEvents.emit("EV_INPUT_UPDATED", currentLine);
+    }
+}
+
+function moveCursorVisually(oldPos, newPos) {
+    if (oldPos === newPos) return;
+    
+    const cols = getTermCols();
+    const promptLen = 2; // "❯ "
+    const oldAbs = promptLen + oldPos;
+    const newAbs = promptLen + newPos;
+    
+    const oldRow = getVisualRow(oldAbs, cols);
+    const newRow = getVisualRow(newAbs, cols);
+    const targetCol = getVisualCol(newAbs, cols);
+    
+    let seq = "";
+    
+    if (newRow < oldRow) {
+        seq += `\x1b[${oldRow - newRow}A`; // UP
+    } else if (newRow > oldRow) {
+        seq += `\x1b[${newRow - oldRow}B`; // DOWN
+    }
+    
+    seq += "\r";
+    if (targetCol > 0) {
+        seq += `\x1b[${targetCol}C`;
+    }
+    
+    if (isWriteLocked()) {
+        enqueueWrite(() => term.write(seq));
+    } else {
+        term.write(seq);
+    }
 }
 
 export function insertText(text) {

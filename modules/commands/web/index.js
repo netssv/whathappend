@@ -4,7 +4,7 @@
  * 
  * @connections
  * - Imports: None (Dependency-free)
- * - Exports: cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdPixels, cmdWeb, cmdLoad, cmdRegistrar, cmdHosting, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdIsUp, cmdSpeed, cmdSpeedtest, cmdIP, cmdSecurityTxt, cmdVitals, cmdFlush, cmdSocials, cmdRank, cmdSeo, cmdOg, cmdAlt, cmdCsp, cmdWaf, cmdHsts, cmdMinify, cmdSchema, cmdDiff, cmdHeadersCheck
+ * - Exports: cmdCurl, cmdOpenSSL, cmdWhois, cmdPing, cmdTrace, cmdRobots, cmdSec, cmdPixels, cmdWeb, cmdLoad, cmdRegistrar, cmdHosting, cmdHistory, cmdLinks, cmdWayback, cmdGreen, cmdCookies, cmdIsUp, cmdJitter, cmdSpeedtest, cmdIP, cmdSecurityTxt, cmdVitals, cmdFlush, cmdSocials, cmdRank, cmdSeo, cmdOg, cmdAlt, cmdCsp, cmdWaf, cmdHsts, cmdMinify, cmdSchema, cmdDiff, cmdHeadersCheck, cmdAudit
  * - Layer: Command Layer (Web) - HTTP, SSL, and Web fingerprinting tools.
  */
 
@@ -18,15 +18,20 @@ export { cmdSec } from "./sec.js";
 export { cmdPixels } from "./pixels.js";
 export { cmdWeb } from "./web.js";
 export { cmdLoad } from "./load.js";
-export { cmdRegistrar } from "./registrar.js";
 export { cmdHosting } from "./hosting.js";
 export { cmdHistory } from "./history.js";
 export { cmdLinks } from "./links.js";
 export { cmdWayback } from "./wayback.js";
 export { cmdGreen } from "./green.js";
 export { cmdCookies } from "./cookies.js";
+export { cmdFonts } from "./fonts.js";
+export { cmdPalette } from "./palette.js";
+export { cmdComments } from "./comments.js";
+export { cmdCms } from "./cms.js";
+export { cmdMalware } from "./malware.js";
+export { cmdEdit } from "./edit.js";
 export { cmdIsUp } from "./isup.js";
-export { cmdSpeed } from "./speed.js";
+export { cmdJitter } from "./jitter.js";
 export { cmdSpeedtest } from "./speedtest.js";
 export { cmdIP } from "./ip.js";
 export { cmdSecurityTxt } from "./security-txt.js";
@@ -44,3 +49,6 @@ export { cmdMinify } from "./minify.js";
 export { cmdSchema } from "./schema.js";
 export { cmdDiff } from "./diff.js";
 export { cmdHeadersCheck } from "./headers-check.js";
+export { cmdAudit } from "./audit.js";
+export { cmdExt, cmdBlacklist, cmdSSLLabs, cmdSecurityHeaders, cmdWhoisExt } from "./ext.js";
+export { cmdExtract } from "./extract.js";

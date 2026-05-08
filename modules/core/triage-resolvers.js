@@ -44,7 +44,8 @@ export async function resolveRegistrarRow(renderer, apexDomain, isSubdomain) {
             const label = registrar
                 ? (isSubdomain ? `${registrar} ${ANSI.dim}(${apexDomain})${ANSI.reset}` : registrar)
                 : null;
-            renderer.updateRow("registrar", label);
+            const linkUrl = registrar ? `https://www.whois.com/whois/${apexDomain}` : null;
+            renderer.updateRow("registrar", label, linkUrl);
 
             // Push to header triad + persist
             if (registrar) {
@@ -88,7 +89,7 @@ export async function resolveNSRow(renderer, originalDomain, opts) {
 
         if (nsRoot === targetRoot) {
             const selfLabel = `Self-hosted (${targetRoot})`;
-            renderer.updateRow("ns", selfLabel);
+            renderer.updateRow("ns", selfLabel, nsUrl);
             updateNSField(selfLabel, nsUrl);
             setSessionTriad("ns", selfLabel);
             return;
@@ -110,7 +111,7 @@ export async function resolveNSRow(renderer, originalDomain, opts) {
                     if (isRdapMaintainer(provider)) {
                         // Fall through to domain-name fallback below
                     } else {
-                        renderer.updateRow("ns", provider);
+                        renderer.updateRow("ns", provider, nsUrl);
                         updateNSField(provider, nsUrl);
                         setSessionTriad("ns", provider);
                         return;
@@ -122,7 +123,7 @@ export async function resolveNSRow(renderer, originalDomain, opts) {
         // Fallback: infer from domain name (google.com → Google)
         const fallback = nsRoot.split(".")[0];
         const fallbackLabel = fallback.charAt(0).toUpperCase() + fallback.slice(1);
-        renderer.updateRow("ns", fallbackLabel);
+        renderer.updateRow("ns", fallbackLabel, nsUrl);
         updateNSField(fallbackLabel, nsUrl);
         setSessionTriad("ns", fallbackLabel);
     } catch (_) {
@@ -161,7 +162,8 @@ export async function resolveWebHostRow(renderer, originalDomain, opts) {
             if (renderer.isCancelled()) return;
             // Filter out RDAP maintainer refs
             const cleanProvider = (provider && !isRdapMaintainer(provider)) ? provider : null;
-            renderer.updateRow("webhost", cleanProvider);
+            const linkUrl = cleanProvider ? `https://ipinfo.io/${ips[0]}` : null;
+            renderer.updateRow("webhost", cleanProvider, linkUrl);
 
             // Push to header triad + persist
             if (cleanProvider) {
@@ -186,3 +188,4 @@ function raceTimeout(promise, ms) {
         new Promise((_, reject) => setTimeout(() => reject(new Error("TIMEOUT")), ms)),
     ]);
 }
+

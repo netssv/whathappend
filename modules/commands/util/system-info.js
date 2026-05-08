@@ -73,13 +73,6 @@ export async function cmdInfo() {
         memoryUsed = (performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1) + " MB (JS Heap)";
     }
 
-    let connectionInfo = "Unknown";
-    if (navigator.connection) {
-        let type = navigator.connection.type ? navigator.connection.type.toUpperCase() : "BROADBAND";
-        if (type === "UNKNOWN") type = "BROADBAND";
-        connectionInfo = `${type} (~${navigator.connection.downlink} Mbps, ${navigator.connection.rtt}ms RTT)`;
-    }
-
     const extId = chrome.runtime.id;
 
     return `
@@ -88,7 +81,6 @@ export async function cmdInfo() {
   ${ANSI.dim}Manifest Version:${ANSI.reset} v${version}
   ${ANSI.dim}Extension ID:${ANSI.reset}     ${extId}
   ${ANSI.dim}Public IP:${ANSI.reset}        ${ANSI.cyan}${publicIp}${ANSI.reset}
-  ${ANSI.dim}Network Link:${ANSI.reset}     ${connectionInfo}
   ${ANSI.dim}Native Host:${ANSI.reset}      ${nativeHostStatus}
   ${ANSI.dim}Storage Cache:${ANSI.reset}    ${storageUsed}
   ${ANSI.dim}Memory Usage:${ANSI.reset}     ${memoryUsed}

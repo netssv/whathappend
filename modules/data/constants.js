@@ -17,7 +17,7 @@ export const REGEX = {
     IP_V6: /^[0-9a-fA-F:]+$/,
     URL_PROTOCOL: /^https?:\/\//,
     URL_PATH: /\/.*$/,
-    ANSI_STRIP: /\x1b\[[0-9;]*m/g,
+    ANSI_STRIP: /\x1b\[[0-9;]*[a-zA-Z]|\x1b\]8;;.*?\x07|\x1b\]8;;\x07/g,
     TRAILING_DOT: /\.$/,
 };
 
