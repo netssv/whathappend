@@ -14,6 +14,7 @@ We use a **Heuristic Discovery Engine** using live data (DNS, RDAP, CNAMEs).
 - **Public Infrastructure Only**: Google DoH and global RDAP.
 - **Privacy-First Requests**: We never send user cookies or private headers.
 - **Local Normalization**: Subdomains are stripped locally before registry queries.
+- **Privileged Mode**: High-impact commands require a `sudo` context via our internal `ContextManager` to prevent accidental execution of sensitive diagnostic tools.
 
 ### 4. No Third-Party Dependencies
 All code (like xterm.js) is bundled internally to prevent supply chain attacks.
