@@ -24,6 +24,7 @@ export function initMenuDelegation(menu) {
             if (getCurrentTheme() !== themeId) {
                 applyTheme(themeId);
                 term.writeln(`\x1b[32m✓\x1b[0m Theme set to \x1b[33m${THEMES[themeId]?.name || themeId}\x1b[0m`);
+                import("../terminal-ui.js").then(m => m.writePrompt());
             }
 
         // Flush command — modal confirmation

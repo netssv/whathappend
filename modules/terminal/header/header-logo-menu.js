@@ -21,6 +21,7 @@ export function initLogoMenu() {
 
     // Inject the HTML template
     menu.innerHTML = MENU_HTML;
+    import("../theme-engine.js").then(m => m.updateMenuIndicators(m.getCurrentTheme()));
 
     // Toggle menu on logo click
     logo.addEventListener("click", async (e) => {

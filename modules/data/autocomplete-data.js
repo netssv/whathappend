@@ -33,7 +33,7 @@ export const AVAILABLE_COMMANDS = [
     "ext", "blacklist", "ssllabs", "securityheaders", "whois-ext",
 
     // UTIL
-    "start", "switch", "export", "clip", "matrix", "coffee", "sudo", "dog", "hack", "signal", "target", "tabs", "reload", "config", "about", "info", "errors", "clear", "flush", "diff", "exit", "help", "useragent", "mobile", "throttle", "geo", "block", "edit", "fullscreen", "nav", "watch",
+    "start", "switch", "export", "clip", "matrix", "coffee", "sudo", "dog", "hack", "signal", "target", "tabs", "reload", "config", "about", "info", "errors", "clear", "flush", "diff", "exit", "help", "useragent", "mobile", "throttle", "geo", "block", "edit", "fullscreen", "nav", "watch", "session",
 
     // ALIASES
     "dns", "record", "lookup", "mail", "http", "headers", "ssl", "cert", "tls", "domain", "reg", "registrar", "provider", "webhost", "crt", "ranking", "traffic", "latency", "redirect", "follow", "forwarding", "sitemap", "src", "archive", "tracking", "trackers", "pixel", "ads", "social", "tech", "wappalyzer", "techstack", "meta", "tags", "thaks", "opengraph", "a11y", "images", "jsonld", "structured", "microdata", "min", "assets", "perf", "timing", "performance", "pagespeed", "cwv", "web-vitals", "core-vitals", "sec-txt", "securitytxt", "marketing", "scan", "security", "xss", "firewall", "cdn-check", "strict", "secure-transport", "hcheck", "upcheck", "down", "downcheck", "status", "latency-test", "bandwidth", "nettest", "rdns", "ptr", "ports", "nmap", "portscan", "ftp", "myip", "public-ip", "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann", "run", "go", "begin", "analyze", "actual", "current", "here", "sw", "dump", "save", "report", "tablist", "close", "tab", "restart", "reboot", "settings", "set", "prefs", "telemetry", "error", "error-list", "cls", "reset", "clearcache", "clear-cache", "note", "memo", "annotation", "quit", "ls", "commands", "man", "copy", "clipboard", "rain", "break", "pomodoro", "su", "global", "resolve", "optimiza", "optimiza-mail", "perro", "mascota", "pet", "trivia", "quiz", "ua", "agent", "spoof", "mob", "responsive", "iphone", "slow", "lag", "network", "gps", "location", "spoof-geo", "ban", "deny", "drop", "typography", "type", "colors", "theme", "hidden", "wordpress", "fingerprint", "virus", "heuristics", "designmode", "modify", "scrape-emails", "contacts", "scrape-phones", "numbers", "journey", "flow", "dns-map", "path", "fs", "f11", "menu", "gui", "explorer", "monitor", "live", "netwatch"
@@ -100,6 +100,8 @@ const WEB_KEYS = ["-full", "-audit", "-seo", "-og", "-schema", "-alt"];
 const DNS_KEYS = ["-a", "-aaaa", "-mx", "-txt", "-ns", "-cname", "-soa"];
 const HELP_KEYS = ["-audit", "-dns", "-email", "-web", "-net", "-ext", "-util"];
 const COOKIES_KEYS = ["-persist", "-keepalive", "-stop"];
+const SUDO_KEYS = ["-l", "--list"];
+const SESSION_KEYS = ["list", "close"];
 
 export const SUBCOMMAND_MAP = {
     config:   CONFIG_KEYS,
@@ -141,4 +143,7 @@ export const SUBCOMMAND_MAP = {
     dns:       DNS_KEYS,
     help:      HELP_KEYS,
     cookies:   COOKIES_KEYS,
+    sudo:      SUDO_KEYS,
+    su:        SUDO_KEYS,
+    session:   SESSION_KEYS,
 };

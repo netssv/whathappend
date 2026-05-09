@@ -20,6 +20,14 @@ export function initMenuActions(menu) {
     document.getElementById("menu-clip")?.addEventListener("click", (e) => closeMenuAndExecute(e, menu, "clip"));
     document.getElementById("menu-about")?.addEventListener("click", (e) => closeMenuAndExecute(e, menu, "about"));
 
+    document.getElementById("menu-new-session")?.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        menu.classList.remove("open");
+        document.getElementById("logo-wrapper")?.classList.remove("menu-active");
+        const { TerminalMultiplexer } = await import("../terminal-multiplexer.js");
+        await TerminalMultiplexer.createSession();
+    });
+
     document.getElementById("menu-clear")?.addEventListener("click", (e) => {
         e.stopPropagation();
         menu.classList.remove("open");

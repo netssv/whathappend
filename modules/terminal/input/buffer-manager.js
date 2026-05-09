@@ -150,17 +150,11 @@ export function refreshLine(oldCursorPos = cursorPosition) {
         let moveUpToStart = cursorRow > 0 ? `\x1b[${cursorRow}A` : "";
 
         // 2. Clear from prompt start and rewrite the entire line
-        let lineToWrite = currentLine;
-        let isPlaceholder = false;
-        if (currentLine === "" && getHistory().length === 0) {
-            lineToWrite = "\x1b[90mgoogle.com\x1b[0m";
-            isPlaceholder = true;
-        }
-        term.write(moveUpToStart + "\r\x1b[J" + PROMPT + lineToWrite);
+        term.write(moveUpToStart + "\r\x1b[J" + PROMPT + currentLine);
 
         // 3. After writing, cursor is at the end of the text. 
         // We must move it to the NEW cursorPosition.
-        const newTotalAbs = promptLen + (isPlaceholder ? 10 : currentLine.length);
+        const newTotalAbs = promptLen + currentLine.length;
         const newCursorAbs = promptLen + cursorPosition;
         
         // Rows the cursor should be on vs rows the end of line is on

@@ -28,8 +28,29 @@ export { writePrompt, PROMPT, PROMPT_PREFIX } from "./terminal-prompt.js";
 const TERMINAL_THEME = THEMES[DEFAULT_THEME_ID].xterm;
 
 
-export let term;
-export let fitAddon;
+import { TerminalMultiplexer } from "./terminal-multiplexer.js";
+
+export const term = new Proxy({}, {
+    get(target, prop) {
+        if (!TerminalMultiplexer.activeSession || !TerminalMultiplexer.activeSession.term) return undefined;
+        const val = TerminalMultiplexer.activeSession.term[prop];
+        return typeof val === "function" ? val.bind(TerminalMultiplexer.activeSession.term) : val;
+    },
+    set(target, prop, value) {
+        if (!TerminalMultiplexer.activeSession || !TerminalMultiplexer.activeSession.term) return false;
+        TerminalMultiplexer.activeSession.term[prop] = value;
+        return true;
+    }
+});
+
+export const fitAddon = new Proxy({}, {
+    get(target, prop) {
+        if (!TerminalMultiplexer.activeSession || !TerminalMultiplexer.activeSession.fitAddon) return undefined;
+        const val = TerminalMultiplexer.activeSession.fitAddon[prop];
+        return typeof val === "function" ? val.bind(TerminalMultiplexer.activeSession.fitAddon) : val;
+    }
+});
+
 let _isSystemWriting = false;
 
 /** Check if the system is currently writing automated output to the terminal. */
@@ -37,8 +58,8 @@ export function isSystemWriting() {
     return _isSystemWriting;
 }
 
-export function initTerminalUI(containerId) {
-    term = new window.Terminal({
+export async function createTerminalInstance(container) {
+    const localTerm = new window.Terminal({
         theme: TERMINAL_THEME,
         fontFamily: '"Source Code Pro", "Fira Code", "Cascadia Code", "Consolas", monospace',
         fontSize: 12,
@@ -51,34 +72,33 @@ export function initTerminalUI(containerId) {
         wordSeparator: ` ()[]{}'\\"`,
     });
 
-    fitAddon = new window.FitAddon.FitAddon();
+    const localFitAddon = new window.FitAddon.FitAddon();
     const webLinksAddon = new window.WebLinksAddon.WebLinksAddon();
 
-    term.loadAddon(fitAddon);
-    term.loadAddon(webLinksAddon);
+    localTerm.loadAddon(localFitAddon);
+    localTerm.loadAddon(webLinksAddon);
 
-    const container = document.getElementById(containerId);
-    term.open(container);
+    localTerm.open(container);
 
     // Let Ctrl+V pass through to the browser so the native 'paste' event
     // fires. clipboard-handler.js Layer 1/2 will process it.
     // Returning false tells xterm to NOT intercept the event.
-    term.attachCustomKeyEventHandler((e) => {
+    localTerm.attachCustomKeyEventHandler((e) => {
         if (e.ctrlKey && e.key === 'v') return false;
         return true;
     });
 
     // Initialize theme engine (restores saved theme from storage)
-    initThemeEngine(term);
+    initThemeEngine(localTerm);
 
     let resizeTimeout;
     const doResize = () => {
-        if (term && fitAddon) {
-            fitAddon.fit();
-            setTermCols(term.cols);
-            applyExactMargin(term, containerId);
-            term.refresh(0, Math.max(0, term.rows - 1));
-            term.scrollToBottom();
+        if (localTerm && localFitAddon) {
+            localFitAddon.fit();
+            setTermCols(localTerm.cols);
+            applyExactMargin(localTerm, container.id);
+            localTerm.refresh(0, Math.max(0, localTerm.rows - 1));
+            localTerm.scrollToBottom();
         }
     };
 
@@ -94,21 +114,21 @@ export function initTerminalUI(containerId) {
     });
     observer.observe(container);
 
-    setupFontControls(term, fitAddon);
+    setupFontControls(localTerm, localFitAddon);
 
     return new Promise((resolve) => {
         setTimeout(() => {
-            fitAddon.fit();
-            setTermCols(term.cols);
-            applyExactMargin(term, containerId);
-            resolve();
+            localFitAddon.fit();
+            setTermCols(localTerm.cols);
+            applyExactMargin(localTerm, container.id);
+            resolve({ term: localTerm, fitAddon: localFitAddon });
         }, 50);
     });
 }
 
-/** Re-fit the terminal to the current available space. */
+/** Re-fit the active terminal to the current available space. */
 export function refitTerminal() {
-    if (fitAddon) {
+    if (fitAddon && fitAddon.fit) {
         fitAddon.fit();
         setTermCols(term.cols);
         applyExactMargin(term);

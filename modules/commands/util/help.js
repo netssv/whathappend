@@ -86,19 +86,25 @@ function createHelpWatcher() {
                         return;
                     }
 
+                    function charToIndex(c) {
+                        if (c >= '1' && c <= '9') return parseInt(c) - 1;
+                        if (c >= 'a' && c <= 'z') return c.charCodeAt(0) - 97 + 9;
+                        return -1;
+                    }
+
                     if (this._renderer.currentSection === -1) {
-                        const num = parseInt(lower);
-                        if (num >= 1 && num <= HELP_CATEGORIES.length) {
-                            this._renderer.draw(num - 1);
+                        const idx = charToIndex(lower);
+                        if (idx >= 0 && idx < HELP_CATEGORIES.length) {
+                            this._renderer.draw(idx);
                         }
                     } else {
-                        if (lower === "b" || lower === "back") {
+                        if (lower === "b" || lower === "back" || e === "\x1b") {
                             this._renderer.draw(-1);
                             return;
                         }
 
-                        const num = parseInt(lower);
-                        const cmdName = this._renderer.getCommandAt(num - 1);
+                        const idx = charToIndex(lower);
+                        const cmdName = this._renderer.getCommandAt(idx);
                         if (cmdName) {
                             this._dispose();
                             if (this._mouseEnabled) {

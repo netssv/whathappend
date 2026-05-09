@@ -37,3 +37,4 @@ export { cmdBlock }     from "./block.js";
 export { cmdFullscreen } from "./fullscreen.js";
 export { cmdNavMenu }   from "./menu.js";
 export { cmdWatch }     from "./watch.js";
+export { cmdSession }   from "./session.js";

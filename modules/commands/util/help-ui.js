@@ -16,7 +16,7 @@ import { HELP_SECTIONS } from "../../data/help-data.js";
 // ── Category map for drill-down ──────────────────────────────────────
 
 export const HELP_CATEGORIES = [
-    { key: "audit",  label: "🛡️  Audit Tools",   section: "AUDIT TOOLS" },
+    { key: "audit",  label: "🛡️ Audit Tools",   section: "AUDIT TOOLS" },
     { key: "dns",    label: "📡 DNS",             section: "DNS" },
     { key: "email",  label: "📧 Email",           section: "EMAIL" },
     { key: "web",    label: "🌐 Web Tools",       section: "WEB TOOLS" },
@@ -57,7 +57,10 @@ export class HelpRenderer {
             }
 
             if (action && action === this.hoveredAction) {
-                buffer += `\x1b[7m${str}\x1b[27m\r\n`;
+                const padLen = Math.max(0, cols - 1 - stripped.length);
+                const paddedStr = str + " ".repeat(padLen);
+                const hoveredStr = paddedStr.replace(/\x1b\[0m/g, "\x1b[0m\x1b[7m");
+                buffer += `\x1b[7m${hoveredStr}\x1b[27m\r\n`;
             } else {
                 buffer += `${str}\r\n`;
             }
@@ -88,6 +91,23 @@ export class HelpRenderer {
         }
 
         writeBlank();
+        
+        if (this.hoveredAction && this.hoveredAction !== "q" && this.hoveredAction !== "bq") {
+            const hovIdx = parseInt(this.hoveredAction) - 1;
+            if (hovIdx >= 0 && hovIdx < HELP_CATEGORIES.length) {
+                const cat = HELP_CATEGORIES[hovIdx];
+                const section = HELP_SECTIONS.find(s => s.title === cat.section);
+                // We don't have a direct description for help categories, but we can list some top commands
+                const topCmds = section ? section.cmds.slice(0, 4).map(c => c[0]).join(", ") : "";
+                writeLine(`  ${ANSI.cyan}ℹ ${cat.label}:${ANSI.reset} ${ANSI.dim}Contains: ${topCmds}...${ANSI.reset}`);
+            } else {
+                writeBlank();
+            }
+        } else {
+            writeBlank();
+        }
+        
+        writeBlank();
         writeLine(`  ${ANSI.dim}Press 1-${HELP_CATEGORIES.length} or click. ${ANSI.red}[Q]uit${ANSI.reset}`, "q");
         writeLine(`  ${ANSI.dim}Tip: Add ${ANSI.white}?${ANSI.dim} to any command for examples (e.g. ${ANSI.white}mx?${ANSI.dim})${ANSI.reset}`);
     }
@@ -104,11 +124,11 @@ export class HelpRenderer {
 
         for (let i = 0; i < section.cmds.length; i++) {
             const [name, desc] = section.cmds[i];
-            const val = (i + 1).toString();
+            const val = i < 9 ? (i + 1).toString() : String.fromCharCode(97 + i - 9);
             const num = `${ANSI.bold}[${val.padStart(2)}]${ANSI.reset}`;
             if (narrow) {
                 writeLine(`   ${num} ${ANSI.cyan}${name}${ANSI.reset}`, val);
-                writeLine(`       ${ANSI.dim}${desc}${ANSI.reset}`);
+                writeLine(`       ${ANSI.dim}${desc}${ANSI.reset}`, val);
             } else {
                 const pad = Math.max(1, 16 - name.length);
                 writeLine(`   ${num} ${ANSI.cyan}${name}${ANSI.reset}${" ".repeat(pad)}${ANSI.dim}${desc}${ANSI.reset}`, val);
@@ -116,7 +136,27 @@ export class HelpRenderer {
         }
 
         writeBlank();
-        writeLine(`  ${ANSI.dim}Click to view docs. ${ANSI.yellow}[B]ack${ANSI.reset}  ${ANSI.red}[Q]uit${ANSI.reset}`, "bq");
+        
+        if (this.hoveredAction && this.hoveredAction !== "b" && this.hoveredAction !== "q" && this.hoveredAction !== "bq") {
+            const hovIdx = (this.hoveredAction >= '1' && this.hoveredAction <= '9') 
+                ? parseInt(this.hoveredAction) - 1 
+                : this.hoveredAction.charCodeAt(0) - 97 + 9;
+            
+            if (hovIdx >= 0 && hovIdx < section.cmds.length) {
+                const [hName, hDesc, hAliases] = section.cmds[hovIdx];
+                const aliasText = hAliases ? ` (aliases: ${hAliases})` : "";
+                writeLine(`  ${ANSI.cyan}ℹ ${hName}${aliasText}:${ANSI.reset} ${ANSI.dim}${hDesc}${ANSI.reset}`);
+            } else {
+                writeBlank();
+            }
+        } else {
+            writeBlank();
+        }
+
+        writeBlank();
+        const lastVal = section.cmds.length <= 9 ? section.cmds.length.toString() : String.fromCharCode(97 + section.cmds.length - 1 - 9);
+        const range = section.cmds.length <= 9 ? `1-${lastVal}` : `1-9, a-${lastVal}`;
+        writeLine(`  ${ANSI.dim}Press ${range} or click to run. ${ANSI.yellow}[B]ack${ANSI.reset}  ${ANSI.red}[Q]uit${ANSI.reset}`, "bq");
     }
 
     getActionAt(y, x) {

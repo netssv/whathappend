@@ -13,7 +13,7 @@
  */
 
 import {ANSI, insights, resolveTargetDomain, toRegisteredDomain, cmdUsage, cmdError, workerError } from "../../formatter.js";
-import { DNS_TYPES, DNS_NUM } from "../../data/aliases.js";
+import { DNS_TYPES, DNS_NUM, DNS_SHORTCUTS } from "../../data/aliases.js";
 import { digInsights } from "./dig-insights.js";
 import { getConfig } from "../util/config.js";
 

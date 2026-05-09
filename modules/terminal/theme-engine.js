@@ -5,7 +5,7 @@
  * @connections
  * - Imports: 
  *     - THEMES, DEFAULT_THEME_ID from '../data/themes.js'
- * - Exports: initThemeEngine, applyTheme, getCurrentTheme, getThemeList
+ * - Exports: initThemeEngine, applyTheme, getCurrentTheme, getThemeList, removeThemeEngineRef, updateMenuIndicators
  * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
  */
 
@@ -13,7 +13,7 @@ import { THEMES, DEFAULT_THEME_ID } from "../data/themes.js";
 
 const STORAGE_KEY = "wh_theme";
 let _currentThemeId = DEFAULT_THEME_ID;
-let _termRef = null;
+let _termRefs = new Set();
 
 /**
  * Initialize the theme engine: restore saved theme and apply it.
@@ -21,7 +21,7 @@ let _termRef = null;
  * @param {Terminal} term - xterm.js Terminal instance
  */
 export async function initThemeEngine(term) {
-    _termRef = term;
+    _termRefs.add(term);
 
     // Restore saved theme
     try {
@@ -72,6 +72,14 @@ export function getThemeList() {
     }));
 }
 
+/**
+ * Remove a terminal reference when its session is closed to prevent memory leaks.
+ * @param {Terminal} term - xterm.js Terminal instance
+ */
+export function removeThemeEngineRef(term) {
+    if (term) _termRefs.delete(term);
+}
+
 // ---------------------------------------------------------------------------
 // Internal
 // ---------------------------------------------------------------------------
@@ -92,8 +100,8 @@ function applyThemeInternal(id, persist) {
     root.setAttribute("data-theme", id);
 
     // 2. Apply xterm.js palette
-    if (_termRef) {
-        _termRef.options.theme = theme.xterm;
+    for (const termRef of _termRefs) {
+        termRef.options.theme = theme.xterm;
     }
 
     // 3. Update active indicator on menu buttons
@@ -113,7 +121,7 @@ function applyThemeInternal(id, persist) {
     }
 }
 
-function updateMenuIndicators(activeId) {
+export function updateMenuIndicators(activeId) {
     for (const id of Object.keys(THEMES)) {
         const btn = document.getElementById(`menu-theme-${id}`);
         if (!btn) continue;

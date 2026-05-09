@@ -97,13 +97,25 @@ body:is([data-theme="wh_ui"], [data-theme="wh_dark"]) {
 
 :is([data-theme="wh_ui"], [data-theme="wh_dark"]) .peek-label { font-size: 11px !important; font-weight: 800 !important; letter-spacing: 3px !important; color: var(--accent-green) !important; }
 
+/* --- Terminal Multiplexer Tabs ------------------------------------------- */
+
+:is([data-theme="wh_ui"], [data-theme="wh_dark"]) #terminal-tabs-bar {
+    margin: 82px 8px 0 8px; /* Offset for the absolute context-bar */
+    border-radius: 12px 12px 0 0;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    background: var(--bg-main);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
 /* --- Terminal Container -------------------------------------------------- */
 
 :is([data-theme="wh_ui"], [data-theme="wh_dark"]) #terminal-container {
-    margin: 82px 8px 8px 8px; /* Offset for the absolute context-bar (70px height + 12px gaps) */
-    border-radius: 12px;
+    margin: 0 8px 8px 8px; /* Attaches directly below tabs bar */
+    border-radius: 0 0 12px 12px;
     background: var(--bg-main);
     border: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: none;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 

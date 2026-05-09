@@ -78,7 +78,7 @@ export const COMMAND_REGISTRY = {
     clip: async (args) => (await import("../commands/util/index.js")).cmdClip(args),
     matrix: async () => (await import("../commands/util/index.js")).cmdMatrix(),
     coffee: async (args) => (await import("../commands/util/index.js")).cmdCoffee(args),
-    sudo: async () => (await import("../commands/util/index.js")).cmdSudo(),
+    sudo: async (args, flags) => (await import("../commands/util/index.js")).cmdSudo(args, flags),
     dog: async () => (await import("../commands/util/index.js")).cmdDog(),
     snake: async () => (await import("../commands/util/index.js")).cmdSnake(),
     hack: async (args) => (await import("../commands/util/index.js")).cmdHack(args),
@@ -94,5 +94,5 @@ export const COMMAND_REGISTRY = {
     fullscreen: async () => (await import("../commands/util/index.js")).cmdFullscreen(),
     nav: async () => (await import("../commands/util/index.js")).cmdNavMenu(),
     watch: async (args) => (await import("../commands/util/index.js")).cmdWatch(args),
-
+    session: async (args) => (await import("../commands/util/index.js")).cmdSession(args),
 };

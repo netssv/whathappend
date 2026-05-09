@@ -1,0 +1,157 @@
+/* =========================================================================
+ * Terminal Multiplexer Tabs
+ * ========================================================================= */
+
+.terminal-tabs-bar {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-main);
+    border-top: 1px solid var(--bg-panel-border);
+    border-bottom: 1px solid var(--bg-panel-border);
+    padding: 0 8px;
+    height: 28px;
+    gap: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none; /* Hide scrollbar for clean look */
+}
+
+.terminal-tabs-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.multiplexer-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 10px;
+    height: 22px;
+    background-color: var(--bg-btn);
+    border: 1px solid var(--bg-panel-border);
+    border-radius: 4px;
+    color: var(--text-dim);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.multiplexer-tab:hover {
+    background-color: var(--bg-btn-hover);
+    color: var(--text-light);
+}
+
+.multiplexer-tab.active {
+    background-color: var(--bg-active);
+    border-color: var(--accent-green);
+    color: var(--text-bright);
+    box-shadow: 0 0 10px var(--accent-green-shadow-heavy), inset 0 0 5px var(--accent-green-shadow-light);
+}
+
+.tab-indicator {
+    color: var(--text-dim);
+    font-size: 8px;
+}
+
+.multiplexer-tab.active .tab-indicator {
+    color: var(--accent-green);
+    text-shadow: 0 0 5px var(--accent-green);
+}
+
+.tab-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+}
+
+.tab-close {
+    font-size: 10px;
+    margin-left: 4px;
+    opacity: 0.5;
+    padding: 2px;
+}
+
+.tab-close:hover {
+    opacity: 1;
+    color: #ff3366;
+}
+
+/* ---- Tab Activity States ---- */
+
+/* Processing: spinner commands (fetch, lookup, etc.) — pulsing yellow */
+.multiplexer-tab.tab-processing {
+    border-color: var(--accent-yellow, #ffd866);
+    box-shadow: 0 0 6px rgba(255, 216, 102, 0.2);
+}
+
+.multiplexer-tab.tab-processing .tab-indicator {
+    color: var(--accent-yellow, #ffd866);
+    animation: tab-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes tab-pulse {
+    0%, 100% { opacity: 0.4; transform: scale(0.9); filter: drop-shadow(0 0 2px #ffd866); }
+    50%      { opacity: 1;   transform: scale(1.15); filter: drop-shadow(0 0 8px #ffd866); }
+}
+
+/* Watching: live/interactive commands (watch, menu, triage) — breathing cyan */
+.multiplexer-tab.tab-watching {
+    border-color: #66d9ef;
+    box-shadow: 0 0 8px rgba(102, 217, 239, 0.15);
+}
+
+.multiplexer-tab.tab-watching .tab-indicator {
+    color: #66d9ef;
+    animation: tab-breathe 2s ease-in-out infinite;
+}
+
+@keyframes tab-breathe {
+    0%, 100% { opacity: 0.5;  text-shadow: 0 0 2px #66d9ef; filter: drop-shadow(0 0 2px #66d9ef); }
+    50%      { opacity: 1;    text-shadow: 0 0 8px #66d9ef; filter: drop-shadow(0 0 8px #66d9ef) brightness(1.2); }
+}
+
+/* Active + Processing/Watching — keep green border, show state via indicator */
+.multiplexer-tab.active.tab-processing {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 10px var(--accent-green-shadow-heavy), inset 0 0 5px var(--accent-green-shadow-light);
+}
+
+.multiplexer-tab.active.tab-processing .tab-indicator {
+    color: var(--accent-yellow, #ffd866);
+    filter: drop-shadow(0 0 4px #ffd866);
+}
+
+.multiplexer-tab.active.tab-watching {
+    border-color: var(--accent-green);
+    box-shadow: 0 0 10px var(--accent-green-shadow-heavy), inset 0 0 5px var(--accent-green-shadow-light);
+}
+
+.multiplexer-tab.active.tab-watching .tab-indicator {
+    color: #66d9ef;
+    filter: drop-shadow(0 0 4px #66d9ef);
+}
+
+.multiplexer-add-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 6px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.multiplexer-add-btn:hover {
+    background-color: var(--bg-btn-hover);
+    color: var(--text-light);
+}

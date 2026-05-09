@@ -72,23 +72,29 @@ export function cmdNavMenu() {
                         return;
                     }
 
+                    function charToIndex(c) {
+                        if (c >= '1' && c <= '9') return parseInt(c) - 1;
+                        if (c >= 'a' && c <= 'z') return c.charCodeAt(0) - 97 + 9;
+                        return -1;
+                    }
+
                     if (this._renderer.currentCategory === -1) {
                         // In Root Menu
-                        const num = parseInt(lower);
-                        if (num >= 1 && num <= CATEGORIES.length) {
-                            this._renderer.draw(num - 1);
+                        const idx = charToIndex(lower);
+                        if (idx >= 0 && idx < CATEGORIES.length) {
+                            this._renderer.draw(idx);
                         }
                     } else {
                         // In Sub Menu
-                        if (lower === "b" || lower === "back") {
+                        if (lower === "b" || lower === "back" || e === "\x1b") { // allow ESC to go back
                             this._renderer.draw(-1);
                             return;
                         }
 
                         const cat = CATEGORIES[this._renderer.currentCategory];
-                        const num = parseInt(lower);
-                        if (num >= 1 && num <= cat.commands.length) {
-                            const cmdToRun = cat.commands[num - 1].cmd;
+                        const idx = charToIndex(lower);
+                        if (idx >= 0 && idx < cat.commands.length) {
+                            const cmdToRun = cat.commands[idx].cmd;
 
                             // Clean up this watcher temporarily to run the command
                             this.onDataDisposable.dispose();
@@ -109,39 +115,43 @@ export function cmdNavMenu() {
                                     this._subWatcher = res.watcher;
                                     res.watcher.start(term, () => {
                                         this._subWatcher = null;
-                                        // Some watchers (like ext) print output before calling doneCallback.
-                                        // Wait for ANY KEY so the user can read the output.
-                                        term.write(`\n  ${ANSI.dim}Press ANY KEY to return to Menu...${ANSI.reset}`);
-                                        this.onDataDisposable = term.onData(() => {
-                                            if (this.onDataDisposable) this.onDataDisposable.dispose();
-                                            this.onDataDisposable = null;
-                                            this.start(term, doneCallback);
-                                        });
+                                        this._waitForReturn(term, doneCallback);
                                     });
                                 } else {
                                     if (res && res !== "__CLEAR__") {
                                         term.write(`\n${res}\n`);
                                     }
-                                    term.write(`\n  ${ANSI.dim}Press ANY KEY to return to Menu...${ANSI.reset}`);
-                                    this.onDataDisposable = term.onData(() => {
-                                        if (this.onDataDisposable) this.onDataDisposable.dispose();
-                                        this.onDataDisposable = null;
-                                        this.start(term, doneCallback);
-                                    });
+                                    this._waitForReturn(term, doneCallback);
                                 }
                             } catch (err) {
                                 term.write(`\n${ANSI.red}[ERROR] ${err.message}${ANSI.reset}\n`);
-                                term.write(`\n  ${ANSI.dim}Press ANY KEY to return to Menu...${ANSI.reset}`);
-                                this.onDataDisposable = term.onData(() => {
-                                    if (this.onDataDisposable) this.onDataDisposable.dispose();
-                                    this.onDataDisposable = null;
-                                    this.start(term, doneCallback);
-                                });
+                                this._waitForReturn(term, doneCallback);
+                            }
                             }
                         }
-                    }
-                });
-            },
+                    });
+                },
+
+                _waitForReturn(term, doneCallback) {
+                    term.write(`\n  ${ANSI.dim}Press ANY KEY or CLICK to return to Menu...${ANSI.reset}`);
+                    // Enable basic mouse click tracking (no hover) so clicks are captured
+                    term.write("\x1b[?1000h\x1b[?1006h");
+                    
+                    this.onDataDisposable = term.onData((e) => {
+                        // Filter out non-click mouse events (hovers, scrolls, releases)
+                        if (e.startsWith("\x1b[<")) {
+                            const m = e.match(/\x1b\[<(\d+);(\d+);(\d+)([mM])/);
+                            if (!m || m[1] === "35" || m[1] === "64" || m[1] === "65" || m[4] === "m") {
+                                return; // Ignore and keep waiting
+                            }
+                        }
+                        
+                        if (this.onDataDisposable) this.onDataDisposable.dispose();
+                        this.onDataDisposable = null;
+                        term.write("\x1b[?1000l\x1b[?1006l"); // disable basic tracking
+                        this.start(term, doneCallback);
+                    });
+                },
 
             stop(term) {
                 if (this._mouseEnabled) {

@@ -116,12 +116,6 @@ export class WatchLifecycle {
             try { this._host = new URL(tab?.url).hostname; } catch {}
         });
 
-        // Badge
-        try {
-            chrome.action.setBadgeText({ text: "LIVE" });
-            chrome.action.setBadgeBackgroundColor({ color: "#10b981" });
-        } catch {}
-
         // Tab-switch listener — shows modal popup
         this._onActivated = async (info) => {
             if (this._disposed || this._modalPending) return;
@@ -168,7 +162,6 @@ export class WatchLifecycle {
     /** Remove badge and listener. */
     dispose() {
         this._disposed = true;
-        try { chrome.action.setBadgeText({ text: "" }); } catch {}
         if (this._onActivated) {
             chrome.tabs.onActivated.removeListener(this._onActivated);
             this._onActivated = null;

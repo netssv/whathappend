@@ -38,10 +38,5 @@ export function writePrompt(execMs = null) {
     const isFirst = getHistory().length === 0;
     const prefix = (isFirst ? "" : "\r\n") + domainPart + timePart + "\r\n";
 
-    if (getHistory().length === 0) {
-        // Show faint placeholder hint on the very first prompt
-        term.write(prefix + PROMPT + "\x1b[90mgoogle.com\x1b[0m\x1b[10D");
-    } else {
-        term.write(prefix + PROMPT);
-    }
+    term.write(prefix + PROMPT);
 }

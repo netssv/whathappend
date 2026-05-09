@@ -11,6 +11,7 @@ import { translateRawCommand } from "./command-translator.js";
 import { executeCommand } from "../../engine.js";
 import { pushHistory } from "../../state.js";
 import { term, writePrompt, showBanner, writeOutput, showSpinner, stopSpinner } from "../terminal-ui.js";
+import { TerminalMultiplexer } from "../terminal-multiplexer.js";
 
 // ---------------------------------------------------------------------------
 // Commands that show a spinner while running
@@ -39,39 +40,46 @@ const SPINNER_CMDS = new Set([
 ]);
 
 // ---------------------------------------------------------------------------
-// Shared mutable state — owned by input/index.js, referenced here via getters
+// Shared mutable state — bound to the active session
 // ---------------------------------------------------------------------------
 
-let _currentAbortId = null;
-let _isProcessing = false;
-let _activeWatcher = null;
+export function getAbortId()      { return TerminalMultiplexer.activeSession?._abortId || null; }
+export function setAbortId(v)     { if (TerminalMultiplexer.activeSession) TerminalMultiplexer.activeSession._abortId = v; }
+export function getProcessing()   { return TerminalMultiplexer.activeSession?._isProcessing || false; }
+export function setProcessing(v)  { if (TerminalMultiplexer.activeSession) TerminalMultiplexer.activeSession._isProcessing = v; }
+export function getWatcher()      { return TerminalMultiplexer.activeSession?._activeWatcher || null; }
+export function setWatcher(v)     { if (TerminalMultiplexer.activeSession) TerminalMultiplexer.activeSession._activeWatcher = v; }
+export function getCmdSession()   { return TerminalMultiplexer.activeSession; }
 
-export function getAbortId()      { return _currentAbortId; }
-export function setAbortId(v)     { _currentAbortId = v; }
-export function getProcessing()   { return _isProcessing; }
-export function setProcessing(v)  { _isProcessing = v; }
-export function getWatcher()      { return _activeWatcher; }
-export function setWatcher(v)     { _activeWatcher = v; }
+function _setActivity(session, state) {
+    if (session) {
+        TerminalMultiplexer.setSessionActivity(session, state);
+    }
+}
 
 // ---------------------------------------------------------------------------
 // processCommand — the heavy execution pipeline
 // ---------------------------------------------------------------------------
 
 export async function processCommand(rawInput) {
-    if (_isProcessing) {
-        if (_activeWatcher) {
-            _activeWatcher.stop(term);
-            if (_activeWatcher.clearOnExit) {
-                term.clear();
-                showBanner();
+    const session = TerminalMultiplexer.activeSession;
+    if (!session) return;
+
+    if (session._isProcessing) {
+        if (session._activeWatcher) {
+            session._activeWatcher.stop(session.term);
+            if (session._activeWatcher.clearOnExit) {
+                session.term.clear();
             } else {
-                term.writeln("\r\n\x1b[33m[Interrupted by new command]\x1b[0m");
+                session.term.writeln("\r\n\x1b[33m[Interrupted by new command]\x1b[0m");
             }
-            _activeWatcher = null;
+            session._activeWatcher = null;
         }
-        _currentAbortId = null;
-        _isProcessing = false;
-        setKeyboardLock(false);
+        // Reset the PREVIOUS session's activity before starting new command
+        _setActivity(session, "idle");
+        session._abortId = null;
+        session._isProcessing = false;
+        if (session === TerminalMultiplexer.activeSession) setKeyboardLock(false);
     }
 
     let input = rawInput.trim().replace(/\\+$/, "").trim();
@@ -85,15 +93,16 @@ export async function processCommand(rawInput) {
     const mappedFirst = translateRawCommand(firstSegment);
     const mappedInput = mappedFirst + restOfPipeline;
     if (mappedInput !== input) {
-        term.writeln(`\r\x1b[90m> Translating raw command to: ${mappedFirst}${restOfPipeline}\x1b[0m`);
+        session.term.writeln(`\r\x1b[90m> Translating raw command to: ${mappedFirst}${restOfPipeline}\x1b[0m`);
         input = mappedInput;
     }
 
-    _isProcessing = true;
-    setKeyboardLock(true);
+    session._isProcessing = true;
+    if (session === TerminalMultiplexer.activeSession) setKeyboardLock(true);
+    _setActivity(session, "processing");
 
     const myAbortId = `cmd-${Date.now()}`;
-    _currentAbortId = myAbortId;
+    session._abortId = myAbortId;
 
     const cmd = input.split(/\s+/)[0]?.toLowerCase();
     // For pipelines, check if the FIRST segment needs a spinner
@@ -107,9 +116,9 @@ export async function processCommand(rawInput) {
         if (spinnerInterval) { stopSpinner(spinnerInterval); spinnerInterval = null; }
 
         // Stale abort — a new command was started while this one was running
-        if (_currentAbortId !== myAbortId) return;
+        if (session._abortId !== myAbortId) return;
         // Abort was triggered (Ctrl+C) while processing
-        if (!_isProcessing && cmd !== "clear") return;
+        if (!session._isProcessing && cmd !== "clear") return;
 
         // Progressive triage results
         if (result && typeof result === "object" && result.backgroundTriage !== undefined) {
@@ -118,39 +127,49 @@ export async function processCommand(rawInput) {
                 pushHistory({ timestamp: new Date().toISOString(), command: input, output: historyOutput });
             }
             if (result.chainedCommand) {
-                _isProcessing = false;
-                setKeyboardLock(false);
+                session._isProcessing = false;
+                if (session === TerminalMultiplexer.activeSession) setKeyboardLock(false);
+                _setActivity(session, "idle");
                 setTimeout(() => InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, result.chainedCommand), 50);
                 return;
             }
             // Start post-triage interactive hover/click watcher
             if (result.triageWatcher) {
-                _activeWatcher = result.triageWatcher.watcher;
+                session._activeWatcher = result.triageWatcher.watcher;
+                _setActivity(session, "watching");
+                const sessionTerm = session.term;  // real terminal, not Proxy
                 const doneCallback = () => {
-                    if (_activeWatcher) _activeWatcher.stop(term);
-                    _activeWatcher = null;
-                    _isProcessing = false;
-                    setKeyboardLock(false);
-                    writePrompt();
+                    if (session._activeWatcher) session._activeWatcher.stop(sessionTerm);
+                    session._activeWatcher = null;
+                    session._isProcessing = false;
+                    if (session === TerminalMultiplexer.activeSession) {
+                        setKeyboardLock(false);
+                        writePrompt();
+                    }
+                    _setActivity(session, "idle");
                 };
-                _activeWatcher.start(term, doneCallback);
+                session._activeWatcher.start(sessionTerm, doneCallback);
                 return;
             }
         } else {
             const output = result;
             if (output === "__CLEAR__") {
-                term.clear();
-                showBanner();
+                session.term.clear();
             } else if (output && typeof output === "object" && output.__watch) {
-                _activeWatcher = output.watcher;
+                session._activeWatcher = output.watcher;
+                _setActivity(session, "watching");
+                const sessionTerm = session.term;  // real terminal, not Proxy
                 const doneCallback = () => {
-                    if (_activeWatcher) _activeWatcher.stop(term);
-                    _activeWatcher = null;
-                    _isProcessing = false;
-                    setKeyboardLock(false);
-                    writePrompt();
+                    if (session._activeWatcher) session._activeWatcher.stop(sessionTerm);
+                    session._activeWatcher = null;
+                    session._isProcessing = false;
+                    if (session === TerminalMultiplexer.activeSession) {
+                        setKeyboardLock(false);
+                        writePrompt();
+                    }
+                    _setActivity(session, "idle");
                 };
-                _activeWatcher.start(term, doneCallback);
+                session._activeWatcher.start(sessionTerm, doneCallback);
                 return; // Don't release lock or write prompt
             } else if (output) {
                 const clean = output.replace(/\x1b\[[0-9;]*m/g, "").trim();
@@ -162,12 +181,14 @@ export async function processCommand(rawInput) {
         }
     } catch (err) {
         if (spinnerInterval) stopSpinner(spinnerInterval);
-        if (_currentAbortId !== myAbortId) return;
-        term.writeln(`\x1b[31m[FATAL] ${err.message}\x1b[0m`);
+        if (session._abortId !== myAbortId) return;
+        _setActivity(session, "idle");
+        session.term.writeln(`\x1b[31m[FATAL] ${err.message}\x1b[0m`);
     }
 
     const _execMs = Date.now() - _startTime;
-    _isProcessing = false;
-    setKeyboardLock(false);
-    writePrompt(_execMs);
+    session._isProcessing = false;
+    if (session === TerminalMultiplexer.activeSession) setKeyboardLock(false);
+    _setActivity(session, "idle");
+    if (session === TerminalMultiplexer.activeSession) writePrompt(_execMs);
 }

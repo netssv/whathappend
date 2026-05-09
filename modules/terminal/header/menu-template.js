@@ -69,6 +69,9 @@ export const MENU_HTML = `
 
     <!-- Browser Tools -->
     <div class="logo-menu-group-label">Browser Tools</div>
+    <button class="logo-menu-item" id="menu-new-session" title="Create a new independent terminal session">
+        <span>＋</span> New Session
+    </button>
     <div class="logo-menu-sub-wrap" id="menu-tabs-wrap">
         <button class="logo-menu-item logo-menu-has-sub">
             <span>▤</span> Browser Tabs <span class="logo-menu-sub-arrow">▸</span>
@@ -134,8 +137,8 @@ export const MENU_HTML = `
             <span>🎨</span> Theme <span class="logo-menu-sub-arrow">▸</span>
         </button>
         <div class="logo-menu-submenu">
-            <button class="logo-menu-item" id="menu-theme-wh-ui" data-cmd="theme:wh_ui"><span>●</span>WH UI</button>
-            <button class="logo-menu-item" id="menu-theme-wh-dark" data-cmd="theme:wh_dark"><span>●</span>WH Dark</button>
+            <button class="logo-menu-item" id="menu-theme-wh_ui" data-cmd="theme:wh_ui"><span>●</span>WH UI</button>
+            <button class="logo-menu-item" id="menu-theme-wh_dark" data-cmd="theme:wh_dark"><span>●</span>WH Dark</button>
             <button class="logo-menu-item" id="menu-theme-amber" data-cmd="theme:amber"><span>●</span>Classic Amber</button>
             <button class="logo-menu-item" id="menu-theme-classic" data-cmd="theme:classic"><span>●</span>Classic</button>
         </div>

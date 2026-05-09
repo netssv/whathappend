@@ -24,8 +24,11 @@ export function getCurrentBuffer() {
 }
 export { setKeyboardLock, setLine };
 
+let globalEventsInitialized = false;
+
 export function initKeyboardEvents() {
-    setupTerminalListener();
+    if (globalEventsInitialized) return;
+    globalEventsInitialized = true;
 
     // Listen to changes emitted from other modules (like History or Autocomplete)
     InputEvents.on(InputEvents.EV_BUFFER_CHANGE, (newLine) => {
@@ -43,8 +46,8 @@ export function initKeyboardEvents() {
     });
 }
 
-function setupTerminalListener() {
-    term.onKey(({ key, domEvent }) => {
+export function setupTerminalListener(termInstance) {
+    termInstance.onKey(({ key, domEvent }) => {
         // ── Command Firewall: drop events while system is writing ──
         if (isSystemWriting()) return;
 
@@ -52,9 +55,9 @@ function setupTerminalListener() {
 
         // ── Global shortcuts (work even when locked) ──
         if (ctrlKey && keyCode === 67) {
-            if (term.hasSelection()) {
-                navigator.clipboard.writeText(term.getSelection()).catch(() => { });
-                term.clearSelection();
+            if (termInstance.hasSelection()) {
+                navigator.clipboard.writeText(termInstance.getSelection()).catch(() => { });
+                termInstance.clearSelection();
             } else {
                 InputEvents.emit(InputEvents.EV_INTERRUPT, null);
             }
@@ -69,8 +72,8 @@ function setupTerminalListener() {
 
         // ── Editing shortcuts ──
         if (ctrlKey && keyCode === 76) {
-            term.clear();
-            term.write("\r\n");
+            termInstance.clear();
+            termInstance.write("\r\n");
             writePrompt();
             return;
         }
@@ -102,9 +105,9 @@ function setupTerminalListener() {
             const targetRow = getVisualRow(newCursorAbs, cols);
             const rowsDown = newEndRow - targetRow;
             if (rowsDown > 0) {
-                term.write(`\x1b[${rowsDown}B`); // move down
+                termInstance.write(`\x1b[${rowsDown}B`); // move down
             }
-            term.write("\r\n");
+            termInstance.write("\r\n");
 
             const input = currentLine.trim();
             clearBuffer();

@@ -72,6 +72,14 @@ export async function cmdInfo() {
     if (performance && performance.memory) {
         memoryUsed = (performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1) + " MB (JS Heap)";
     }
+    
+    let terminalTabs = 1;
+    try {
+        const { TerminalMultiplexer } = await import("../../terminal/terminal-multiplexer.js");
+        if (TerminalMultiplexer && TerminalMultiplexer.sessions) {
+            terminalTabs = TerminalMultiplexer.sessions.length;
+        }
+    } catch (e) {}
 
     const extId = chrome.runtime.id;
 
@@ -84,7 +92,7 @@ export async function cmdInfo() {
   ${ANSI.dim}Native Host:${ANSI.reset}      ${nativeHostStatus}
   ${ANSI.dim}Storage Cache:${ANSI.reset}    ${storageUsed}
   ${ANSI.dim}Memory Usage:${ANSI.reset}     ${memoryUsed}
-  ${ANSI.dim}Open Tabs:${ANSI.reset}        ${tabCount}
+  ${ANSI.dim}Open Tabs:${ANSI.reset}        ${tabCount} (Browser) / ${terminalTabs} (Terminal)
   ${ANSI.dim}Hardware:${ANSI.reset}         ${cores} Cores / ~${ram} RAM
   ${ANSI.dim}Browser Engine:${ANSI.reset}   ${ua}
   ${ANSI.dim}Session Stats:${ANSI.reset}    ${stats} commands executed

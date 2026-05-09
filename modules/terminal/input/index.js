@@ -18,7 +18,7 @@
  */
 
 import { InputEvents } from "./events.js";
-import { initKeyboardEvents, setKeyboardLock, setLine } from "./keyboard-events.js";
+import { initKeyboardEvents, setupTerminalListener, setKeyboardLock, setLine } from "./keyboard-events.js";
 import { initCommandHistory } from "./command-history.js";
 import { initAutocompleteEngine } from "./autocomplete-engine.js";
 import { initClipboardHandler } from "./clipboard-handler.js";
@@ -29,9 +29,11 @@ import {
     getAbortId, setAbortId,
     getProcessing, setProcessing,
     getWatcher, setWatcher,
+    getCmdSession,
 } from "./command-runner.js";
 
 import { term, writePrompt } from "../terminal-ui.js";
+import { TerminalMultiplexer } from "../terminal-multiplexer.js";
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -68,6 +70,7 @@ export function initInputManager() {
             setWatcher(null);
             setProcessing(false);
             setKeyboardLock(false);
+            TerminalMultiplexer.setSessionActivity(getCmdSession(), "idle");
             writePrompt();
             return;
         }
@@ -79,6 +82,7 @@ export function initInputManager() {
             }
             setProcessing(false);
             setKeyboardLock(false);
+            TerminalMultiplexer.setSessionActivity(getCmdSession(), "idle");
             term.write("\r\n\x1b[33m^C [Interrupted]\x1b[0m\r\n");
             writePrompt();
         } else {
@@ -98,4 +102,8 @@ export function initInputManager() {
 
 export function isCommandProcessing() {
     return getProcessing();
+}
+
+export function attachSessionTerminal(termInstance) {
+    setupTerminalListener(termInstance);
 }

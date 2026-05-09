@@ -1,7 +1,7 @@
 import { ContextManager } from "./modules/context.js";
 import { isIPAddress, toApex } from "./modules/formatter.js";
 import { pushHistory, restoreSession, setSessionTarget } from "./modules/state.js";
-import { initTerminalUI, showBanner, writePrompt, term, refitTerminal } from "./modules/terminal/terminal-ui.js";
+import { showBanner, writePrompt, term, refitTerminal } from "./modules/terminal/terminal-ui.js";
 import { initHeaderController, clearWhoisFields, showTabSwitch, hideTabSwitch, initBlockPanel, updateBlockState, initLogoMenu } from "./modules/terminal/header-controller.js";
 import { triggerPeekTease } from "./modules/terminal/header/header-triad-ui.js";
 import { handleSessionRestore } from "./modules/terminal/session-restorer.js";
@@ -30,19 +30,18 @@ async function syncBlockPanelSafe() {
 
 async function bootstrap() {
     try {
-        // 1. Setup the terminal UI visually
-        await initTerminalUI("terminal-container");
+        // 1. Setup the terminal multiplexer and create first UI session
+        const { TerminalMultiplexer } = await import("./modules/terminal/terminal-multiplexer.js");
+        await TerminalMultiplexer.init();
 
         // 2. Initialize header UI, block panel, logo menu
         initHeaderController(term);
         initBlockPanel();
         initLogoMenu();
 
-        // 3. Initialize the input loop and event listeners
-        initInputManager();
+        // 3. Initialize the input loop and event listeners (handled by Multiplexer now)
 
-        // 4. Show initial prompt
-        showBanner();
+        // 4. (Banner is shown by Multiplexer now)
 
         // 5. Restore previous session (if panel was closed and reopened)
         const session = await restoreSession();
@@ -52,7 +51,6 @@ async function bootstrap() {
 
         const restored = handleSessionRestore(session, initialDomain);
         if (!restored && initialDomain && initialDomain !== "restricted") {
-            writePrompt();
             // ALWAYS set manual target so the Side Panel is "sticky" to the starting domain.
             // This prevents auto-switching and enables the tab-switch popup.
             ContextManager.setManualTarget(initialDomain);
@@ -66,7 +64,7 @@ async function bootstrap() {
                 }, 100); 
             }*/
         } else if (!restored) {
-            writePrompt();
+            // writePrompt() already called by multiplexer createSession
         }
 
         // Fallback: auto-focus if user clicks anywhere in the panel background
@@ -161,8 +159,13 @@ function showBootstrapError(err) {
 bootstrap();
 
 // Async Header: When ANY target domain changes (auto or manual)
-ContextManager.onDomainChanged((domain) => {
+ContextManager.onDomainChanged(async (domain) => {
     if (!domain || domain === "restricted" || isIPAddress(domain)) return;
+    
+    try {
+        const { TerminalMultiplexer } = await import("./modules/terminal/terminal-multiplexer.js");
+        TerminalMultiplexer.setSessionDomain(TerminalMultiplexer.activeSession, domain);
+    } catch {}
     
     // Clear stale badges immediately — triage resolvers will repopulate
     clearWhoisFields();
@@ -173,6 +176,12 @@ ContextManager.onDomainChanged((domain) => {
 // the header triad as each row resolves — single source of truth.
 ContextManager.onTargetChanged(async (domain) => {
     if (!domain || isIPAddress(domain)) return;
+
+    // Save to multiplexer session
+    try {
+        const { TerminalMultiplexer } = await import("./modules/terminal/terminal-multiplexer.js");
+        TerminalMultiplexer.setSessionDomain(TerminalMultiplexer.activeSession, domain);
+    } catch {}
 
     // Hide any pending tab-switch notification (user already switched)
     hideTabSwitch();

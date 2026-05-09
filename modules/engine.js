@@ -8,6 +8,7 @@
  *     - CMD_ALIASES, DNS_SHORTCUTS from './data/aliases.js'
  *     - parseCommand, suggestCommand from './core/parser.js'
  *     - checkTargetGuards from './core/guards.js'
+ *     - checkSudoGuard from './core/sudo-guard.js'
  *     - handleAutoTarget from './core/fallback.js'
  *     - COMMAND_REGISTRY from './core/registry.js'
  * - Exports: executeCommand
@@ -29,6 +30,7 @@ import { CMD_ALIASES, DNS_SHORTCUTS } from "./data/aliases.js";
 // Core logic modules
 import { parsePipeline, suggestCommand } from "./core/parser.js";
 import { checkTargetGuards } from "./core/guards.js";
+import { checkSudoGuard } from "./core/sudo-guard.js";
 import { handleAutoTarget } from "./core/fallback.js";
 import { COMMAND_REGISTRY } from "./core/registry.js";
 
@@ -111,6 +113,10 @@ async function executeSingleNode({ cmd, args, flags, opts }, stdin) {
 
     const guardViolation = await checkTargetGuards(resolved, targetArg, targetIsIP);
     if (guardViolation) return guardViolation;
+
+    // ── Sudo Privilege Gate ──
+    const sudoBlock = checkSudoGuard(resolved);
+    if (sudoBlock) return sudoBlock;
 
     try {
         if (DNS_SHORTCUTS[resolved]) {

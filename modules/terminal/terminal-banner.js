@@ -17,7 +17,6 @@
  * @param {Terminal} term — xterm.js terminal instance
  */
 export function showBanner(term) {
-    term.writeln("");
     const cols = term.cols || 80;
 
     if (cols >= 60) {
