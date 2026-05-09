@@ -27,7 +27,7 @@ export const CMD_ALIASES = {
     // openssl / ssl
     ssl: "openssl", cert: "openssl", tls: "openssl",
     // trace / redirect
-    redirect: "trace", traceroute: "trace", follow: "trace",
+    redirect: "trace", traceroute: "trace", follow: "trace", forwarding: "trace",
     // nslookup
     lookup: "nslookup",
     // sec / security

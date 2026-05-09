@@ -18,9 +18,21 @@ import { getHTTPErrorInsight } from "../../data/http-errors.js";
 // ===================================================================
 
 export async function cmdTrace(args) {
-    const info = {};
-    const url = resolveTargetDomain(args[0], info);
-    if (!url) return cmdUsage("trace", "<url>");
+    let url = args[0];
+    let displayUrl = url;
+    
+    // If no URL provided, fall back to the active tab domain
+    if (!url) {
+        const info = {};
+        url = resolveTargetDomain(null, info);
+        if (!url) return cmdUsage("trace", "<url>");
+        // Auto-targeted domain, we add https:// for the fetch
+        url = "https://" + url;
+        displayUrl = url.replace(/^https?:\/\//i, "");
+    } else {
+        // Keep exactly what the user typed (including protocol if provided)
+        displayUrl = url;
+    }
 
     const resp = await chrome.runtime.sendMessage({command:"redirect-trace",payload:{url}});
     if (!resp) return workerError();
@@ -28,14 +40,26 @@ export async function cmdTrace(args) {
 
     const {hops} = resp.data;
     let o = "";
-    o += `> curl -L -I https://${url}\n`;
+    // If the user didn't type a protocol, curl would usually assume http or https.
+    // We display exactly what is fetched.
+    o += `> curl -L -I ${hops.length ? hops[0].url : url}\n`;
 
     for (let i=0;i<hops.length;i++) {
         const h=hops[i];
         if (h.error) { o+=`${ANSI.red}${i+1}. ${h.url}\n   ERROR: ${h.error}${ANSI.reset}\n`; continue; }
-        const sc = h.status<300?ANSI.green:h.status<400?ANSI.yellow:ANSI.red;
+        let sc = ANSI.red;
+        if (h.status === "META") sc = ANSI.magenta;
+        else if (h.status === "REDIRECT") sc = ANSI.blue;
+        else if (h.status < 300) sc = ANSI.green;
+        else if (h.status < 400) sc = ANSI.yellow;
+        
         o += `${sc}${h.status}${ANSI.reset} ${ANSI.dim}${h.url}${ANSI.reset}`;
         if (h.location) o += `\n  ${ANSI.dim}→${ANSI.reset} ${ANSI.cyan}${h.location}${ANSI.reset}`;
+        if (h.headers) {
+            for (const [k, v] of Object.entries(h.headers)) {
+                o += `\n    ${ANSI.dim}${k}:${ANSI.reset} ${ANSI.white}${v}${ANSI.reset}`;
+            }
+        }
         o += "\n";
     }
 
@@ -58,8 +82,8 @@ export async function cmdTrace(args) {
         }
     }
 
-    ins.push({level:"INFO",text:`Test Redirects: https://httpstatus.io/`});
-    ins.push({ level: "INFO", text: `External Check: https://wheregoes.com/trace/2026/?url=${url}` });
+    ins.push({level:"INFO",text:`External 1: https://httpstatus.io/`});
+    ins.push({ level: "INFO", text: `External 2: https://wheregoes.com/trace/2026/?url=${displayUrl}` });
 
     o += insights(ins);
     return o;

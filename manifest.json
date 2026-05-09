@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "WhatHappened",
-    "version": "2.8.3",
+    "version": "2.8.4",
     "description": "Your friendly side panel terminal! Learn how to diagnose DNS, SSL, and email infrastructure using simple, guided commands.",
     "permissions": [
         "activeTab",
@@ -13,7 +13,8 @@
         "browsingData",
         "contentSettings",
         "declarativeNetRequest",
-        "debugger"
+        "debugger",
+        "alarms"
     ],
     "host_permissions": [
         "https://dns.google/*",

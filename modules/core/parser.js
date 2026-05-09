@@ -108,9 +108,15 @@ function parseCommandNode(input) {
         if (t.startsWith("--")) {
             flags.push(t); // Long flag
         } else if (t.startsWith("-") && t !== "-") {
-            // Short flags expansion (e.g. -la -> -l, -a)
-            for (let i = 1; i < t.length; i++) {
-                flags.push("-" + t[i]);
+            const noSplit = new Set(["-cwv", "-ip", "-myip", "-whois", "-registrar", "-hosting", "-ssl", "-cert", "-headers", "-stack", "-wappalyzer", "-vitals", "-persist", "-keepalive", "-close", "-list", "-info", "-diag", "-watch", "-block", "-sleep", "-focus", "-flush", "-stop"]);
+            if (noSplit.has(t) || t.length > 4) {
+                // Keep known Linux-style long flags intact instead of fragmenting them
+                flags.push(t);
+            } else {
+                // Short flags expansion (e.g. -la -> -l, -a)
+                for (let i = 1; i < t.length; i++) {
+                    flags.push("-" + t[i]);
+                }
             }
         } else if (t.startsWith("+")) {
             opts.push(t);

@@ -27,12 +27,16 @@ export const PROMPT        = "\x1b[35m❯\x1b[0m ";
 export function writePrompt(execMs = null) {
     const domain = ContextManager?.getDomain?.() || null;
     const domainPart = domain && domain !== "restricted"
-        ? `\x1b[36m${domain}\x1b[0m`
-        : `\x1b[36m~\x1b[0m`;
+        ? `\x1b[90m${domain}\x1b[0m`
+        : `\x1b[90m~\x1b[0m`;
     const timePart = execMs != null && execMs > 500
         ? ` \x1b[90m[${(execMs / 1000).toFixed(1)}s]\x1b[0m`
         : "";
-    const prefix = domainPart + timePart + "\r\n";
+    
+    // Add an empty line before the prompt for visual breathing room
+    // unless it's the very first prompt in the terminal
+    const isFirst = getHistory().length === 0;
+    const prefix = (isFirst ? "" : "\r\n") + domainPart + timePart + "\r\n";
 
     if (getHistory().length === 0) {
         // Show faint placeholder hint on the very first prompt

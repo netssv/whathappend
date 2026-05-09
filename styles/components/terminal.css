@@ -6,12 +6,18 @@
 #terminal-container {
     width: 100%;
     flex: 1 1 auto;
-    padding: 4px 2px 4px 4px;
+    padding: 4px 2px 16px 8px;
     background: var(--bg-main);
     box-shadow: inset 0 0 20px var(--accent-green-shadow-light);
     position: relative;
     overflow: hidden;
     cursor: text;
+    
+    /* Flex alignment forces the .xterm div to sit flush against the bottom padding,
+       absorbing any row-height remainder space at the top of the container. */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
 }
 
 /* CRT scanline overlay — constrained to avoid scrollbar gutter */
@@ -39,7 +45,6 @@
 /* Prevent horizontal scroll; force soft-wrap for long DNS strings / TXT records */
 .xterm-viewport {
     overflow-x: hidden !important;
-    padding-bottom: 40px !important;
 }
 
 .xterm-screen {

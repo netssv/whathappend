@@ -15,6 +15,23 @@ If you are extending the terminal or adding new commands, you MUST verify the fo
 7. `modules/commands/.../index.js`: Ensure your function is exported from its domain folder.
 8. `dev-lint.js`: Run this script to verify your code respects the 200-line ceiling and subcommand conventions.
 
+## [2.8.4] - 2026-05-09
+
+**The "Stability & Responsive UI" Update**
+
+### What's New?
+
+- **Mathematical Margin Stabilization**: Implemented a new "Absolver" logic that calculates the exact pixel remainder of the terminal grid. This ensures the prompt (`❯`) is always perfectly anchored to the bottom padding, eliminating clipping during font resizing.
+- **Responsive Table Layouts**: Rebuilt the `cookies` and `tab list` commands with responsive rendering. Tables now intelligently truncate names and hostnames based on the actual terminal width, preventing layout breaks in narrow side panels.
+- **Linux-Friendly Flag Support**: Updated the command parser to support long flags with a single dash (e.g., `-persist`, `-close`, `-watch`). This bridges the gap between POSIX short flags and the user's desire for a Linux-like CLI experience.
+- **High-Density Tab Table**: Refactored `tab list` into a unified table layout (resembling `ps` or `top`). It now displays ID, Status, Host, and Title in perfectly aligned columns.
+- **Enhanced Command Registry**: Fixed a regression in the command router that was dropping flags for certain web audit tools, restoring full functionality to `--persist` and `--keepalive` workflows.
+
+### Fixes & Refinement
+
+- **Code Modularization**: Refactored `terminal-ui.js` (extracting font and resize logic to `terminal-resize.js`) to maintain the strict <200 line architectural ceiling.
+- **Autocomplete Synchronization**: Fixed a bug where autocompleted flags with single dashes were being fragmented by the parser.
+
 ## [2.8.3] - 2026-05-08
 
 **The "Power User & POSIX Pipelines" Update**

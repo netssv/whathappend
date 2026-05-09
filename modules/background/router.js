@@ -37,7 +37,7 @@ import { handlePing } from "./handlers/ping.js";
 import { handleRedirectTrace } from "./handlers/trace.js";
 import { handleGetPageHTML, handleDetectLivePixels, handleGetLinks } from "./handlers/dom.js";
 import { handleGetPerfTiming } from "./handlers/perf.js";
-import { handleGetCookies } from "./handlers/cookies.js";
+import { handleGetCookies, handlePersistCookies, handleKeepAlive } from "./handlers/cookies.js";
 import { handlePortProbe } from "./handlers/port.js";
 import { handleExportHistory } from "./handlers/export.js";
 import { handleIsUpLocal, handleIsUpGlobal } from "./handlers/isup.js";
@@ -106,6 +106,12 @@ export function setupRouter() {
             case "get-cookies":
                 handleGetCookies(payload).then(sendResponse);
                 break;
+            case "persist-cookies":
+                handlePersistCookies(payload).then(sendResponse);
+                break;
+            case "keep-alive":
+                handleKeepAlive(payload).then(sendResponse);
+                break;
             case "get-active-domain":
                 getActiveDomain().then(sendResponse);
                 break;
@@ -149,5 +155,13 @@ export function setupRouter() {
         }
 
         return true;
+    });
+
+    // Handle Keep-Alive Alarms
+    chrome.alarms.onAlarm.addListener((alarm) => {
+        if (alarm.name.startsWith("keepalive-")) {
+            const domain = alarm.name.replace("keepalive-", "");
+            fetch(`https://${domain}`, { method: "HEAD", cache: "no-cache" }).catch(()=>null);
+        }
     });
 }

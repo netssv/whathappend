@@ -3,7 +3,7 @@
  * @description Lists all loaded web fonts on the active tab using document.fonts.
  */
 
-import { ANSI } from "../../formatter.js";
+import { ANSI, getSeparator } from "../../formatter.js";
 
 // --- Help Definition ---
 export const fontsHelp = {

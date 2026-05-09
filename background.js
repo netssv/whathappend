@@ -19,14 +19,7 @@ import { setupRouter } from "./modules/background/router.js";
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
 
 // ---------------------------------------------------------------------------
-// Initialization
-// ---------------------------------------------------------------------------
-
-setupTabTracker();
-setupRouter();
-
-// ---------------------------------------------------------------------------
-// Keyboard Shortcuts
+// Keyboard Shortcuts (Registered first for reliability)
 // ---------------------------------------------------------------------------
 
 /** Map manifest command IDs → terminal commands */
@@ -55,3 +48,11 @@ chrome.commands.onCommand.addListener((command) => {
         });
     }
 });
+
+// ---------------------------------------------------------------------------
+// Initialization
+// ---------------------------------------------------------------------------
+
+setupTabTracker();
+setupRouter();
+

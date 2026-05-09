@@ -16,6 +16,7 @@ import { setTermCols, getHistory } from "../state.js";
 import { showBanner as _showBanner } from "./terminal-banner.js";
 import { THEMES, DEFAULT_THEME_ID } from "../data/themes.js";
 import { initThemeEngine } from "./theme-engine.js";
+import { applyExactMargin, setupFontControls } from "./terminal-resize.js";
 
 // Prompt rendering delegated to terminal-prompt.js (keeps this file under 200 lines)
 export { writePrompt, PROMPT, PROMPT_PREFIX } from "./terminal-prompt.js";
@@ -75,6 +76,7 @@ export function initTerminalUI(containerId) {
         if (term && fitAddon) {
             fitAddon.fit();
             setTermCols(term.cols);
+            applyExactMargin(term, containerId);
             term.refresh(0, Math.max(0, term.rows - 1));
             term.scrollToBottom();
         }
@@ -92,12 +94,13 @@ export function initTerminalUI(containerId) {
     });
     observer.observe(container);
 
-    setupFontControls();
+    setupFontControls(term, fitAddon);
 
     return new Promise((resolve) => {
         setTimeout(() => {
             fitAddon.fit();
             setTermCols(term.cols);
+            applyExactMargin(term, containerId);
             resolve();
         }, 50);
     });
@@ -108,55 +111,12 @@ export function refitTerminal() {
     if (fitAddon) {
         fitAddon.fit();
         setTermCols(term.cols);
+        applyExactMargin(term);
         term.scrollToBottom();
     }
 }
 
-// ---------------------------------------------------------------------------
-// Font Size Controls — [−] [+]
-// ---------------------------------------------------------------------------
-
-const FONT_MIN = 10;
-const FONT_MAX = 20;
-
-function updateFontSize(delta) {
-    if (!term) return;
-    const current = term.options.fontSize || 12;
-    const next = Math.min(FONT_MAX, Math.max(FONT_MIN, current + delta));
-    if (next === current) return;
-    
-    term.options.fontSize = next;
-    
-    // Defer the fit calculation slightly to allow the DOM to reflow with the new font size
-    setTimeout(() => {
-        if (!term || !fitAddon) return;
-        fitAddon.fit();
-        setTermCols(term.cols);
-        
-        // Force full re-render to avoid layout ghosting
-        term.refresh(0, Math.max(0, term.rows - 1));
-        term.scrollToBottom();
-        term.focus();
-    }, 50);
-    
-    try { chrome.storage.local.set({ termFontSize: next }); } catch (_) {}
-}
-
-function setupFontControls() {
-    // Restore saved font size
-    try {
-        chrome.storage.local.get("termFontSize", (result) => {
-            if (result.termFontSize && result.termFontSize >= FONT_MIN && result.termFontSize <= FONT_MAX) {
-                term.options.fontSize = result.termFontSize;
-                fitAddon.fit();
-                setTermCols(term.cols);
-            }
-        });
-    } catch (_) {}
-
-    document.getElementById("font-decrease")?.addEventListener("click", () => updateFontSize(-1));
-    document.getElementById("font-increase")?.addEventListener("click", () => updateFontSize(1));
-}
+// Resize logic extracted to terminal-resize.js
 
 // ---------------------------------------------------------------------------
 // UI Output Helpers

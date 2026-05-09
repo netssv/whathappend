@@ -56,7 +56,7 @@ export async function cmdTabs(args, flags = []) {
 
     // ── CLOSE ────────────────────────────────────────────────────
     if (sub === "close") {
-        if (!tabArg) return `${ANSI.red}Usage: tabs -close <#>${ANSI.reset}`;
+        if (!tabArg) return `${ANSI.red}Usage: tabs close <#>${ANSI.reset}`;
         const tabId = await resolveTabId(tabArg);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
 
@@ -81,7 +81,7 @@ export async function cmdTabs(args, flags = []) {
 
     // ── INFO ─────────────────────────────────────────────────────
     if (sub === "info") {
-        if (!tabArg) return `${ANSI.red}Usage: tabs -info <#>${ANSI.reset}`;
+        if (!tabArg) return `${ANSI.red}Usage: tabs info <#>${ANSI.reset}`;
         const tabId = await resolveTabId(tabArg);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
         return await tabInfo(tabId, tabArg);
@@ -89,7 +89,7 @@ export async function cmdTabs(args, flags = []) {
 
     // ── SLEEP ────────────────────────────────────────────────────
     if (sub === "sleep" || sub === "discard") {
-        if (!tabArg) return `${ANSI.red}Usage: tabs -sleep <#>${ANSI.reset}`;
+        if (!tabArg) return `${ANSI.red}Usage: tabs sleep <#>${ANSI.reset}`;
         const tabId = await resolveTabId(tabArg);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
         try {
@@ -103,7 +103,7 @@ export async function cmdTabs(args, flags = []) {
 
     // ── FOCUS ────────────────────────────────────────────────────
     if (sub === "focus" || sub === "goto" || sub === "switch") {
-        if (!tabArg) return `${ANSI.red}Usage: tabs -focus <#>${ANSI.reset}`;
+        if (!tabArg) return `${ANSI.red}Usage: tabs focus <#>${ANSI.reset}`;
         const tabId = await resolveTabId(tabArg);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
         try {
@@ -116,7 +116,7 @@ export async function cmdTabs(args, flags = []) {
 
     // ── DIAG ─────────────────────────────────────────────────────
     if (sub === "diag" || sub === "health" || sub === "check") {
-        if (!tabArg) return `${ANSI.red}Usage: tabs -diag <#>${ANSI.reset}`;
+        if (!tabArg) return `${ANSI.red}Usage: tabs diag <#>${ANSI.reset}`;
         const tabId = await resolveTabId(tabArg);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
         return await tabDiag(tabId, tabArg);
@@ -124,7 +124,7 @@ export async function cmdTabs(args, flags = []) {
 
     // ── WATCH ────────────────────────────────────────────────────
     if (sub === "watch" || sub === "monitor" || sub === "top") {
-        if (!tabArg) return `${ANSI.red}Usage: tabs -watch <#>${ANSI.reset}`;
+        if (!tabArg) return `${ANSI.red}Usage: tabs watch <#>${ANSI.reset}`;
         const tabId = await resolveTabId(tabArg);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
         try {
@@ -135,7 +135,7 @@ export async function cmdTabs(args, flags = []) {
 
     // ── BLOCK ────────────────────────────────────────────────────
     if (sub === "block" || sub === "unblock") {
-        if (!tabArg) return `${ANSI.red}Usage: tabs -block <#> [js|images|popups|all|none]${ANSI.reset}`;
+        if (!tabArg) return `${ANSI.red}Usage: tabs block <#> [js|images|popups|all|none]${ANSI.reset}`;
         const tabId = await resolveTabId(tabArg);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
         return await tabBlock(tabId, tabArg, args.slice(1));
@@ -143,7 +143,7 @@ export async function cmdTabs(args, flags = []) {
 
     // ── FLUSH ────────────────────────────────────────────────────
     if (sub === "flush" || sub === "clear") {
-        if (!tabArg) return `${ANSI.red}Usage: tabs -flush <#>${ANSI.reset}`;
+        if (!tabArg) return `${ANSI.red}Usage: tabs flush <#>${ANSI.reset}`;
         const tabId = await resolveTabId(tabArg);
         if (!tabId) return `${ANSI.red}[ERROR] Invalid: ${tabArg}${ANSI.reset}`;
         

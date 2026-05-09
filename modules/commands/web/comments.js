@@ -3,7 +3,7 @@
  * @description Extracts HTML and inline JS comments from the active tab's DOM.
  */
 
-import { ANSI } from "../../formatter.js";
+import { ANSI, getSeparator } from "../../formatter.js";
 
 // --- Help Definition ---
 export const commentsHelp = {
@@ -74,7 +74,7 @@ export async function cmdComments(args) {
 
     if (args[0] === "--test") {
         return `\n${ANSI.cyan}${ANSI.bold}  Source Code Comments (Test Mock)${ANSI.reset}
-  ${ANSI.dim}${"━".repeat(40)}${ANSI.reset}
+  ${getSeparator()}
   ${ANSI.cyan}[HTML]${ANSI.reset} ${ANSI.white}${ANSI.red}${ANSI.bold}TODO${ANSI.reset}${ANSI.white}: Remove staging ${ANSI.red}${ANSI.bold}API${ANSI.reset}${ANSI.white} key before launch${ANSI.reset}
   ${ANSI.yellow}[JS]${ANSI.reset}   ${ANSI.white}Bypassing auth for ${ANSI.red}${ANSI.bold}admin${ANSI.reset}${ANSI.white} panel ${ANSI.red}${ANSI.bold}test${ANSI.reset}${ANSI.white}ing${ANSI.reset}
   ${ANSI.cyan}[HTML]${ANSI.reset} ${ANSI.dim}Main container wrapper for layout${ANSI.reset}
@@ -98,7 +98,7 @@ export async function cmdComments(args) {
         try { host = new URL(tab.url).hostname; } catch { host = "Page"; }
 
         let o = `\n${ANSI.cyan}${ANSI.bold}  Source Code Comments${ANSI.reset} ${ANSI.dim}${host}${ANSI.reset}\n`;
-        o += `  ${ANSI.dim}${"━".repeat(50)}${ANSI.reset}\n`;
+        o += `  ${getSeparator()}\n`;
 
         if (result.length === 0) {
             o += `  ${ANSI.dim}No significant inline comments found.${ANSI.reset}\n`;

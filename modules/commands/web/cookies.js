@@ -10,17 +10,66 @@
  */
 
 import { ANSI, insights, resolveTargetDomain, cmdUsage, formatError, workerError, toApex } from "../../formatter.js";
+import { getTermCols } from "../../state.js";
 
 // ===================================================================
 //  cookies — Privacy Audit
 // ===================================================================
 
-export async function cmdCookies(args) {
+export async function cmdCookies(args, flags = []) {
     const info = {};
-    const t = resolveTargetDomain(args[0], info);
-    if (!t) return cmdUsage("cookies", "<domain>");
+    const domainArg = args[0] || "";
+    const t = resolveTargetDomain(domainArg, info);
+    if (!t) return cmdUsage("cookies", "[--persist|--keepalive|--stop] <domain>");
+    
+    // Support --persist / -p, --keepalive / -k, --stop / -s
+    const isPersist = flags.includes("--persist") || flags.includes("-p");
+    const isKeepAlive = flags.includes("--keepalive") || flags.includes("-k");
+    const isStop = flags.includes("--stop") || flags.includes("-s");
     
     let o = `> curl -I -s https://${t} | grep -i set-cookie\n`;
+
+    if (isPersist) {
+        o += `\n  ${ANSI.yellow}Initiating cookie persistence sequence...${ANSI.reset}\n`;
+        try {
+            const resp = await chrome.runtime.sendMessage({
+                command: "persist-cookies",
+                payload: { domain: toApex(t) || t }
+            });
+            if (!resp) return o + workerError();
+            if (resp.error) return o + formatError("PERSIST_FAILED", resp.error);
+            return o + `  ${ANSI.green}Success! Extended lifespan to 1 year for ${resp.count} cookie(s).${ANSI.reset}\n`;
+        } catch (e) {
+            return o + formatError("EXEC_FAILED", e.message);
+        }
+    }
+
+    if (isKeepAlive) {
+        o += `\n  ${ANSI.yellow}Initializing Keep-Alive Heartbeat...${ANSI.reset}\n`;
+        try {
+            const resp = await chrome.runtime.sendMessage({
+                command: "keep-alive",
+                payload: { domain: t, stop: false }
+            });
+            if (!resp) return o + workerError();
+            if (resp.error) return o + formatError("KEEPALIVE_FAILED", resp.error);
+            return o + `  ${ANSI.green}Success! Heartbeat active (1 ping / 5 min) for ${t}.${ANSI.reset}\n  ${ANSI.dim}Use 'cookies -stop ${t}' to terminate.${ANSI.reset}\n`;
+        } catch (e) {
+            return o + formatError("EXEC_FAILED", e.message);
+        }
+    }
+
+    if (isStop) {
+        try {
+            await chrome.runtime.sendMessage({
+                command: "keep-alive",
+                payload: { domain: t, stop: true }
+            });
+            return o + `\n  ${ANSI.green}Keep-Alive Heartbeat terminated for ${t}.${ANSI.reset}\n`;
+        } catch (e) {
+            return o + formatError("EXEC_FAILED", e.message);
+        }
+    }
     
     // Require active tab context or manual domain, but cookies are domain-wide
     // For simplicity, we just ask the background script for cookies for the domain
@@ -41,12 +90,20 @@ export async function cmdCookies(args) {
         
         let warnCount = 0;
         
+        const cols = getTermCols();
+        const isNarrow = cols < 65;
+        const nameW = isNarrow ? Math.max(15, cols - 30) : 35;
+        const flagsW = 12;
+        const barW = Math.min(cols - 4, 70);
+        
         // Build table
-        o += `\n  ${ANSI.white}Name${ANSI.reset}`.padEnd(40) + ` ${ANSI.white}Sec/Http${ANSI.reset}`.padEnd(20) + ` ${ANSI.white}Duration${ANSI.reset}\n`;
-        o += `  ${ANSI.dim}` + "━".repeat(70) + `${ANSI.reset}\n`;
+        o += `\n  ${ANSI.white}${"Name".padEnd(nameW)}${ANSI.reset} ${ANSI.white}${"Sec/Http".padEnd(flagsW)}${ANSI.reset} ${ANSI.white}Duration${ANSI.reset}\n`;
+        o += `  ${ANSI.dim}` + "━".repeat(barW) + `${ANSI.reset}\n`;
         
         for (const c of cookies) {
-            const name = c.name.length > 25 ? c.name.substring(0, 22) + "..." : c.name;
+            let name = c.name;
+            if (name.length > nameW - 2) name = name.substring(0, nameW - 5) + "...";
+            
             const isSecure = c.secure ? "Yes" : "No";
             const isHttpOnly = c.httpOnly ? "Yes" : "No";
             const flags = `${isSecure}/${isHttpOnly}`;
@@ -54,7 +111,7 @@ export async function cmdCookies(args) {
             let duration = "Session";
             if (!c.session && c.expirationDate) {
                 const days = Math.round((c.expirationDate * 1000 - Date.now()) / (1000 * 60 * 60 * 24));
-                duration = days > 0 ? `${days} days` : "Expired";
+                duration = days > 0 ? `${days} d` : "Expired";
             }
             
             // Check for potential session hijacking vulnerabilities
@@ -64,7 +121,7 @@ export async function cmdCookies(args) {
                 warnCount++;
             }
             
-            o += `  ${nameColor}${name}${ANSI.reset}`.padEnd(40) + ` ${flags}`.padEnd(10) + ` ${ANSI.dim}${duration}${ANSI.reset}\n`;
+            o += `  ${nameColor}${name.padEnd(nameW)}${ANSI.reset} ${flags.padEnd(flagsW)} ${ANSI.dim}${duration}${ANSI.reset}\n`;
         }
         
         const ins = [];

@@ -10,3 +10,4 @@ build/
 *.crx
 *.codeatlas/
 docs/map.md
+.codeatlas/state.json
