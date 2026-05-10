@@ -122,6 +122,7 @@ export async function cmdSeo(args) {
 
         ins.push({level: "INFO", text: "External Check: https://totheweb.com/tools/seo-browser-simulator/"});
         
+        if (ins.length > 0) o += "\n";
         o += insights(ins);
         return o;
 

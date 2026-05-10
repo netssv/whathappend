@@ -90,11 +90,21 @@ export function waitForReturn(term, watcher, doneCallback) {
     enableClickMouse(term);
 
     watcher.onDataDisposable = term.onData((e) => {
-        // Ignore hover, scroll, and mouse-release events
+        // Handle mouse events (ignore hover/release, execute manual scroll)
         if (e.startsWith("\x1b[<")) {
             const m = e.match(/\x1b\[<(\d+);(\d+);(\d+)([mM])/);
-            if (!m || m[1] === "35" || m[1] === "64" || m[1] === "65" || m[4] === "m") return;
+            if (!m || m[1] === "35" || m[1] === "64" || m[1] === "65" || m[4] === "m") {
+                if (m && m[1] === "64") term.scrollLines(-3);
+                if (m && m[1] === "65") term.scrollLines(3);
+                return;
+            }
         }
+        
+        // Handle keyboard scrolling
+        if (e === "\x1b[A") { term.scrollLines(-1); return; }
+        if (e === "\x1b[B") { term.scrollLines(1); return; }
+        if (e === "\x1b[5~") { term.scrollPages(-1); return; }
+        if (e === "\x1b[6~") { term.scrollPages(1); return; }
 
         disposeInput(watcher);
         disableClickMouse(term);

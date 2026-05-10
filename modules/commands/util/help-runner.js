@@ -22,6 +22,8 @@ export async function showCommandDoc(cmdName, term, watcher, doneCallback) {
         watcher._mouseEnabled = false;
     }
 
+    term.write("\x1b[2J\x1b[3J\x1b[H");
+    
     try {
         const { cmdDetailedHelp } = await import("./detailed-help.js");
         const { suggestCommand } = await import("../../core/parser.js");
@@ -36,11 +38,22 @@ export async function showCommandDoc(cmdName, term, watcher, doneCallback) {
     watcher._mouseEnabled = true;
 
     watcher.onDataDisposable = term.onData((ev) => {
-        // Ignore hovers/scrolls/releases
+        // Handle mouse events (ignore hover/release, execute manual scroll)
         if (ev.startsWith("\x1b[<")) {
-            const mp = ev.match(/\x1b\[<(\d+);.*;.*M/);
-            if (!mp || parseInt(mp[1]) !== 0) return;
+            const m = ev.match(/\x1b\[<(\d+);(\d+);(\d+)([mM])/);
+            if (!m || m[1] === "35" || m[1] === "64" || m[1] === "65" || m[4] === "m") {
+                if (m && m[1] === "64") term.scrollLines(-3);
+                if (m && m[1] === "65") term.scrollLines(3);
+                return;
+            }
         }
+        
+        // Handle keyboard scrolling
+        if (ev === "\x1b[A") { term.scrollLines(-1); return; }
+        if (ev === "\x1b[B") { term.scrollLines(1); return; }
+        if (ev === "\x1b[5~") { term.scrollPages(-1); return; }
+        if (ev === "\x1b[6~") { term.scrollPages(1); return; }
+
         disposeInput(watcher);
         term.write("\x1b[?1003l\x1b[?1006l");
         watcher._mouseEnabled = false;

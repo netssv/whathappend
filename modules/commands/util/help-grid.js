@@ -30,28 +30,11 @@ export function buildCommandGrid(section, cols) {
     const lines = [];
     const push  = (str, action = null) => lines.push({ str, action });
 
-    if (cols >= 80) {
-        // Two-column grid
-        const half = Math.ceil(section.cmds.length / 2);
-        const midX = Math.floor(cols / 2);
-        for (let i = 0; i < half; i++) {
-            const lIdx = i, rIdx = i + half;
-            const lVal  = keyLabel(lIdx);
-            const lStr  = _cmdCell(lVal, section.cmds[lIdx][0]);
-            let rVal = null, rStr = "";
-            if (rIdx < section.cmds.length) {
-                rVal = keyLabel(rIdx);
-                rStr = _cmdCell(rVal, section.cmds[rIdx][0]);
-            }
-            push("", { type: "grid", left: lVal, right: rVal, leftStr: lStr, rightStr: rStr, midX });
-        }
-    } else {
-        // Single column
-        for (let i = 0; i < section.cmds.length; i++) {
-            const val  = keyLabel(i);
-            const cell = _cmdCell(val, section.cmds[i][0]);
-            for (const l of wrapAnsiText(cell, cols)) push(l, val);
-        }
+    // Single column
+    for (let i = 0; i < section.cmds.length; i++) {
+        const val  = keyLabel(i);
+        const cell = _cmdCell(val, section.cmds[i][0]);
+        for (const l of wrapAnsiText(cell, cols)) push(l, val);
     }
     return lines;
 }

@@ -60,9 +60,7 @@ export class MenuRenderer {
         if (categoryId === -1) this.currentCategory = 0;
         const cat = CATEGORIES[this.currentCategory];
         
-        const safeTitle = cat.name.toUpperCase().replace(/[^\x20-\x7E]/g, "").trim();
-        const current   = this.currentCategory + 1;
-        const total     = CATEGORIES.length;
+        const safeTitle = cat.name.toUpperCase().replace(/[^\x20-\x7E]/g, "").trim(); 
         pushLine(lines, "", {
             type: "carousel",
             title: safeTitle,
@@ -70,42 +68,11 @@ export class MenuRenderer {
         });
         writeBlank();
         
-        const isWide = cols >= 80;
-        if (isWide) {
-            // Multi-column Grid Layout (Compact)
-            const half = Math.ceil(cat.commands.length / 2);
-            const midX = Math.floor(cols / 2);
-            
-            for (let i = 0; i < half; i++) {
-                const lIdx = i;
-                const rIdx = i + half;
-                
-                const lVal = lIdx < 9 ? (lIdx + 1).toString() : String.fromCharCode(97 + lIdx - 9);
-                const lStr = `    ${ANSI.bold}[${lVal}]${ANSI.reset} ${ANSI.white}${cat.commands[lIdx].cmd}${ANSI.reset}`;
-                
-                let rStr = "";
-                let rVal = null;
-                if (rIdx < cat.commands.length) {
-                    rVal = rIdx < 9 ? (rIdx + 1).toString() : String.fromCharCode(97 + rIdx - 9);
-                    rStr = `    ${ANSI.bold}[${rVal}]${ANSI.reset} ${ANSI.white}${cat.commands[rIdx].cmd}${ANSI.reset}`;
-                }
-                
-                pushLine(lines, "", {
-                    type: 'grid',
-                    left: lVal,
-                    right: rVal,
-                    leftStr: lStr,
-                    rightStr: rStr,
-                    midX: midX
-                });
-            }
-        } else {
-            // Legacy Single Column Layout (Compact)
-            for (let i = 0; i < cat.commands.length; i++) {
-                const val = i < 9 ? (i + 1).toString() : String.fromCharCode(97 + i - 9);
-                const title = `    ${ANSI.bold}[${val}]${ANSI.reset} ${ANSI.white}${cat.commands[i].cmd}${ANSI.reset}`;
-                writeWrapped(title, val);
-            }
+        // Single Column Layout
+        for (let i = 0; i < cat.commands.length; i++) {
+            const val = i < 9 ? (i + 1).toString() : String.fromCharCode(97 + i - 9);
+            const title = `    ${ANSI.bold}[${val}]${ANSI.reset} ${ANSI.white}${cat.commands[i].cmd}${ANSI.reset}`;
+            writeWrapped(title, val);
         }
         writeBlank();
         

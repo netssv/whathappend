@@ -41,8 +41,8 @@ export const isPrintable = (e) => e.length === 1 && e >= " " && e !== "\x7f";
 
 /** Map single char to zero-based index (1→0, a→9, etc.) */
 export function charToIndex(c) {
-    if (c >= "1" && c <= "9") return parseInt(c) - 1;
-    if (c >= "a" && c <= "z") return c.charCodeAt(0) - 97 + 9;
+    if (/^\d+$/.test(c)) return parseInt(c) - 1;
+    if (c.length === 1 && c >= "a" && c <= "z") return c.charCodeAt(0) - 97 + 9;
     return -1;
 }
 

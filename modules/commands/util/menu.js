@@ -82,7 +82,7 @@ function createWatcher() {
             if (isQuit(e, lower)) { quit(term, this, doneCallback); return; }
 
             // 3. Search mode
-            if (this._searchMode) { await this._handleSearch(e, term, doneCallback); return; }
+            if (this._searchMode) { await this._handleSearch(e, lower, term, doneCallback); return; }
 
             // 4. Carousel ← →
             if (isLeft(e, lower))  { this._carouselNav(carouselPrev(this._renderer.currentCategory, CATEGORIES.length), term); return; }
@@ -102,13 +102,13 @@ function createWatcher() {
             // 7. [/] or [?] → activate search
             if (isSearch(e)) { this._activateSearch(term); return; }
 
-            // 8. Number key (1-9) → run command directly
+            // 8. Number key (1-9) or click → run command directly
             //    Any other printable char → activate search pre-seeded with that char
-            if (e >= "1" && e <= "9") {
-                const idx = charToIndex(e);
+            const actionIdx = charToIndex(lower);
+            if ((e >= "1" && e <= "9") || (actionIdx !== -1 && !isPrintable(e))) {
                 const cat = CATEGORIES[this._renderer.currentCategory];
-                if (idx >= 0 && idx < cat.commands.length) {
-                    await runCommand(cat.commands[idx].cmd, term, this, doneCallback);
+                if (actionIdx >= 0 && actionIdx < cat.commands.length) {
+                    await runCommand(cat.commands[actionIdx].cmd, term, this, doneCallback);
                 }
             } else if (isPrintable(e) && e !== "q") {
                 this._searchMode  = true;
@@ -157,7 +157,7 @@ function createWatcher() {
             this._searchRenderer.update("");
         },
 
-        async _handleSearch(e, term, doneCallback) {
+        async _handleSearch(e, lower, term, doneCallback) {
             if (isEsc(e) || (isBack(e) && this._searchQuery.length === 0)) {
                 this._searchMode = false;
                 this._renderer.draw(this._renderer.currentCategory);
@@ -168,8 +168,9 @@ function createWatcher() {
                 this._searchRenderer.update(this._searchQuery);
                 return;
             }
-            if (e >= "1" && e <= "9") {
-                const cmd = this._searchRenderer.getResultCmd(e);
+            const actionIdx = charToIndex(lower);
+            if ((e >= "1" && e <= "9") || (actionIdx !== -1 && !isPrintable(e))) {
+                const cmd = this._searchRenderer.getResultCmd(lower);
                 if (cmd) { this._searchMode = false; await runCommand(cmd, term, this, doneCallback); }
                 return;
             }

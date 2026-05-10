@@ -22,26 +22,39 @@ import { getTermCols } from "../../state.js";
 export function formatHelp(options = {}) {
     const { name, syntax, descLines = [], aliases = null, examples = [] } = options;
     const cols = getTermCols();
-    const sepLen = Math.min(45, Math.max(20, cols - 4));
-    const sep = ANSI.dim + "━".repeat(sepLen) + ANSI.reset;
+    const sepLen = Math.min(60, Math.max(30, cols - 4));
+    const sep = ANSI.dim + "─".repeat(sepLen) + ANSI.reset;
 
-    let out = `\n  ${ANSI.cyan}${ANSI.bold}${name}${ANSI.reset} ${ANSI.dim}${syntax}${ANSI.reset}\n`;
-    out += `  ${sep}\n`;
+    let out = `  ${ANSI.bgWhite}${ANSI.black} COMMAND ${ANSI.reset} ${ANSI.bold}${ANSI.cyan}${name}${ANSI.reset}\n`;
+    out += `  ${sep}\n\n`;
+    
+    out += `  ${ANSI.bold}${ANSI.white}DESCRIPTION${ANSI.reset}\n`;
     for (const line of descLines) {
         out += `    ${line}\n`;
     }
+    out += `\n`;
+
+    out += `  ${ANSI.bold}${ANSI.white}SYNTAX${ANSI.reset}\n`;
+    out += `    ${ANSI.green}${name}${ANSI.reset} ${ANSI.dim}${syntax}${ANSI.reset}\n\n`;
+
     if (aliases) {
-        out += `    ${ANSI.dim}Aliases: ${aliases}${ANSI.reset}\n`;
+        out += `  ${ANSI.bold}${ANSI.white}ALIASES${ANSI.reset}\n`;
+        out += `    ${ANSI.dim}${aliases}${ANSI.reset}\n\n`;
     }
-    out += `  ${sep}\n`;
-    for (const ex of examples) {
-        out += `    ${ANSI.green}${ex.cmd}${ANSI.reset}`;
-        if (ex.desc) {
-            out += `  ${ANSI.dim}${ex.desc}${ANSI.reset}`;
+
+    if (examples && examples.length > 0) {
+        out += `  ${ANSI.bold}${ANSI.white}EXAMPLES & USE CASES${ANSI.reset}\n`;
+        for (const ex of examples) {
+            out += `    ${ANSI.yellow}❯${ANSI.reset} ${ANSI.cyan}${ex.cmd}${ANSI.reset}`;
+            if (ex.desc) {
+                out += `\n      ${ANSI.dim}↳ ${ex.desc}${ANSI.reset}`;
+            }
+            out += `\n\n`;
         }
-        out += `\n`;
     }
-    return out + "\n";
+    
+    out += `  ${sep}\n`;
+    return out;
 }
 
 export function sh(cmd, type, desc) {

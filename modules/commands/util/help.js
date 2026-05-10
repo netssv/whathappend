@@ -97,7 +97,7 @@ function createWatcher() {
             if (isQuit(e, lower)) { quit(term, this, doneCallback); return; }
 
             // 3. Search mode
-            if (this._searchMode) { await this._handleSearch(e, term, doneCallback); return; }
+            if (this._searchMode) { await this._handleSearch(e, lower, term, doneCallback); return; }
 
             // 4. Carousel ← → (cyclic)
             if (isLeft(e, lower))  { this._carouselNav(carouselPrev(this._renderer.currentSection, HELP_CATEGORIES.length), term); return; }
@@ -117,11 +117,11 @@ function createWatcher() {
             // 7. [/] or [?] → activate search
             if (isSearch(e)) { this._activateSearch(term); return; }
 
-            // 8. Number key direct selection (1-9) → show doc immediately
+            // 8. Number key direct selection (1-9) or click → show doc immediately
             //    Any other printable char → activate search with that char as seed
-            if (e >= "1" && e <= "9") {
-                const idx = charToIndex(e);
-                const cmd = this._cmdAt(idx);
+            const actionIdx = charToIndex(lower);
+            if ((e >= "1" && e <= "9") || (actionIdx !== -1 && !isPrintable(e))) {
+                const cmd = this._cmdAt(actionIdx);
                 if (cmd) await showCommandDoc(cmd, term, this, doneCallback);
             } else if (isPrintable(e) && e !== "q") {
                 // Start search pre-seeded with this character
@@ -181,7 +181,7 @@ function createWatcher() {
             this._searchRenderer.update("");
         },
 
-        async _handleSearch(e, term, doneCallback) {
+        async _handleSearch(e, lower, term, doneCallback) {
             if (isEsc(e) || (isBack(e) && this._searchQuery.length === 0)) {
                 this._searchMode = false;
                 this._renderer.draw(this._renderer.currentSection);
@@ -192,8 +192,9 @@ function createWatcher() {
                 this._searchRenderer.update(this._searchQuery);
                 return;
             }
-            if (e >= "1" && e <= "9") {
-                const cmd = this._searchRenderer.getResultCmd(e);
+            const actionIdx = charToIndex(lower);
+            if ((e >= "1" && e <= "9") || (actionIdx !== -1 && !isPrintable(e))) {
+                const cmd = this._searchRenderer.getResultCmd(lower);
                 if (cmd) { this._searchMode = false; await showCommandDoc(cmd, term, this, doneCallback); }
                 return;
             }
