@@ -9,6 +9,7 @@ Control the terminal environment itself.
 | `target` | Sets the target domain silently. | - |
 | `tabs` | List, close, sleep, flush, or inspect tabs. `diag` scans for health issues. | `tab`, `close`, `info`, `diag`, `sleep`, `flush` |
 | `reload` | Hard reboots the extension context (clears memory). | `restart`, `reboot` |
+| `refresh`| Reloads the active browser tab (like pressing F5). | `f5`, `ref` |
 | `config` | View or change user preferences (`config timeout 5000`). | `settings`, `set` |
 | `export` | Saves the entire session output as a JSON file. | `dump`, `save` |
 | `flush` | Clears cookies and cache for a specific domain. | `clearcache` |

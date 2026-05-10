@@ -45,6 +45,7 @@ import { handleJitter } from "./handlers/jitter.js";
 import { handleSpeedtest } from "./handlers/speedtest.js";
 import { handleGetPublicIP } from "./handlers/ip.js";
 import { handleGetWebVitals } from "./handlers/vitals.js";
+import { handleSetIPSpoof } from "./handlers/spoof.js";
 import { withCache } from "./cache.js";
 
 // ===================================================================
@@ -147,6 +148,9 @@ export function setupRouter() {
                 break;
             case "get-web-vitals":
                 handleGetWebVitals().then(sendResponse);
+                break;
+            case "ip-spoof":
+                handleSetIPSpoof(payload).then(sendResponse);
                 break;
 
             default:

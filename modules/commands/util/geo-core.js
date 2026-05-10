@@ -35,7 +35,8 @@ export async function applyGeo(tabId, lat, lng, label) {
     o += `  ${ANSI.dim}Tab     ${ANSI.reset}${host}\n`;
     o += `  ${ANSI.dim}Location${ANSI.reset} ${ANSI.cyan}${label}${ANSI.reset}  ${ANSI.dim}(${lat}, ${lng})${ANSI.reset}\n`;
     o += `\n${ANSI.dim}The page has been reloaded. Note that geolocation persists until the tab is closed or you run ${ANSI.white}geo reset${ANSI.dim}.${ANSI.reset}\n`;
-    o += `${ANSI.dim}Verify: ${ANSI.white}https://browserleaks.com/geo${ANSI.reset}`;
+    o += `  ${ANSI.yellow}[NOTE] This overrides the browser's GPS/Location API. It is NOT a VPN/IP spoofer.${ANSI.reset}\n`;
+    o += `  ${ANSI.dim}Verify: ${ANSI.white}https://browserleaks.com/geo${ANSI.reset}`;
 
     setEmulation("geo", label);
     return o;

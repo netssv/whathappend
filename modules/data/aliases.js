@@ -105,6 +105,8 @@ export const CMD_ALIASES = {
     "alt": "web -alt", "images": "web -alt", "a11y": "web -alt",
     // reload
     "restart": "reload", "reboot": "reload",
+    // refresh
+    "f5": "refresh", "ref": "refresh",
     // waf
     "firewall": "waf", "cdn-check": "waf",
     // hsts
@@ -143,6 +145,8 @@ export const CMD_ALIASES = {
     "slow": "throttle", "lag": "throttle", "network": "throttle",
     // geo
     "gps": "geo", "location": "geo", "spoof-geo": "geo",
+    // ip spoof
+    "fakeip": "ip-spoof", "spoof-ip": "ip-spoof",
     // block
     "ban": "block", "deny": "block", "drop": "block",
     // fonts
@@ -182,5 +186,5 @@ export const ALL_KNOWN_CMDS = [
     "registrar", "hosting", "exit", "switch", "reload",
     "start", "config", "isup", "jitter", "speedtest", "clip", "matrix", "coffee",
     "ip", "security-txt", "vitals", "flush", "tabs", "actual", "current", "here",
-    "useragent", "mobile", "throttle", "geo", "block", "fonts", "palette", "comments", "cms", "malware", "edit", "map", "fullscreen", "nav", "watch"
+    "useragent", "mobile", "throttle", "geo", "block", "fonts", "palette", "comments", "cms", "malware", "edit", "map", "fullscreen", "nav", "watch", "refresh", "ip-spoof"
 ].filter(c => /^[a-z]/i.test(c));

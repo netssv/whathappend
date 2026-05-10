@@ -17,8 +17,8 @@ import { InputEvents } from "../input/events.js";
 
 const _active = new Map();
 
-const ICONS  = { ua: "🔀", mobile: "📱", throttle: "⏱", geo: "📍", block: "🚫" };
-const LABELS = { ua: "User Agent", mobile: "Mobile", throttle: "Network", geo: "Location", block: "Blocked URLs" };
+const ICONS  = { ua: "🔀", mobile: "📱", throttle: "⏱", geo: "📍", block: "🚫", ipspoof: "🎭" };
+const LABELS = { ua: "User Agent", mobile: "Mobile", throttle: "Network", geo: "Location", block: "Blocked URLs", ipspoof: "IP Spoof" };
 
 // Preset maps for each emulation type (populated from data modules lazily)
 const PRESETS = {
@@ -50,10 +50,15 @@ const PRESETS = {
         { key: "*.png", label: "Block *.png" },
         { key: "*analytics*", label: "Block Analytics" },
     ],
+    ipspoof: [
+        { key: "1.1.1.1", label: "Cloudflare (1.1.1.1)" },
+        { key: "8.8.8.8", label: "Google (8.8.8.8)" },
+        { key: "127.0.0.1", label: "Localhost" },
+    ],
 };
 
 // Maps type → terminal command root
-const CMD_MAP = { ua: "ua", mobile: "mobile", throttle: "throttle", geo: "geo", block: "block" };
+const CMD_MAP = { ua: "ua", mobile: "mobile", throttle: "throttle", geo: "geo", block: "block", ipspoof: "ip-spoof" };
 
 function execCmd(cmd) {
     InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, cmd);

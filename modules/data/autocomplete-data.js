@@ -97,6 +97,7 @@ const HELP_KEYS = ["-audit", "-dns", "-email", "-web", "-net", "-ext", "-util"];
 const COOKIES_KEYS = ["-persist", "-keepalive", "-stop"];
 const SUDO_KEYS = ["-l", "--list"];
 const SESSION_KEYS = ["list", "close"];
+const IPSPOOF_KEYS = ["reset", "clear", "off", "1.1.1.1", "8.8.8.8", "127.0.0.1"];
 
 export const SUBCOMMAND_MAP = {
     config:   CONFIG_KEYS,
@@ -141,4 +142,7 @@ export const SUBCOMMAND_MAP = {
     sudo:      SUDO_KEYS,
     su:        SUDO_KEYS,
     session:   SESSION_KEYS,
+    "ip-spoof": IPSPOOF_KEYS,
+    fakeip:     IPSPOOF_KEYS,
+    "spoof-ip": IPSPOOF_KEYS,
 };

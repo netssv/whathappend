@@ -91,8 +91,10 @@ export const COMMAND_REGISTRY = {
     block: async (args) => (await import("../commands/util/index.js")).cmdBlock(args),
     tabs: async (args, flags) => (await import("../commands/util/index.js")).cmdTabs(args, flags),
     reload: async () => (await import("../commands/util/index.js")).cmdReload(),
+    refresh: async () => (await import("../commands/util/index.js")).cmdRefresh(),
     fullscreen: async () => (await import("../commands/util/index.js")).cmdFullscreen(),
     nav: async () => (await import("../commands/util/index.js")).cmdNavMenu(),
+    "ip-spoof": async (args) => (await import("../commands/util/index.js")).cmdIPSpoof(args),
     watch: async (args) => (await import("../commands/util/index.js")).cmdWatch(args),
     session: async (args) => (await import("../commands/util/index.js")).cmdSession(args),
 };

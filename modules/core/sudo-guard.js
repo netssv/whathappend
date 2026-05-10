@@ -35,6 +35,7 @@ export const SUDO_COMMANDS = new Set([
     "useragent",      // Spoofs browser identity (UA string)
     "mobile",         // Emulates mobile viewport and UA
     "geo",            // Spoofs geolocation coordinates
+    "ip-spoof",       // Injects fake IP headers
 
     // ── Scanning (aggressive) ──
     "port-scan",      // Active port probe against remote host

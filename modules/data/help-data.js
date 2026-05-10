@@ -107,10 +107,12 @@ export const HELP_SECTIONS = [
     ]},
     { title: "BROWSER", cmds: [
         ["reload", "Extension hard reboot", "restart reboot"],
+        ["refresh", "Reload active browser tab", "f5 ref"],
         ["ua", "Spoof User Agent", "useragent agent"],
         ["mobile", "Spoof Mobile UA", "mob iphone"],
         ["throttle", "Emulate network speed", "slow lag"],
         ["geo", "Spoof GPS (add/remove custom)", "gps location"],
+        ["ip-spoof", "Inject fake IP headers", "fakeip spoof-ip"],
         ["flush", "Clear cookies+cache", "clearcache"],
         ["edit", "Toggle live design mode", "designmode modify"],
         ["diff", "Compare two domains", ""],
