@@ -27,6 +27,7 @@ export function createTriageWatcher(resolved, urls, skeletonHeight) {
             onDataDisposable: null,
             _mouseEnabled: false,
             _currentUrl: null,
+            _qExitHovered: false,
             _rowToKey: {},
 
             start(term, doneCallback) {
@@ -47,7 +48,7 @@ export function createTriageWatcher(resolved, urls, skeletonHeight) {
 
                 // Write instruction + status line (cursor stays on status line)
                 term.write(`\n  ${ANSI.dim}Hover to highlight · Click to open${ANSI.reset}\n`);
-                term.write(`  \x1b[31;1m Press [Q] or click here to exit\x1b[0m\n`);
+                term.write(`  \x1b[31;1m Press [Q] or click here to exit \x1b[0m\n`);
                 term.write(`  ${ANSI.dim}↳ —${ANSI.reset}`);
                 
                 this._qExitY = absBottom + 3;
@@ -60,6 +61,7 @@ export function createTriageWatcher(resolved, urls, skeletonHeight) {
                         const m = e.match(/\x1b\[<(\d+);(\d+);(\d+)([mM])/);
                         if (!m) return;
                         const btn = parseInt(m[1]);
+                        const mouseX = parseInt(m[2]);
                         const mouseY = parseInt(m[3]);
                         const isPress = m[4] === "M";
 
@@ -69,6 +71,21 @@ export function createTriageWatcher(resolved, urls, skeletonHeight) {
 
                         // Hover
                         if (btn === 35) {
+                            if (absY === this._qExitY) {
+                                if (mouseX >= 3 && mouseX <= 35) {
+                                    if (!this._qExitHovered) {
+                                        this._qExitHovered = true;
+                                        term.write(`\x1b[s\x1b[1A\r\x1b[2K  \x1b[31;1m\x1b[7m Press [Q] or click here to exit \x1b[0m\x1b[u`);
+                                    }
+                                } else if (this._qExitHovered) {
+                                    this._qExitHovered = false;
+                                    term.write(`\x1b[s\x1b[1A\r\x1b[2K  \x1b[31;1m Press [Q] or click here to exit \x1b[0m\x1b[u`);
+                                }
+                            } else if (this._qExitHovered) {
+                                this._qExitHovered = false;
+                                term.write(`\x1b[s\x1b[1A\r\x1b[2K  \x1b[31;1m Press [Q] or click here to exit \x1b[0m\x1b[u`);
+                            }
+
                             const url = key ? (urls[key] || null) : null;
                             if (url !== this._currentUrl) {
                                 this._currentUrl = url;
@@ -79,7 +96,7 @@ export function createTriageWatcher(resolved, urls, skeletonHeight) {
 
                         // Left click
                         if (btn === 0 && isPress) {
-                            if (absY === this._qExitY) {
+                            if (absY === this._qExitY && mouseX >= 3 && mouseX <= 35) {
                                 this._cleanup(term);
                                 doneCallback();
                                 return;

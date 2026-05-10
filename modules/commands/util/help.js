@@ -1,21 +1,35 @@
 /**
  * @module modules/commands/util/help.js
- * @description Interactive help TUI (watcher mode) + flag-based text output.
- * @exports cmdHelp
+ * @description Interactive Help TUI (carousel + compact) + flag-based text output.
+ *              Mirrors menu.js architecture: shared input helpers, runner, search.
+ *
+ * @connections
+ * - Imports: HelpRenderer, HELP_CATEGORIES from './help-ui.js'
+ * - Imports: SearchRenderer from './search-ui.js'
+ * - Imports: menu-input.js helpers (parseSgrMouse, isQuit, isLeft, isRight, isUp,
+ *            isDown, isEnter, isSearch, isEsc, isBack, isPrintable,
+ *            charToIndex, idxToKey, carouselPrev, carouselNext, listUp, listDown)
+ * - Imports: quit, enableHoverMouse, disposeInput from './menu-runner.js'
+ * - Imports: renderTextHelp from './help-text.js'
+ * - Exports: cmdHelp
+ * - Layer: Command Layer (Util) — entry point + watcher orchestrator.
  */
 
-import { ANSI, isIPAddress } from "../../formatter.js";
-import { ContextManager } from "../../context.js";
-import { getTermCols } from "../../state.js";
-import { HELP_SECTIONS } from "../../data/help-data.js";
+import { ANSI } from "../../formatter.js";
 import { HelpRenderer, HELP_CATEGORIES } from "./help-ui.js";
+import { SearchRenderer } from "./search-ui.js";
+import { renderTextHelp } from "./help-text.js";
+import {
+    parseSgrMouse, isQuit, isLeft, isRight, isUp, isDown,
+    isEnter, isSearch, isEsc, isBack, isPrintable,
+    charToIndex, idxToKey, carouselPrev, carouselNext, listUp, listDown,
+} from "./menu-input.js";
+import { quit, enableHoverMouse, disposeInput } from "./menu-runner.js";
+import { showCommandDoc } from "./help-runner.js";
 
-// ===================================================================
-//  help — Interactive TUI (no args) | Text output (with flags)
-// ===================================================================
+// ── Public Entry Point ────────────────────────────────────────────────
 
 export function cmdHelp(args = [], flags = []) {
-    // Parse flag/query
     let query = "";
     if (flags.length > 0 && flags[0].startsWith("-")) {
         query = flags[0].replace(/^-+/, "").toLowerCase();
@@ -23,194 +37,170 @@ export function cmdHelp(args = [], flags = []) {
         query = args[0].toLowerCase();
     }
 
-    // ── No query → launch interactive TUI ────────────────────────────
-    if (!query) {
-        return createHelpWatcher();
-    }
-
-    // ── Flag mode → text output (help -web, help -dns, etc.) ─────────
-    return renderTextHelp(query);
+    return query ? renderTextHelp(query) : createHelpWatcher();
 }
 
-// ── Interactive Watcher ──────────────────────────────────────────────
+// ── Watcher Factory ───────────────────────────────────────────────────
 
 function createHelpWatcher() {
-    return {
-        __watch: true,
-        watcher: {
-            clearOnExit: true,
-            onDataDisposable: null,
-            _renderer: null,
-            _mouseEnabled: false,
-
-            start(term, doneCallback) {
-                this._renderer = new HelpRenderer(term);
-                this._renderer.draw(-1);
-
-                term.write("\x1b[?1003h\x1b[?1006h");
-                this._mouseEnabled = true;
-
-                this.onDataDisposable = term.onData(async (e) => {
-                    let lower = e.toLowerCase();
-
-                    // SGR Mouse
-                    if (e.startsWith("\x1b[<")) {
-                        const m = e.match(/\x1b\[<(\d+);(\d+);(\d+)([mM])/);
-                        if (m) {
-                            const btn = parseInt(m[1]), x = parseInt(m[2]);
-                            const rawY = parseInt(m[3]), isPress = m[4] === "M";
-                            // Convert viewport Y to absolute buffer Y (accounts for scroll)
-                            const absY = (term.buffer?.active?.baseY ?? 0) + rawY;
-                            const action = this._renderer.getActionAt(absY, x);
-
-                            if (btn === 35) {
-                                if (action !== this._renderer.hoveredAction) {
-                                    this._renderer.draw(this._renderer.currentSection, action);
-                                }
-                                return;
-                            }
-                            if (btn === 64) {
-                                this._renderer.scroll("up");
-                                return;
-                            }
-                            if (btn === 65) {
-                                this._renderer.scroll("down");
-                                return;
-                            }
-
-                            if (btn === 0 && isPress) {
-                                if (action) lower = action; else return;
-                            } else return;
-                        }
-                    }
-
-                    if (lower === "q" || lower === "quit" || e === "\x03") {
-                        this._dispose();
-                        
-                        // Clear the help TUI from the screen to prevent "dead UI" confusion
-                        term.clear();
-                        import("../../terminal-ui.js").then(ui => ui.showBanner());
-                        
-                        doneCallback();
-                        return;
-                    }
-
-                    function charToIndex(c) {
-                        if (c >= '1' && c <= '9') return parseInt(c) - 1;
-                        if (c >= 'a' && c <= 'z') return c.charCodeAt(0) - 97 + 9;
-                        return -1;
-                    }
-
-                    if (this._renderer.currentSection === -1) {
-                        const idx = charToIndex(lower);
-                        if (idx >= 0 && idx < HELP_CATEGORIES.length) {
-                            this._renderer.draw(idx);
-                        }
-                    } else {
-                        if (lower === "b" || lower === "back" || e === "\x1b") {
-                            this._renderer.draw(-1);
-                            return;
-                        }
-
-                        const idx = charToIndex(lower);
-                        const cmdName = this._renderer.getCommandAt(idx);
-                        if (cmdName) {
-                            this._dispose();
-                            if (this._mouseEnabled) {
-                                term.write("\x1b[?1003l\x1b[?1006l");
-                                this._mouseEnabled = false;
-                            }
-
-                            // Show detailed help (documentation), not execute
-                            try {
-                                const { cmdDetailedHelp } = await import("./detailed-help.js");
-                                const { suggestCommand } = await import("../../core/parser.js");
-                                const baseName = cmdName.split(" ")[0].toLowerCase();
-                                const helpText = cmdDetailedHelp(baseName, suggestCommand);
-                                if (helpText) term.write(`\n${helpText}\n`);
-                            } catch (err) {
-                                term.write(`\n${ANSI.red}[ERROR] ${err.message}${ANSI.reset}\n`);
-                            }
-                            term.write(`\n  ${ANSI.dim}Press ANY KEY or click to return to Help...${ANSI.reset}`);
-
-                            // Re-enable mouse so clicks also count as "any key"
-                            term.write("\x1b[?1003h\x1b[?1006h");
-                            this._mouseEnabled = true;
-
-                            this.onDataDisposable = term.onData((ev) => {
-                                // Accept any keypress OR any mouse button press
-                                if (ev.startsWith("\x1b[<")) {
-                                    const mp = ev.match(/\x1b\[<(\d+);.*;.*M/);
-                                    if (!mp || parseInt(mp[1]) !== 0) return; // only left-click press
-                                }
-                                this._dispose();
-                                if (this._mouseEnabled) {
-                                    term.write("\x1b[?1003l\x1b[?1006l");
-                                    this._mouseEnabled = false;
-                                }
-                                this.start(term, doneCallback);
-                            });
-                        }
-                    }
-                });
-            },
-
-            _dispose() {
-                if (this.onDataDisposable) {
-                    this.onDataDisposable.dispose();
-                    this.onDataDisposable = null;
-                }
-            },
-
-            stop(term) {
-                if (this._mouseEnabled) {
-                    term.write("\x1b[?1003l\x1b[?1006l");
-                    this._mouseEnabled = false;
-                }
-                this._dispose();
-            },
-        },
-    };
+    return { __watch: true, watcher: createWatcher() };
 }
 
-// ── Text Renderer (flag mode) ────────────────────────────────────────
+function createWatcher() {
+    return {
+        // State
+        onDataDisposable: null,
+        _renderer: null,
+        _searchRenderer: null,
+        _searchMode: false,
+        _searchQuery: "",
+        _hoveredIdx: -1,
+        _mouseEnabled: false,
+        clearOnExit: true,
 
-function renderTextHelp(query) {
-    const cols = getTermCols();
-    const currentTarget = ContextManager.getDomain();
-    const targetIsIP = currentTarget ? isIPAddress(currentTarget) : false;
-    const domainOnly = ["email", "spf", "dmarc", "dkim", "openssl", "whois",
-                        "audit", "pixels", "socials", "stack", "robots", "web", "sec"];
+        // ── Lifecycle ─────────────────────────────────────────────────
 
-    let titles = [];
-    if (query === "audit" || query === "audits") titles = ["AUDIT TOOLS"];
-    else if (query === "dns") titles = ["DNS"];
-    else if (query === "short" || query === "shortcuts") titles = ["DNS SHORTCUTS"];
-    else if (query === "email" || query === "mail") titles = ["EMAIL"];
-    else if (query === "web") titles = ["WEB TOOLS"];
-    else if (query === "net" || query === "network") titles = ["NETWORK"];
-    else if (query === "ext" || query === "external") titles = ["EXTERNAL"];
-    else if (query === "util" || query === "utils") titles = ["UTIL"];
-    else if (query === "all") titles = HELP_SECTIONS.map(s => s.title);
-    else return `\n  ${ANSI.red}Unknown category: ${query}${ANSI.reset}\n  ${ANSI.dim}Type 'help' for categories.${ANSI.reset}\n`;
+        start(term, doneCallback) {
+            this._renderer       = new HelpRenderer(term);
+            this._searchRenderer = new SearchRenderer(term);
+            this._searchMode     = false;
+            this._searchQuery    = "";
+            this._hoveredIdx     = -1;
+            this._renderer.draw(0);
 
-    let o = targetIsIP ? `\n${ANSI.yellow}  [WARNING] IP target — domain-only commands dimmed${ANSI.reset}\n` : "";
+            enableHoverMouse(term);
+            this._mouseEnabled = true;
+            this.onDataDisposable = term.onData((e) => this._onData(e, term, doneCallback));
+        },
 
-    for (const section of HELP_SECTIONS.filter(s => titles.includes(s.title))) {
-        const sub = section.subtitle ? ` ${ANSI.dim}${section.subtitle}${ANSI.reset}` : "";
-        const sep = ANSI.dim + "━".repeat(Math.min(50, Math.max(10, cols - 4))) + ANSI.reset;
-        o += `\n${ANSI.white}${ANSI.bold}  ${section.title}${ANSI.reset}${sub}\n  ${sep}\n`;
+        _dispose() { disposeInput(this); },
 
-        for (const [name, desc, aliases] of section.cmds) {
-            const base = name.split(" ")[0].toLowerCase();
-            const dim = targetIsIP && domainOnly.includes(base);
-            const nc = dim ? ANSI.dim : ANSI.cyan;
-            const tag = dim ? ` ${ANSI.yellow}[domain]${ANSI.reset}` : "";
-            const pad = Math.max(1, 16 - name.length);
-            o += `  ${nc}${name}${ANSI.reset}${" ".repeat(pad)}${ANSI.dim}${desc}${ANSI.reset}${tag}\n`;
-            if (aliases) o += `  ${" ".repeat(16)}${ANSI.gray}↪ ${aliases}${ANSI.reset}\n`;
-        }
-    }
-    o += `\n${ANSI.dim}  Add ${ANSI.white}?${ANSI.dim} for details: ${ANSI.white}email?${ANSI.dim}  ${ANSI.white}mx?${ANSI.reset}\n`;
-    return o;
+        stop(term) {
+            if (this._mouseEnabled) { term.write("\x1b[?1003l\x1b[?1006l"); this._mouseEnabled = false; }
+            disposeInput(this);
+        },
+
+        // ── Input Dispatcher ──────────────────────────────────────────
+
+        async _onData(e, term, doneCallback) {
+            let lower = e.toLowerCase();
+
+            // 1. Resolve mouse → action string
+            const mouse = parseSgrMouse(e, term);
+            if (mouse) {
+                const handled = this._handleMouse(mouse, term);
+                if (handled === null) return;
+                lower = handled;
+            }
+
+            // 2. Global quit
+            if (isQuit(e, lower)) { quit(term, this, doneCallback); return; }
+
+            // 3. Search mode
+            if (this._searchMode) { await this._handleSearch(e, term, doneCallback); return; }
+
+            // 4. Carousel ← → (cyclic)
+            if (isLeft(e, lower))  { this._carouselNav(carouselPrev(this._renderer.currentSection, HELP_CATEGORIES.length), term); return; }
+            if (isRight(e, lower)) { this._carouselNav(carouselNext(this._renderer.currentSection, HELP_CATEGORIES.length), term); return; }
+
+            // 5. List ↑ ↓ with wrap-around
+            if (isUp(e))   { const n = this._sectionCmdCount(); this._listNav(listUp(this._hoveredIdx, n), term); return; }
+            if (isDown(e)) { const n = this._sectionCmdCount(); this._listNav(listDown(this._hoveredIdx, n), term); return; }
+
+            // 6. Enter: view hovered command doc
+            if (isEnter(e) && this._hoveredIdx >= 0) {
+                const cmd = this._cmdAt(this._hoveredIdx);
+                if (cmd) await showCommandDoc(cmd, term, this, doneCallback);
+                return;
+            }
+
+            // 7. [/] or [?] → activate search
+            if (isSearch(e)) { this._activateSearch(term); return; }
+
+            // 8. Number key direct selection (1-9) → show doc immediately
+            //    Any other printable char → activate search with that char as seed
+            if (e >= "1" && e <= "9") {
+                const idx = charToIndex(e);
+                const cmd = this._cmdAt(idx);
+                if (cmd) await showCommandDoc(cmd, term, this, doneCallback);
+            } else if (isPrintable(e) && e !== "q") {
+                // Start search pre-seeded with this character
+                this._searchMode  = true;
+                this._searchQuery = e;
+                this._searchRenderer.update(e);
+            }
+        },
+
+        // ── Mouse Handler ─────────────────────────────────────────────
+
+        _handleMouse({ btn, x, absY, isPress }, term) {
+            const renderer = this._searchMode ? this._searchRenderer : this._renderer;
+            const action = renderer.getActionAt(absY, x);
+
+            if (btn === 35) { // hover
+                if (!this._searchMode && action !== this._renderer.hoveredAction) {
+                    this._renderer.draw(this._renderer.currentSection, action);
+                }
+                return null;
+            }
+            if (btn === 64) { this._renderer.scroll("up");   return null; }
+            if (btn === 65) { this._renderer.scroll("down"); return null; }
+            if (btn === 0 && isPress && action) return action;
+            return null;
+        },
+
+        // ── Carousel ─────────────────────────────────────────────────
+
+        _carouselNav(sectionIdx, term) {
+            this._hoveredIdx = -1;
+            this._renderer.draw(sectionIdx);
+        },
+
+        // ── List Navigation ───────────────────────────────────────────
+
+        _listNav(newIdx, term) {
+            this._hoveredIdx = newIdx;
+            this._renderer.draw(this._renderer.currentSection, idxToKey(newIdx));
+        },
+
+        // ── Helpers ───────────────────────────────────────────────────
+
+        _sectionCmdCount() {
+            return this._renderer.getSectionCommandCount();
+        },
+
+        _cmdAt(idx) {
+            return this._renderer.getCommandAt(idx);
+        },
+
+        // ── Search ────────────────────────────────────────────────────
+
+        _activateSearch(term) {
+            this._searchMode  = true;
+            this._searchQuery = "";
+            this._searchRenderer.update("");
+        },
+
+        async _handleSearch(e, term, doneCallback) {
+            if (isEsc(e) || (isBack(e) && this._searchQuery.length === 0)) {
+                this._searchMode = false;
+                this._renderer.draw(this._renderer.currentSection);
+                return;
+            }
+            if (isBack(e)) {
+                this._searchQuery = this._searchQuery.slice(0, -1);
+                this._searchRenderer.update(this._searchQuery);
+                return;
+            }
+            if (e >= "1" && e <= "9") {
+                const cmd = this._searchRenderer.getResultCmd(e);
+                if (cmd) { this._searchMode = false; await showCommandDoc(cmd, term, this, doneCallback); }
+                return;
+            }
+            if (isPrintable(e)) {
+                this._searchQuery += e;
+                this._searchRenderer.update(this._searchQuery);
+            }
+        },
+    };
 }

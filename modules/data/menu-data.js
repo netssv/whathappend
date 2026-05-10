@@ -10,9 +10,13 @@ export const CATEGORIES = HELP_SECTIONS.map(section => {
     let desc = "";
     
     switch (section.title) {
-        case "AUDIT TOOLS": 
+        case "AUDIT SUITE": 
             name = "🌐 " + name; 
             desc = "Deep scans and comprehensive core checks."; 
+            break;
+        case "SECURITY": 
+            name = "🛡️ " + name; 
+            desc = "WAF, headers, CSP, and footprinting."; 
             break;
         case "DNS": 
             name = "📡 " + name; 
@@ -22,9 +26,13 @@ export const CATEGORIES = HELP_SECTIONS.map(section => {
             name = "✉️ " + name; 
             desc = "Mail server configuration and deliverability."; 
             break;
-        case "WEB TOOLS": 
+        case "WEB CORE": 
             name = "⚡ " + name; 
-            desc = "Performance, HTTP, SSL, and web telemetry."; 
+            desc = "HTTP, SSL, robots, and foundational web telemetry."; 
+            break;
+        case "PERF & UI": 
+            name = "🎨 " + name; 
+            desc = "Performance, Web Vitals, and typography."; 
             break;
         case "NETWORK": 
             name = "🔌 " + name; 
@@ -34,9 +42,17 @@ export const CATEGORIES = HELP_SECTIONS.map(section => {
             name = "🔗 " + name; 
             desc = "External third-party analysis tools."; 
             break;
-        case "UTIL": 
+        case "SESSION & TABS": 
+            name = "🗂️ " + name; 
+            desc = "Manage targets, sessions, and active tabs."; 
+            break;
+        case "BROWSER": 
+            name = "🌍 " + name; 
+            desc = "Browser environment spoofing and network throttling."; 
+            break;
+        case "SYSTEM": 
             name = "💻 " + name; 
-            desc = "System utilities and environment control."; 
+            desc = "Internal settings, utilities, and fun commands."; 
             break;
         default:
             name = "🔹 " + name;
