@@ -95,9 +95,9 @@ export class SearchRenderer {
         };
 
         // Header
-        pushLine(lines, `  ${ANSI.bold}${ANSI.cyan}// SEARCH //${ANSI.reset}  ${ANSI.dim}type to filter, Esc to cancel${ANSI.reset}`);
-        pushLine(lines, `  ${ANSI.white}> ${ANSI.bold}${this.query}${ANSI.reset}${ANSI.cyan}_${ANSI.reset}`);
-        pushLine(lines, "");
+        writeWrapped(`  ${ANSI.bold}${ANSI.cyan}// SEARCH //${ANSI.reset}  ${ANSI.dim}type to filter, Esc to cancel${ANSI.reset}`);
+        writeWrapped(`  ${ANSI.white}> ${ANSI.bold}${this.query}${ANSI.reset}${ANSI.cyan}_${ANSI.reset}`);
+        writeWrapped("");
 
         if (!this.query) {
             writeWrapped(`  ${ANSI.dim}Start typing... e.g. ${ANSI.white}email${ANSI.dim}, ${ANSI.white}mx${ANSI.dim}, ${ANSI.white}ssl${ANSI.dim}, ${ANSI.white}dns${ANSI.reset}`);

@@ -138,7 +138,11 @@ function createWatcher() {
             const action = renderer.getActionAt(absY, x);
 
             if (btn === 35) { // hover
-                if (!this._searchMode && action !== this._renderer.hoveredAction) {
+                if (this._searchMode) {
+                    if (action && action !== this._searchRenderer.hoveredAction) {
+                        this._searchRenderer.update(this._searchQuery, action);
+                    }
+                } else if (action !== this._renderer.hoveredAction) {
                     this._renderer.draw(this._renderer.currentSection, action);
                 }
                 return null;
@@ -189,9 +193,28 @@ function createWatcher() {
             }
             if (isBack(e)) {
                 this._searchQuery = this._searchQuery.slice(0, -1);
-                this._searchRenderer.update(this._searchQuery);
+                this._searchRenderer.update(this._searchQuery, this._searchRenderer.hoveredAction);
                 return;
             }
+            if (isUp(e)) {
+                let idx = this._searchRenderer.hoveredAction ? parseInt(this._searchRenderer.hoveredAction) - 1 : 0;
+                idx = listUp(idx, this._searchRenderer.results.length);
+                this._searchRenderer.update(this._searchQuery, (idx + 1).toString());
+                return;
+            }
+            if (isDown(e)) {
+                let idx = this._searchRenderer.hoveredAction ? parseInt(this._searchRenderer.hoveredAction) - 1 : -1;
+                idx = listDown(idx, this._searchRenderer.results.length);
+                this._searchRenderer.update(this._searchQuery, (idx + 1).toString());
+                return;
+            }
+            if (isEnter(e)) {
+                const action = this._searchRenderer.hoveredAction || "1";
+                const cmd = this._searchRenderer.getResultCmd(action);
+                if (cmd) { this._searchMode = false; await showCommandDoc(cmd, term, this, doneCallback); }
+                return;
+            }
+
             const actionIdx = charToIndex(lower);
             if ((e >= "1" && e <= "9") || (actionIdx !== -1 && !isPrintable(e))) {
                 const cmd = this._searchRenderer.getResultCmd(lower);
@@ -200,7 +223,7 @@ function createWatcher() {
             }
             if (isPrintable(e)) {
                 this._searchQuery += e;
-                this._searchRenderer.update(this._searchQuery);
+                this._searchRenderer.update(this._searchQuery, null);
             }
         },
     };

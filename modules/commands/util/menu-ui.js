@@ -101,7 +101,7 @@ export class MenuRenderer {
         const range = cat.commands.length <= 9 ? `1-${lastVal}` : `1-9, a-${lastVal}`;
 
         // Page dots divider
-        const dots = buildPageDots(current, total, cols, ANSI);
+        const dots = buildPageDots(this.currentCategory + 1, CATEGORIES.length, cols, ANSI);
         writeFooterWrapped(`${ANSI.dim}${dots}${ANSI.reset}`);
         writeFooterWrapped(`  ${ANSI.dim}[menu] runs commands · [help] shows docs   ${ANSI.white}[/]${ANSI.dim} to search${ANSI.reset}`);
         writeFooterWrapped(`  ${ANSI.dim}← → navigate · Press ${range} or click to run.${ANSI.reset}`);
