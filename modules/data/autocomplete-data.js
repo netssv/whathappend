@@ -12,32 +12,27 @@
 // Autocomplete Data
 // ===================================================================
 
-export const AVAILABLE_COMMANDS = [
-    // DNS
-    "dig", "host", "nslookup", "ttl", "dnssec", "propagation",
-    "a", "aaaa", "mx", "txt", "ns", "cname", "soa", "map",
-    
-    // EMAIL
-    "email", "spf", "dmarc", "dkim", "deliverability",
-    
-    // WEB
-    "web", "curl", "openssl", "whois", "hosting", "history", "rank", "ping", "trace", "robots", "links", "wayback", "green", "cookies", "pixels", "socials", "stack", "minify", "load", "vitals", "security-txt", "fonts", "palette",
+import { HELP_SECTIONS } from "./help-data.js";
 
-    // AUDITS
-    "sec", "csp", "waf", "hsts", "headers-check", "comments", "cms", "malware", "extract",
+const commandSet = new Set();
+HELP_SECTIONS.forEach(sec => {
+    sec.cmds.forEach(cmdRow => {
+        // First word of command (e.g. "dns -a" -> "dns")
+        const cmdName = cmdRow[0].split(" ")[0];
+        commandSet.add(cmdName);
+        
+        // Add aliases
+        if (cmdRow[2]) {
+            cmdRow[2].split(" ").forEach(alias => {
+                if (alias && !alias.startsWith("-") && !alias.startsWith("<")) {
+                    commandSet.add(alias);
+                }
+            });
+        }
+    });
+});
 
-    // NETWORK
-    "isup", "jitter", "speedtest", "rev-dns", "port-scan", "ftp-check", "ip",
-
-    // EXTERNAL
-    "ext", "blacklist", "ssllabs", "securityheaders", "whois-ext",
-
-    // UTIL
-    "start", "switch", "export", "clip", "matrix", "coffee", "sudo", "dog", "hack", "signal", "target", "tabs", "reload", "config", "about", "info", "errors", "clear", "flush", "diff", "exit", "help", "useragent", "mobile", "throttle", "geo", "block", "edit", "fullscreen", "nav", "watch", "session",
-
-    // ALIASES
-    "dns", "record", "lookup", "mail", "http", "headers", "ssl", "cert", "tls", "domain", "reg", "registrar", "provider", "webhost", "crt", "ranking", "traffic", "latency", "redirect", "follow", "forwarding", "sitemap", "src", "archive", "tracking", "trackers", "pixel", "ads", "social", "tech", "wappalyzer", "techstack", "meta", "tags", "thaks", "opengraph", "a11y", "images", "jsonld", "structured", "microdata", "min", "assets", "perf", "timing", "performance", "pagespeed", "cwv", "web-vitals", "core-vitals", "sec-txt", "securitytxt", "marketing", "scan", "security", "xss", "firewall", "cdn-check", "strict", "secure-transport", "hcheck", "upcheck", "down", "downcheck", "status", "latency-test", "bandwidth", "nettest", "rdns", "ptr", "ports", "nmap", "portscan", "ftp", "myip", "public-ip", "bl", "rbl", "dnsbl", "ssltest", "sheaders", "icann", "run", "go", "begin", "analyze", "actual", "current", "here", "sw", "dump", "save", "report", "tablist", "close", "tab", "restart", "reboot", "settings", "set", "prefs", "telemetry", "error", "error-list", "cls", "reset", "clearcache", "clear-cache", "note", "memo", "annotation", "quit", "ls", "commands", "man", "copy", "clipboard", "rain", "break", "pomodoro", "su", "global", "resolve", "optimiza", "optimiza-mail", "perro", "mascota", "pet", "trivia", "quiz", "ua", "agent", "spoof", "mob", "responsive", "iphone", "slow", "lag", "network", "gps", "location", "spoof-geo", "ban", "deny", "drop", "typography", "type", "colors", "theme", "hidden", "wordpress", "fingerprint", "virus", "heuristics", "designmode", "modify", "scrape-emails", "contacts", "scrape-phones", "numbers", "journey", "flow", "dns-map", "path", "fs", "f11", "menu", "gui", "explorer", "monitor", "live", "netwatch"
-];
+export const AVAILABLE_COMMANDS = Array.from(commandSet);
 
 // Commands that accept a domain parameter (for auto-filling)
 export const DOMAIN_COMMANDS = [
