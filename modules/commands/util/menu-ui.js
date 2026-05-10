@@ -16,127 +16,105 @@ export class MenuRenderer {
         this.rowMap = {};
         this.currentCategory = -1;
         this.hoveredAction = null;
+        this.scrollTop = 0;
+    }
+
+    scroll(direction) {
+        if (direction === "up") this.scrollTop = Math.max(0, this.scrollTop - 3);
+        else if (direction === "down") this.scrollTop += 3;
+        this.draw(this.currentCategory, this.hoveredAction);
     }
 
     draw(categoryId, hoveredAction = null) {
+        if (categoryId !== this.currentCategory) this.scrollTop = 0; // Reset scroll on view change
         this.currentCategory = categoryId;
         this.hoveredAction = hoveredAction;
         this.rowMap = {};
         
-        let currentY = 1;
-        const cols = getTermCols() || 80;
+        const cols = this.term.cols || getTermCols() || 80;
+        const rows = this.term.rows || 24;
         
-        // We buffer the output to avoid flickering during hover redraws
-        let buffer = "\x1b[2J\x1b[3J\x1b[H";
+        const lines = [];
+        const footerLines = [];
 
+        const pushLine = (arr, str, action = null) => arr.push({ str, action });
+        
         const writeLine = (str, action = null) => {
             const stripped = stripAnsi(str);
+            if (stripped.length <= cols) return pushLine(lines, str, action);
             
             // Extract leading spaces to preserve indentation on wrapped lines
             const leadingSpacesMatch = stripped.match(/^(\s*)/);
-            const indentStr = leadingSpacesMatch ? leadingSpacesMatch[1] : "";
-            const indentLen = indentStr.length;
+            const indentLen = leadingSpacesMatch ? leadingSpacesMatch[1].length : 0;
             
-            if (stripped.length <= cols) {
-                if (action) this.rowMap[currentY] = action;
-                if (action && action === this.hoveredAction) {
-                    const padLen = Math.max(0, cols - 1 - stripped.length);
-                    const paddedStr = str + " ".repeat(padLen);
-                    const hoveredStr = paddedStr.replace(/\x1b\[0m/g, "\x1b[0m\x1b[7m");
-                    buffer += `\x1b[7m${hoveredStr}\x1b[27m\r\n`;
-                } else {
-                    buffer += `${str}\r\n`;
-                }
-                currentY += 1;
-                return;
-            }
-
-            let remainingRaw = str;
-            let firstLine = true;
+            let breakIdx = stripped.lastIndexOf(" ", cols);
+            if (breakIdx <= indentLen) breakIdx = cols; 
             
-            while (remainingRaw.length > 0) {
-                const availCols = firstLine ? cols : Math.max(10, cols - indentLen);
-                const rawStripped = stripAnsi(remainingRaw);
-                
-                if (rawStripped.length <= cols) {
-                    if (action) this.rowMap[currentY] = action;
-                    let out = firstLine ? remainingRaw : `${indentStr}${remainingRaw}`;
-                    if (action && action === this.hoveredAction) {
-                        const outStripped = stripAnsi(out);
-                        const padLen = Math.max(0, cols - 1 - outStripped.length);
-                        const paddedStr = out + " ".repeat(padLen);
-                        const hoveredStr = paddedStr.replace(/\x1b\[0m/g, "\x1b[0m\x1b[7m");
-                        buffer += `\x1b[7m${hoveredStr}\x1b[27m\r\n`;
-                    } else {
-                        buffer += `${out}\r\n`;
-                    }
-                    currentY += 1;
-                    break;
-                }
-                
-                let breakIdx = rawStripped.lastIndexOf(" ", cols);
-                if (breakIdx <= indentLen) breakIdx = cols; 
-                
-                let truncated = rawStripped.substring(0, cols - 3) + "...";
-                const colorMatch = str.match(/^(\s*\x1b\[[0-9;]*m)/);
-                if (colorMatch) truncated = colorMatch[1] + truncated.trimStart() + ANSI.reset;
-
-                if (action) this.rowMap[currentY] = action;
-                if (action && action === this.hoveredAction) {
-                    const truncStripped = stripAnsi(truncated);
-                    const padLen = Math.max(0, cols - 1 - truncStripped.length);
-                    const paddedStr = truncated + " ".repeat(padLen);
-                    const hoveredStr = paddedStr.replace(/\x1b\[0m/g, "\x1b[0m\x1b[7m");
-                    buffer += `\x1b[7m${hoveredStr}\x1b[27m\r\n`;
-                } else {
-                    buffer += `${truncated}\r\n`;
-                }
-                currentY += 1;
-                break;
-            }
+            let truncated = stripped.substring(0, cols - 3) + "...";
+            const colorMatch = str.match(/^(\s*\x1b\[[0-9;]*m)/);
+            if (colorMatch) truncated = colorMatch[1] + truncated.trimStart() + ANSI.reset;
+            
+            pushLine(lines, truncated, action);
         };
 
         const writeWrapped = (str, action = null) => {
             const stripped = stripAnsi(str);
-            const len = stripped.length;
-            let lines = Math.ceil(len / cols);
-            if (lines === 0) lines = 1;
-
-            if (action) {
-                for (let i = 0; i < lines; i++) {
-                    this.rowMap[currentY + i] = action;
+            if (stripped.length <= cols) return pushLine(lines, str, action);
+            
+            const leadingMatch = stripped.match(/^(\s*)/);
+            const indentStr = leadingMatch ? leadingMatch[1] : "";
+            const indentLen = indentStr.length;
+            
+            let currentLine = "";
+            let currentLen = 0;
+            let activeAnsi = "";
+            
+            const tokens = str.split(/(\s+|\x1b\[[0-9;]*m)/g).filter(Boolean);
+            
+            for (const token of tokens) {
+                if (token.startsWith('\x1b')) {
+                    if (token === '\x1b[0m') activeAnsi = "";
+                    else activeAnsi += token;
+                    currentLine += token;
+                } else if (token.match(/^\s+$/)) {
+                    if (currentLen === 0) {
+                        currentLine += token; currentLen += token.length;
+                    } else if (currentLen + token.length <= cols) {
+                        currentLine += token; currentLen += token.length;
+                    }
+                } else {
+                    if (currentLen + token.length > cols && currentLen > indentLen) {
+                        pushLine(lines, currentLine + (activeAnsi ? '\x1b[0m' : ''), action);
+                        currentLine = indentStr + activeAnsi + token;
+                        currentLen = indentLen + token.length;
+                    } else {
+                        currentLine += token;
+                        currentLen += token.length;
+                    }
                 }
             }
-
-            if (action && action === this.hoveredAction) {
-                const padLen = Math.max(0, cols - 1 - len);
-                const paddedStr = str + " ".repeat(padLen);
-                const hoveredStr = paddedStr.replace(/\x1b\[0m/g, "\x1b[0m\x1b[7m");
-                buffer += `\x1b[7m${hoveredStr}\x1b[27m\r\n`;
-            } else {
-                buffer += `${str}\r\n`;
-            }
-            currentY += lines;
+            if (currentLen > 0) pushLine(lines, currentLine + (activeAnsi ? '\x1b[0m' : ''), action);
         };
 
-        const writeBlank = () => writeLine("");
+        const writeBlank = () => pushLine(lines, "");
 
+        // --- Build Body ---
         if (this.currentCategory === -1) {
             writeLine(`  ${ANSI.bold}${ANSI.cyan}/// PLATFORM NAVIGATOR ///${ANSI.reset}  ${ANSI.dim}Main Menu${ANSI.reset}`);
             writeBlank();
-            writeLine(`  Welcome to WhatHappened. Select a category to explore commands:`);
+            writeLine(`  Select a category to explore commands:`);
             writeBlank();
 
             for (let i = 0; i < CATEGORIES.length; i++) {
                 const val = (i + 1).toString();
                 const title = `    ${ANSI.bold}[${val}]${ANSI.reset} ${ANSI.white}${CATEGORIES[i].name}${ANSI.reset}`;
                 writeLine(title, val);
-                writeLine(`        ${ANSI.dim}${CATEGORIES[i].desc}${ANSI.reset}`, val);
+                writeWrapped(`        ${ANSI.dim}${CATEGORIES[i].desc}${ANSI.reset}`, val);
             }
 
             writeBlank();
             
-            if (this.hoveredAction && this.hoveredAction !== "q" && this.hoveredAction !== "bq") {
+            if (this.hoveredAction && this.hoveredAction !== "quit" && this.hoveredAction !== "BACK_QUIT") {
                 const hovIdx = parseInt(this.hoveredAction) - 1;
                 if (hovIdx >= 0 && hovIdx < CATEGORIES.length) {
                     const cat = CATEGORIES[hovIdx];
@@ -149,8 +127,13 @@ export class MenuRenderer {
             }
             
             writeBlank();
-            writeLine(`  ${ANSI.dim}Press 1-${CATEGORIES.length} or click an option. ${ANSI.red}[Q]uit${ANSI.reset}`, "q");
-            writeLine(`  ${ANSI.dim}Tip: Press Ctrl+Shift+. anytime to toggle this panel.${ANSI.reset}`);
+            
+            // Build Footer
+            pushLine(footerLines, `  ${ANSI.dim}═══${ANSI.reset}`);
+            pushLine(footerLines, `  ${ANSI.dim}Tip: Press Ctrl+Shift+. anytime to toggle panel.${ANSI.reset}`);
+            pushLine(footerLines, `  ${ANSI.dim}Press 1-${CATEGORIES.length} or click.${ANSI.reset}`);
+            pushLine(footerLines, `  ${ANSI.red}[Q]uit${ANSI.reset}`, "quit");
+            
         } else {
             const cat = CATEGORIES[this.currentCategory];
             writeLine(`  ${ANSI.bold}${ANSI.cyan}/// ${cat.name.toUpperCase()} ///${ANSI.reset}`);
@@ -163,12 +146,9 @@ export class MenuRenderer {
             }
 
             writeBlank();
-            
-            // Submenu explanation
             writeWrapped(`  ${ANSI.dim}── ${cat.desc}${ANSI.reset}`);
             
-            // Extended command info on hover
-            if (this.hoveredAction && this.hoveredAction !== "b" && this.hoveredAction !== "q" && this.hoveredAction !== "bq") {
+            if (this.hoveredAction && this.hoveredAction !== "back" && this.hoveredAction !== "quit" && this.hoveredAction !== "BACK_QUIT") {
                 const hovIdx = (this.hoveredAction >= '1' && this.hoveredAction <= '9') 
                     ? parseInt(this.hoveredAction) - 1 
                     : this.hoveredAction.charCodeAt(0) - 97 + 9;
@@ -185,10 +165,71 @@ export class MenuRenderer {
             }
 
             writeBlank();
+            
+            // Build Footer
             const lastVal = cat.commands.length <= 9 ? cat.commands.length.toString() : String.fromCharCode(97 + cat.commands.length - 1 - 9);
             const range = cat.commands.length <= 9 ? `1-${lastVal}` : `1-9, a-${lastVal}`;
-            writeLine(`  ${ANSI.dim}Press ${range} or click to run. ${ANSI.yellow}[B]ack${ANSI.reset}  ${ANSI.red}[Q]uit${ANSI.reset}`, "bq");
+            
+            pushLine(footerLines, `  ${ANSI.dim}════════════════════════════${ANSI.reset}`);
+            pushLine(footerLines, `  ${ANSI.dim}Press ${range} or click to run.${ANSI.reset}`);
+            pushLine(footerLines, `  ${ANSI.yellow}[B]ack${ANSI.reset}      ${ANSI.red}[Q]uit${ANSI.reset}`, "BACK_QUIT");
         }
+
+        // --- Layout & Render ---
+        let buffer = "\x1b[2J\x1b[3J\x1b[H";
+        const availableRows = Math.max(5, rows - footerLines.length);
+        
+        this.scrollTop = Math.max(0, Math.min(this.scrollTop, lines.length - availableRows));
+        
+        let currentY = 1;
+        const visibleLines = lines.slice(this.scrollTop, this.scrollTop + availableRows);
+        
+        const renderBlock = (blockLines) => {
+            for (const {str, action} of blockLines) {
+                if (action) this.rowMap[currentY] = action;
+                
+                if (action === "BACK_QUIT" && (this.hoveredAction === "back" || this.hoveredAction === "quit")) {
+                    const backStr = `${ANSI.yellow}[B]ack${ANSI.reset}`;
+                    const quitStr = `${ANSI.red}[Q]uit${ANSI.reset}`;
+                    
+                    if (this.hoveredAction === "back") {
+                        buffer += `  \x1b[7m${backStr.replace(/\x1b\[0m/g, "\x1b[0m\x1b[7m")}\x1b[27m      ${quitStr}\r\n`;
+                    } else {
+                        buffer += `  ${backStr}      \x1b[7m${quitStr.replace(/\x1b\[0m/g, "\x1b[0m\x1b[7m")}\x1b[27m\r\n`;
+                    }
+                } else if (action && action === this.hoveredAction) {
+                    const stripped = stripAnsi(str);
+                    
+                    if (action === "quit") {
+                        // Invert the quit button string tightly without padding
+                        const match = str.match(/^(\s*)(.*)$/);
+                        if (match) {
+                            buffer += `${match[1]}\x1b[7m${match[2].replace(/\x1b\[0m/g, "\x1b[0m\x1b[7m")}\x1b[27m\r\n`;
+                        } else {
+                            buffer += `\x1b[7m${str.replace(/\x1b\[0m/g, "\x1b[0m\x1b[7m")}\x1b[27m\r\n`;
+                        }
+                    } else {
+                        // Standard invert highlight for full width menu items
+                        const padLen = Math.max(0, cols - 1 - stripped.length);
+                        const paddedStr = str + " ".repeat(padLen);
+                        buffer += `\x1b[7m${paddedStr.replace(/\x1b\[0m/g, "\x1b[0m\x1b[7m")}\x1b[27m\r\n`;
+                    }
+                } else {
+                    buffer += `${str}\r\n`;
+                }
+                currentY++;
+            }
+        };
+
+        renderBlock(visibleLines);
+        
+        // Pad empty space to push footer to bottom
+        while(currentY <= availableRows) {
+            buffer += "\r\n";
+            currentY++;
+        }
+        
+        renderBlock(footerLines);
 
         this.term.write(buffer);
     }
@@ -197,10 +238,15 @@ export class MenuRenderer {
         const action = this.rowMap[y];
         if (!action) return null;
         
-        // Handle split buttons on the same line
-        if (action === "bq") {
-            if (x < 50) return "b";
-            return "q";
+        // Exact 1-indexed hitboxes
+        if (action === "BACK_QUIT") {
+            if (x >= 2 && x <= 10) return "back";
+            if (x >= 13 && x <= 22) return "quit";
+            return null;
+        }
+        
+        if (action === "quit") {
+            return (x >= 2 && x <= 10) ? "quit" : null;
         }
         return action;
     }

@@ -47,6 +47,15 @@ export function cmdNavMenu() {
                                 return;
                             }
 
+                            if (btn === 64) {
+                                this._renderer.scroll("up");
+                                return;
+                            }
+                            if (btn === 65) {
+                                this._renderer.scroll("down");
+                                return;
+                            }
+
                             // Left click press
                             if (btn === 0 && isPress) {
                                 if (action) lower = action;
@@ -58,7 +67,7 @@ export function cmdNavMenu() {
                     }
 
                     // Quit
-                    if (lower === "q" || e === "\x03") {
+                    if (lower === "q" || lower === "quit" || e === "\x03") {
                         if (this.onDataDisposable) {
                             this.onDataDisposable.dispose();
                             this.onDataDisposable = null;

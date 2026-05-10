@@ -69,13 +69,22 @@ function createHelpWatcher() {
                                 }
                                 return;
                             }
+                            if (btn === 64) {
+                                this._renderer.scroll("up");
+                                return;
+                            }
+                            if (btn === 65) {
+                                this._renderer.scroll("down");
+                                return;
+                            }
+
                             if (btn === 0 && isPress) {
                                 if (action) lower = action; else return;
                             } else return;
                         }
                     }
 
-                    if (lower === "q" || e === "\x03") {
+                    if (lower === "q" || lower === "quit" || e === "\x03") {
                         this._dispose();
                         
                         // Clear the help TUI from the screen to prevent "dead UI" confusion
