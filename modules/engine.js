@@ -48,7 +48,7 @@ export async function executeCommand(input) {
     if (trimmed === "?") return cmdHelp();
     if (trimmed.endsWith("?")) {
         const target = trimmed.replace(/\s*\?\s*$/, "").trim().toLowerCase();
-        if (target) return cmdDetailedHelp(target, suggestCommand);
+        if (target) return await cmdDetailedHelp(target, suggestCommand);
         return cmdHelp();
     }
 

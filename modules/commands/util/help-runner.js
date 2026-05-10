@@ -27,7 +27,7 @@ export async function showCommandDoc(cmdName, term, watcher, doneCallback) {
     try {
         const { cmdDetailedHelp } = await import("./detailed-help.js");
         const { suggestCommand } = await import("../../core/parser.js");
-        const helpText = cmdDetailedHelp(cmdName.split(" ")[0].toLowerCase(), suggestCommand);
+        const helpText = await cmdDetailedHelp(cmdName.split(" ")[0].toLowerCase(), suggestCommand);
         if (helpText) term.write(`\n${helpText}\n`);
     } catch (err) {
         term.write(`\n${ANSI.red}[ERROR] ${err.message}${ANSI.reset}\n`);

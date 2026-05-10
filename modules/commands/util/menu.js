@@ -18,9 +18,10 @@
 import { CATEGORIES } from "../../data/menu-data.js";
 import { MenuRenderer } from "./menu-ui.js";
 import { SearchRenderer } from "./search-ui.js";
+import { handleSearchInput, handleSearchMouseHover } from "./search-controller.js";
 import {
     parseSgrMouse, isQuit, isLeft, isRight, isUp, isDown,
-    isEnter, isSearch, isEsc, isBack, isPrintable,
+    isEnter, isSearch, isPrintable,
     charToIndex, idxToKey, carouselPrev, carouselNext, listUp, listDown,
 } from "./menu-input.js";
 import { runCommand, quit, enableHoverMouse, disposeInput } from "./menu-runner.js";
@@ -38,8 +39,7 @@ function createWatcher() {
         _subWatcher: null,
         _renderer: null,
         _searchRenderer: null,
-        _searchMode: false,
-        _searchQuery: "",
+        _searchState: { mode: false, query: "" },
         _hoveredIdx: -1,
         _mouseEnabled: false,
         clearOnExit: true,
@@ -49,11 +49,9 @@ function createWatcher() {
         start(term, doneCallback) {
             this._renderer        = new MenuRenderer(term);
             this._searchRenderer  = new SearchRenderer(term);
-            this._searchMode      = false;
-            this._searchQuery     = "";
+            this._searchState     = { mode: false, query: "" };
             this._hoveredIdx      = -1;
             this._renderer.draw(0);
-
             enableHoverMouse(term);
             this._mouseEnabled = true;
             this.onDataDisposable = term.onData((e) => this._onData(e, term, doneCallback));
@@ -81,8 +79,16 @@ function createWatcher() {
             // 2. Global quit
             if (isQuit(e, lower)) { quit(term, this, doneCallback); return; }
 
-            // 3. Search mode
-            if (this._searchMode) { await this._handleSearch(e, lower, term, doneCallback); return; }
+            // 3. Search mode — delegate entirely to shared controller
+            if (this._searchState.mode) {
+                await handleSearchInput(e, lower, term, doneCallback, {
+                    state: this._searchState,
+                    searchRenderer: this._searchRenderer,
+                    mainRenderer: this._renderer,
+                    onExecute: (cmd, t, cb) => runCommand(cmd, t, this, cb),
+                });
+                return;
+            }
 
             // 4. Carousel ← →
             if (isLeft(e, lower))  { this._carouselNav(carouselPrev(this._renderer.currentCategory, CATEGORIES.length), term); return; }
@@ -100,7 +106,7 @@ function createWatcher() {
             }
 
             // 7. [/] or [?] → activate search
-            if (isSearch(e)) { this._activateSearch(term); return; }
+            if (isSearch(e)) { this._activateSearch(); return; }
 
             // 8. Number key (1-9) or click → run command directly
             //    Any other printable char → activate search pre-seeded with that char
@@ -111,23 +117,19 @@ function createWatcher() {
                     await runCommand(cat.commands[actionIdx].cmd, term, this, doneCallback);
                 }
             } else if (isPrintable(e) && e !== "q") {
-                this._searchMode  = true;
-                this._searchQuery = e;
-                this._searchRenderer.update(e);
+                this._activateSearch(e);
             }
         },
 
         // ── Mouse Handler ─────────────────────────────────────────────
 
         _handleMouse({ btn, x, absY, isPress }, term, lower) {
-            const renderer = this._searchMode ? this._searchRenderer : this._renderer;
+            const renderer = this._searchState.mode ? this._searchRenderer : this._renderer;
             const action = renderer.getActionAt(absY, x);
 
             if (btn === 35) { // hover
-                if (this._searchMode) {
-                    if (action && action !== this._searchRenderer.hoveredAction) {
-                        this._searchRenderer.update(this._searchQuery, action);
-                    }
+                if (this._searchState.mode) {
+                    handleSearchMouseHover(action, this._searchRenderer, this._searchState);
                 } else if (action !== this._renderer.hoveredAction) {
                     this._renderer.draw(this._renderer.currentCategory, action);
                 }
@@ -155,52 +157,10 @@ function createWatcher() {
 
         // ── Search ────────────────────────────────────────────────────
 
-        _activateSearch(term) {
-            this._searchMode  = true;
-            this._searchQuery = "";
-            this._searchRenderer.update("");
-        },
-
-        async _handleSearch(e, lower, term, doneCallback) {
-            if (isEsc(e) || (isBack(e) && this._searchQuery.length === 0)) {
-                this._searchMode = false;
-                this._renderer.draw(this._renderer.currentCategory);
-                return;
-            }
-            if (isBack(e)) {
-                this._searchQuery = this._searchQuery.slice(0, -1);
-                this._searchRenderer.update(this._searchQuery, this._searchRenderer.hoveredAction);
-                return;
-            }
-            if (isUp(e)) {
-                let idx = this._searchRenderer.hoveredAction ? parseInt(this._searchRenderer.hoveredAction) - 1 : 0;
-                idx = listUp(idx, this._searchRenderer.results.length);
-                this._searchRenderer.update(this._searchQuery, (idx + 1).toString());
-                return;
-            }
-            if (isDown(e)) {
-                let idx = this._searchRenderer.hoveredAction ? parseInt(this._searchRenderer.hoveredAction) - 1 : -1;
-                idx = listDown(idx, this._searchRenderer.results.length);
-                this._searchRenderer.update(this._searchQuery, (idx + 1).toString());
-                return;
-            }
-            if (isEnter(e)) {
-                const action = this._searchRenderer.hoveredAction || "1";
-                const cmd = this._searchRenderer.getResultCmd(action);
-                if (cmd) { this._searchMode = false; await runCommand(cmd, term, this, doneCallback); }
-                return;
-            }
-
-            const actionIdx = charToIndex(lower);
-            if ((e >= "1" && e <= "9") || (actionIdx !== -1 && !isPrintable(e))) {
-                const cmd = this._searchRenderer.getResultCmd(lower);
-                if (cmd) { this._searchMode = false; await runCommand(cmd, term, this, doneCallback); }
-                return;
-            }
-            if (isPrintable(e)) {
-                this._searchQuery += e;
-                this._searchRenderer.update(this._searchQuery, null);
-            }
+        _activateSearch(seed = "") {
+            this._searchState.mode  = true;
+            this._searchState.query = seed;
+            this._searchRenderer.update(seed);
         },
     };
 }
