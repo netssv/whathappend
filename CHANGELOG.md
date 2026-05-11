@@ -2,7 +2,8 @@
 
 To keep this document easily searchable, the history has been fragmented into the wiki.
 
-- [✨ Latest Updates (v2.9.x)](docs/changelog/latest.md)
+- [✨ Latest Updates (v3.0.0)](docs/changelog/latest.md)
+- [🕰 Archive v2.9.x](docs/changelog/archive-v2.9.md)
 - [🕰 Archive v2.8.x](docs/changelog/archive-v2.8.md)
 - [🕰 Archive v2.7.x](docs/changelog/archive-v2.7.md)
 - [🕰 Archive v2.x](docs/changelog/archive-v2.md)

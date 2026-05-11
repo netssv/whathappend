@@ -1,6 +1,6 @@
 # WhatHappened
 
-**The terminal you always wanted in your browser side panel.** *(Current Version: v2.9.1)*
+**The terminal you always wanted in your browser side panel.** *(Current Version: v3.0.0)*
 
 Ever find yourself jumping between 10 different tabs just to check a DNS record, see why an SSL certificate is acting up, or figure out who is actually hosting a site? We were tired of that too. So we built **WhatHappened**.
 

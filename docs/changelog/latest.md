@@ -15,33 +15,24 @@ If you are extending the terminal or adding new commands, you MUST verify the fo
 7. `modules/commands/.../index.js`: Ensure your function is exported from its domain folder.
 8. `dev-lint.js`: Run this script to verify your code respects the 200-line ceiling and subcommand conventions.
 
-## [2.9.1] - 2026-05-10
+## [3.0.0] - 2026-05-11
 
-**The "Power User Experience & TUI Refinement" Update**
-
-### What's New?
-
-- **Help Documentation on Steroids**: Massive refactor of the `detailed-help.js` module. Command documentation now features a structured, professional layout with sections for Description, Syntax, Aliases, and detailed Use Cases.
-- **Enhanced Paused Navigation**: Command results and documentation views now support native scrolling via mouse wheel and keyboard arrows (Up/Down/PageUp/PageDown) without accidentally returning to the menu.
-- **Unified Column Architecture**: Transitioned all TUI grid layouts to a single-column architecture for improved visual consistency and a cleaner aesthetic, regardless of terminal width.
-
-### Fixes & Refinement
-
-- **Input Dispatcher Fixes**: Resolved a critical bug where mouse clicks on navigation numbers weren't correctly detected.
-- **Screen Clearing Logic**: Improved the transition between the help menu and detailed documentation by ensuring a full screen wipe to prevent UI artifacts.
-- **Audit Formatting**: Corrected a missing newline in the SEO audit module that caused insights to overlap with execution telemetry.
-
-## [2.9.0] - 2026-05-10
-
-**The "Future-Proofing & Modularization" Update**
+**The "Documentation Standardization & TUI Stability" Milestone**
 
 ### What's New?
 
-- **Core Infrastructure Initialization**: Established the foundations for the v2.9 cycle, focusing on modular architecture and performance optimizations.
-- **Changelog Fragmentation**: Successfully migrated v2.8 history to the wiki archive to maintain documentation searchability and performance.
+- **100% Documentation Standardization**: Every command in the terminal suite now follows a professional "WHAT IS IT?" / "REAL USE CASES" format, automatically styled with bold white headers for maximum readability.
+- **Architectural Modularization**: To maintain high performance and clean code standards, the documentation registry has been split into 10+ theme-specific modules, each strictly adhering to the <200 line-per-file constraint.
+- **Native Scrolling Experience**: The help system now uses native terminal scrolling, allowing users to leverage trackpads, mouse wheels, and scrollbars to view long documentation without losing the top-level command headers.
+- **Dynamic Header Rendering**: Refactored the help renderer to automatically detect and style section headers, reducing technical debt and ensuring consistency across all future command modules.
 
 ### Fixes & Refinement
 
-- **Documentation Synchronization**: Updated the global changelog index and manifest versioning for the new development branch.
+- **Xterm.js Scrollback Fix**: Resolved a critical issue where clearing the scrollback buffer (`\x1b[3J`) caused long help text to be truncated.
+- **Word-Wrap Precision**: Enhanced the wrapping engine to prevent breaking words (e.g., "switch" into "switc-h") in command examples and descriptions, ensuring a smooth read on narrow side-panel displays.
+- **Dispatcher Reliability**: Optimized the lazy-loading dispatcher to handle compound commands and aliases more robustly during help lookup.
+
+---
+*Looking for older updates?* [View v2.9 Archive](./archive-v2.9.md) | [View v2.8 Archive](./archive-v2.8.md)
 
 [⬅ Return to Home](../../README.md)
