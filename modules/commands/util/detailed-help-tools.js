@@ -1,8 +1,7 @@
 /**
  * @module modules/commands/util/detailed-help-tools.js
  * @description Help entries for core session and workflow utility commands.
- *              (start, target, switch, config, info, tabs, flush, edit,
- *               audit, ext, export, clip, errors)
+ *              (start, target, switch, config, info, tabs, flush, edit)
  *
  * @connections
  * - Imports: formatHelp from './detailed-help.js'
@@ -17,13 +16,14 @@ export const TOOLS_HELP = {
         "Quick-start progressive analysis of the active tab.",
         "",
         "WHAT IS IT?",
-        "  Without arguments, auto-detects the current browser tab domain",
-        "  and runs a sequential triage: DNS, HTTP, SSL, and security headers.",
-        "  With a domain, sets it as the target and begins immediately.",
+        "  Without arguments, auto-detects the current browser tab domain and",
+        "  runs a sequential triage: DNS resolution, HTTP response, SSL cert,",
+        "  and security headers. With a domain, sets it as target immediately.",
         "",
         "REAL USE CASES:",
         "  - Open any website and run 'start' for an instant infrastructure audit.",
         "  - Pass a domain to analyze without navigating to the site first.",
+        "  - Use as a first step before running individual diagnostic commands.",
     ], aliases: "run, go, begin, analyze", examples: [
         { cmd: "start",            desc: "Analyze the active tab" },
         { cmd: "start google.com", desc: "Set target and analyze" },
@@ -31,7 +31,15 @@ export const TOOLS_HELP = {
 
     target: () => formatHelp({ name: "target", syntax: "[domain|auto]", descLines: [
         "Set or display the active target domain.",
-        "All subsequent commands that accept a domain use this as default.",
+        "",
+        "WHAT IS IT?",
+        "  Sets a persistent target domain for the session. All subsequent",
+        "  commands that accept a domain will use this as their default input.",
+        "",
+        "REAL USE CASES:",
+        "  - Set once at the start of an audit session to avoid retyping the domain.",
+        "  - Use 'target auto' to reset to the current browser tab URL.",
+        "  - Run 'target' with no args to confirm which domain is active.",
     ], aliases: null, examples: [
         { cmd: "target example.com", desc: "Set target" },
         { cmd: "target",             desc: "Show current target" },
@@ -40,8 +48,15 @@ export const TOOLS_HELP = {
 
     switch: () => formatHelp({ name: "switch", syntax: "", descLines: [
         "Re-sync the terminal target to the currently active browser tab.",
-        "Use this when the automatic tab-switch notification was dismissed",
-        "or did not appear after switching tabs.",
+        "",
+        "WHAT IS IT?",
+        "  Reads the URL of the currently focused browser tab and sets it as",
+        "  the active target. Use this when automatic tab detection fails.",
+        "",
+        "REAL USE CASES:",
+        "  - Re-sync after the automatic tab-switch notification was dismissed.",
+        "  - Use after opening a new tab that was not detected automatically.",
+        "  - Quickly switch context when auditing multiple sites.",
     ], aliases: "actual, current, here, sw", examples: [
         { cmd: "switch", desc: "Adopt active tab as target" },
     ] }),
@@ -49,94 +64,89 @@ export const TOOLS_HELP = {
     config: () => formatHelp({ name: "config", syntax: "[key] [value]", descLines: [
         "View and modify user preferences (stored locally, zero-cloud).",
         "",
+        "WHAT IS IT?",
+        "  All settings are persisted via chrome.storage.local — nothing leaves",
+        "  the browser. Changes take effect immediately without a reload.",
+        "",
         "  timeout       Request timeout in milliseconds (max 10000).",
-        "  auto-triage   Run triage automatically on tab switch (on/off).",
+        "  auto-triage   Automatically run triage on tab switch (on/off).",
         "  expert-mode   Show raw technical output instead of summaries (on/off).",
-        "  reset         Restore all settings to their defaults.",
+        "  reset         Restore all settings to their factory defaults.",
     ], aliases: "settings, set, prefs", examples: [
-        { cmd: "config",                 desc: "Show all settings" },
-        { cmd: "config timeout 5000",    desc: "Set 5-second timeout" },
-        { cmd: "config auto-triage off", desc: "Disable auto-triage" },
-        { cmd: "config reset",           desc: "Restore defaults" },
+        { cmd: "config",                 desc: "Show all current settings" },
+        { cmd: "config timeout 5000",    desc: "Set 5-second request timeout" },
+        { cmd: "config auto-triage off", desc: "Disable auto-triage on tab switch" },
+        { cmd: "config reset",           desc: "Restore factory defaults" },
     ] }),
 
     info: () => formatHelp({ name: "info", syntax: "", descLines: [
         "System diagnostics and local telemetry.",
-        "Shows extension version, Native Host connection status,",
-        "browser engine, and current session command count.",
+        "",
+        "WHAT IS IT?",
+        "  Displays the current state of the extension: version, Native Host",
+        "  connection status, active browser engine, and session command count.",
+        "",
+        "REAL USE CASES:",
+        "  - Confirm the extension version before filing a bug report.",
+        "  - Verify the Native Host is connected (required for sudo commands).",
+        "  - Check session command count for usage or compliance reporting.",
     ], aliases: "telemetry, status", examples: [{ cmd: "info" }] }),
 
     tabs: () => formatHelp({ name: "tabs", syntax: "[action]", descLines: [
-        "Browser tab management.",
+        "Browser tab management suite.",
         "",
-        "  list    Show all open tabs with title and URL.",
-        "  diag    Scan tabs for memory and performance issues.",
-        "  close   Close tabs matching a keyword (e.g. tabs close github).",
-        "  flush   Clear cookies and cache for a specific tab.",
-        "  watch   Live-monitor a tab's network activity.",
+        "WHAT IS IT?",
+        "  A unified interface for inspecting and controlling all open browser",
+        "  tabs directly from the terminal.",
+        "",
+        "  list          Show all open tabs with title and URL.",
+        "  diag          Scan all tabs for memory and performance issues.",
+        "  close <term>  Close tabs whose title or URL matches the keyword.",
+        "  flush <#>     Clear cookies and cache for the tab at index #.",
+        "  watch <#>     Live-monitor the network activity of a specific tab.",
+        "  info <#>      Show detailed info for the tab at index #.",
+        "",
+        "REAL USE CASES:",
+        "  - Use 'tabs diag' to find tabs consuming excessive memory.",
+        "  - Close all staging tabs at once: tabs close staging.",
+        "  - Flush a single tab's cache without affecting other origins.",
     ], aliases: "tab, tablist", examples: [
         { cmd: "tabs list" },
         { cmd: "tabs diag" },
         { cmd: "tabs close github", desc: "Close all GitHub tabs" },
-        { cmd: "tabs flush 1",      desc: "Flush tab #1 cookies" },
+        { cmd: "tabs flush 1",      desc: "Flush cache for tab #1" },
     ] }),
 
     flush: () => formatHelp({ name: "flush", syntax: "<domain>", descLines: [
-        "Clear cookies and cache for a specific domain origin.",
-        "Uses chrome.browsingData scoped to the exact origin for safety.",
-        "Requires an explicit domain — does not default to the active target.",
+        "Clear cookies and browser cache for a specific domain origin.",
+        "",
+        "WHAT IS IT?",
+        "  Uses chrome.browsingData scoped to the exact origin, so only the",
+        "  target domain is affected. Requires an explicit domain argument.",
+        "",
+        "REAL USE CASES:",
+        "  - Force a fresh page load after deploying a new release.",
+        "  - Clear a stale session cookie causing a login loop.",
+        "  - Reset cached assets during front-end debugging.",
+        "  - Test first-visit behavior (cookie banners, onboarding flows).",
     ], aliases: "clearcache, clear-cache", examples: [
         { cmd: "flush example.com" },
     ] }),
 
     edit: () => formatHelp({ name: "edit", syntax: "[--test]", descLines: [
         "Toggle Live Design Mode on the active tab.",
-        "Enables document.designMode so you can click anywhere and type",
-        "to modify text content visually. Use --test to check without toggling.",
+        "",
+        "WHAT IS IT?",
+        "  Enables document.designMode on the page, allowing you to click",
+        "  anywhere and type to modify visible text content directly in the browser.",
+        "",
+        "REAL USE CASES:",
+        "  - Create quick mockups by editing copy directly on a live page.",
+        "  - Take edited screenshots for presentations without a design tool.",
+        "  - Demonstrate content changes to a client in real time.",
+        "  - Use --test to verify the page supports editability before toggling.",
     ], aliases: "designmode, modify", examples: [
         { cmd: "edit" },
         { cmd: "edit --test" },
     ] }),
-
-    audit: () => formatHelp({ name: "audit", syntax: "[domain]", descLines: [
-        "Marketing audit suite.",
-        "Runs SEO, Open Graph, accessibility (alt tags), and",
-        "schema structured data checks sequentially in one command.",
-    ], aliases: "marketing", examples: [{ cmd: "audit google.com" }] }),
-
-    ext: () => formatHelp({ name: "ext", syntax: "<ssl|bl|headers|whois> [domain]", descLines: [
-        "External tool link generator.",
-        "Opens industry-standard external analysis tools for a given domain.",
-        "Supported: ssl (SSL Labs), bl (MXToolBox), headers, whois (ICANN).",
-    ], aliases: "-", examples: [
-        { cmd: "ext ssl google.com" },
-        { cmd: "ext bl google.com", desc: "Blacklist check" },
-    ] }),
-
-    "export": () => formatHelp({ name: "export", syntax: "[json|csv]", descLines: [
-        "Export the terminal session to a shareable file.",
-        "Saves all commands and their output as a structured report.",
-    ], aliases: "dump, report, save", examples: [
-        { cmd: "export json" },
-        { cmd: "export csv" },
-    ] }),
-
-    clip: () => formatHelp({ name: "clip", syntax: "[domain|target]", descLines: [
-        "Copy the session to clipboard as formatted Markdown.",
-        "",
-        "  No argument:      Copy the full session.",
-        "  clip target:      Copy only entries for the active target domain.",
-        "  clip example.com: Filter by a specific domain.",
-        "",
-        "Ready to paste into Jira, Slack, Notion, or email.",
-    ], aliases: "copy, clipboard", examples: [
-        { cmd: "clip",            desc: "Full session" },
-        { cmd: "clip target",     desc: "Active target only" },
-        { cmd: "clip google.com", desc: "Filter by domain" },
-    ] }),
-
-    errors: () => formatHelp({ name: "errors", syntax: "", descLines: [
-        "Error and diagnostic insight reference guide.",
-        "Lists common network and DNS errors with explanations and fixes.",
-    ], aliases: "error, error-list", examples: [{ cmd: "errors" }] }),
 };

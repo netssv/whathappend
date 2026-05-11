@@ -1,8 +1,7 @@
 /**
  * @module modules/commands/util/detailed-help-web.js
- * @description Help entries for web content, SEO, and page inspection commands.
- *              (web, robots, links, pixels, socials, seo, og, alt, schema,
- *               minify, stack, vitals, cms, fonts, palette, comments, emails, phones)
+ * @description Help entries for web health, SEO, and content analysis commands.
+ *              (web, robots, links, pixels, socials, seo, og, alt, schema, minify, stack)
  *
  * @connections
  * - Imports: formatHelp from './detailed-help.js'
@@ -15,13 +14,29 @@ import { formatHelp } from "./detailed-help.js";
 export const WEB_HELP = {
     web: () => formatHelp({ name: "web", syntax: "[domain]", descLines: [
         "General website health check.",
-        "Combines IP resolution (A record), HTTP server response,",
-        "and SSL/TLS certificate validation into one sequential audit.",
+        "",
+        "WHAT IS IT?",
+        "  Runs a sequential 3-part audit: A record resolution, HTTP response",
+        "  headers and status code, and SSL/TLS certificate validation.",
+        "",
+        "REAL USE CASES:",
+        "  - Run as the first check on any new domain to get a baseline.",
+        "  - Confirm a migrated site is reachable, secure, and responding.",
+        "  - Detect mismatches between expected and actual server IPs.",
     ], aliases: "audit", examples: [{ cmd: "web google.com" }] }),
 
     robots: () => formatHelp({ name: "robots", syntax: "[domain]", descLines: [
-        "Parse robots.txt for SEO directives.",
-        "Detects blocked paths, missing sitemaps, and syntax errors.",
+        "Parse and analyze the robots.txt file for SEO directives.",
+        "",
+        "WHAT IS IT?",
+        "  Fetches and parses /robots.txt, checking for Disallow rules, sitemap",
+        "  declarations, crawl-delay, and syntax errors.",
+        "",
+        "REAL USE CASES:",
+        "  - Confirm critical pages are not accidentally blocked from crawlers.",
+        "  - Find a Sitemap: URL declaration for quick sitemap access.",
+        "  - Detect a Disallow: / rule that blocks all crawlers (site-wide).",
+        "  - Audit after a migration to ensure no paths were unintentionally blocked.",
     ], aliases: "sitemap", examples: [
         { cmd: "robots google.com" },
         { cmd: "sitemap", desc: "Active tab" },
@@ -30,33 +45,55 @@ export const WEB_HELP = {
     links: () => formatHelp({ name: "links", syntax: "", descLines: [
         "Mixed content and link scanner (active tab).",
         "",
+        "WHAT IS IT?",
+        "  Scans all hyperlinks and asset sources in the DOM, flagging insecure",
+        "  http:// resources on an HTTPS page (mixed content violations).",
+        "",
         "REAL USE CASES:",
-        "  - Find all insecure http:// assets on an HTTPS page.",
-        "  - Audit external link destinations before publication.",
-        "  - Locate broken or relative links that would cause 404 errors.",
+        "  - Find all insecure http:// assets that browsers will block.",
+        "  - Audit external link destinations for redirect chains or 404s.",
+        "  - Locate broken or malformed links before publication.",
     ], aliases: "src", examples: [{ cmd: "links", desc: "Active tab only" }] }),
 
     pixels: () => formatHelp({ name: "pixels", syntax: "[domain]", descLines: [
         "Marketing and tracking pixel detector.",
         "",
+        "WHAT IS IT?",
+        "  Analyzes network requests and DOM scripts to fingerprint installed",
+        "  tracking and analytics platforms across 20+ known providers.",
+        "",
         "REAL USE CASES:",
-        "  - Confirm Meta Pixel and Google Analytics are installed correctly.",
-        "  - Audit a site for unauthorized trackers added post-launch.",
-        "  - Detects 20+ platforms: Meta, GA4, LinkedIn, TikTok, Hotjar, and more.",
+        "  - Confirm Meta Pixel and GA4 are installed and firing correctly.",
+        "  - Audit for unauthorized trackers added by a third party.",
+        "  - Produce a tracker inventory for a GDPR compliance review.",
+        "  - Detect duplicate or conflicting analytics installations.",
     ], aliases: "tracking, trackers, ads", examples: [{ cmd: "pixels shopify.com" }] }),
 
     socials: () => formatHelp({ name: "socials", syntax: "[domain]", descLines: [
         "Social media presence detector.",
-        "Scans the page HTML for links to Facebook, Twitter/X, Instagram, LinkedIn.",
+        "",
+        "WHAT IS IT?",
+        "  Scans page HTML for links to major social platforms and extracts",
+        "  the account handles or profile URLs for each found network.",
+        "",
+        "REAL USE CASES:",
+        "  - Quickly map a brand's social footprint from their website.",
+        "  - Verify all expected social links are present before a launch.",
+        "  - Audit competitor social presence as part of market research.",
     ], aliases: "social", examples: [{ cmd: "socials google.com" }] }),
 
     seo: () => formatHelp({ name: "seo", syntax: "[domain]", descLines: [
         "Baseline SEO tag audit.",
         "",
+        "WHAT IS IT?",
+        "  Checks the core on-page SEO elements: title tag length, meta description",
+        "  presence and length, canonical URL, and heading tag hierarchy.",
+        "",
         "REAL USE CASES:",
-        "  - Check title length (50-60 chars) and meta description presence.",
-        "  - Verify heading hierarchy: single H1, logical H2/H3 structure.",
-        "  - Catch duplicate or missing meta tags before a site launch.",
+        "  - Verify title is 50-60 characters before a page goes live.",
+        "  - Detect duplicate or missing meta descriptions across key pages.",
+        "  - Confirm exactly one H1 exists with proper H2/H3 structure below it.",
+        "  - Catch missing canonical tags that cause duplicate content issues.",
     ], aliases: "meta, tags", examples: [
         { cmd: "seo google.com" },
         { cmd: "seo", desc: "Active tab" },
@@ -64,17 +101,32 @@ export const WEB_HELP = {
 
     og: () => formatHelp({ name: "og", syntax: "[domain]", descLines: [
         "Open Graph and social card preview scanner.",
-        "Checks og:title, og:image, og:description, and twitter:card",
-        "to ensure links render correctly when shared on social platforms.",
-    ], aliases: "thaks, opengraph, cards", examples: [
+        "",
+        "WHAT IS IT?",
+        "  Reads og:title, og:image, og:description, twitter:card, and related",
+        "  meta tags that control how links render when shared on social media.",
+        "",
+        "REAL USE CASES:",
+        "  - Verify a page shows the correct image and title on LinkedIn.",
+        "  - Detect missing og:image that causes a blank preview on Facebook.",
+        "  - Confirm twitter:card is set to summary_large_image for better CTR.",
+        "  - Run before a campaign launch to guarantee social previews are correct.",
+    ], aliases: "opengraph, cards", examples: [
         { cmd: "og example.com" },
         { cmd: "og", desc: "Active tab" },
     ] }),
 
     alt: () => formatHelp({ name: "alt", syntax: "[domain]", descLines: [
         "Image accessibility scanner.",
-        "Checks all <img> tags for missing or empty alt attributes.",
-        "Required for WCAG 2.1 AA compliance.",
+        "",
+        "WHAT IS IT?",
+        "  Scans all img elements in the DOM and reports those missing the alt",
+        "  attribute or using empty alt values on meaningful images.",
+        "",
+        "REAL USE CASES:",
+        "  - Required for WCAG 2.1 Level AA compliance.",
+        "  - Detect missing alt text that causes image SEO signal loss.",
+        "  - Audit before a public sector or government site submission.",
     ], aliases: "images, a11y", examples: [
         { cmd: "alt example.com" },
         { cmd: "alt", desc: "Active tab" },
@@ -82,7 +134,15 @@ export const WEB_HELP = {
 
     schema: () => formatHelp({ name: "schema", syntax: "[domain]", descLines: [
         "Structured data scanner (JSON-LD and Microdata).",
-        "Extracts and validates schema.org markup used for rich results in search.",
+        "",
+        "WHAT IS IT?",
+        "  Extracts schema.org markup from the page — the metadata that powers",
+        "  Google rich results (star ratings, FAQs, breadcrumbs, events).",
+        "",
+        "REAL USE CASES:",
+        "  - Verify product schema is present for e-commerce rich results.",
+        "  - Detect malformed JSON-LD that would fail Google's validation.",
+        "  - Find missing FAQ schema on support or landing pages.",
     ], aliases: "structured, jsonld, microdata", examples: [
         { cmd: "schema google.com" },
         { cmd: "schema", desc: "Active tab" },
@@ -90,8 +150,15 @@ export const WEB_HELP = {
 
     minify: () => formatHelp({ name: "minify", syntax: "[domain]", descLines: [
         "Asset minification audit.",
-        "Scans DOM script and link tags for .js and .css files",
-        "that are missing the .min suffix, indicating uncompressed assets.",
+        "",
+        "WHAT IS IT?",
+        "  Scans script and link tags for .js and .css file references, flagging",
+        "  files missing the .min suffix as potentially uncompressed assets.",
+        "",
+        "REAL USE CASES:",
+        "  - Identify development builds deployed to production by mistake.",
+        "  - Estimate bandwidth waste from unminified assets at scale.",
+        "  - Confirm a build pipeline is outputting minified bundles correctly.",
     ], aliases: "min, assets", examples: [
         { cmd: "minify google.com" },
         { cmd: "minify", desc: "Active tab" },
@@ -100,72 +167,14 @@ export const WEB_HELP = {
     stack: () => formatHelp({ name: "stack", syntax: "[domain]", descLines: [
         "Technology stack fingerprinting.",
         "",
+        "WHAT IS IT?",
+        "  Identifies the CMS, JavaScript framework, server software, analytics,",
+        "  and CDN provider by analyzing HTTP headers, HTML meta tags, and DOM.",
+        "",
         "REAL USE CASES:",
-        "  - Identify the CMS (WordPress, Shopify, Webflow) from headers and meta.",
-        "  - Detect JavaScript frameworks (React, Vue, Angular, Next.js).",
-        "  - Find server software and CDN provider for infrastructure analysis.",
+        "  - Identify the CMS (WordPress, Shopify, Webflow) before a migration.",
+        "  - Detect JavaScript frameworks (React, Vue, Angular, Next.js) in use.",
+        "  - Research a competitor's technology choices for benchmarking.",
+        "  - Use as first step in a security assessment to narrow attack surface.",
     ], aliases: "tech, cms, wappalyzer, techstack", examples: [{ cmd: "stack google.com" }] }),
-
-    vitals: () => formatHelp({ name: "vitals", syntax: "", descLines: [
-        "Core Web Vitals scorecard (active tab).",
-        "",
-        "REAL USE CASES:",
-        "  - Grade LCP (load), CLS (layout shift), and INP (interaction).",
-        "  - Compare performance before and after a code change.",
-        "  - Combine with throttle to simulate slow-connection vitals.",
-    ], aliases: "cwv, web-vitals, core-vitals", examples: [
-        { cmd: "vitals", desc: "Active tab" },
-    ] }),
-
-    cms: () => formatHelp({ name: "cms", syntax: "[--test]", descLines: [
-        "CMS and plugin fingerprinting (active tab).",
-        "Analyzes DOM, meta tags, and asset paths to identify the CMS,",
-        "its version, and installed plugins.",
-    ], aliases: "wordpress, fingerprint", examples: [
-        { cmd: "cms" },
-        { cmd: "cms --test" },
-    ] }),
-
-    fonts: () => formatHelp({ name: "fonts", syntax: "[--test]", descLines: [
-        "List all web fonts loaded by the active tab.",
-        "Evaluates document.fonts and parses CSS to enumerate font families.",
-    ], aliases: "typography, type", examples: [
-        { cmd: "fonts" },
-        { cmd: "fonts --test" },
-    ] }),
-
-    palette: () => formatHelp({ name: "palette", syntax: "[--test]", descLines: [
-        "Extract the color palette from the active tab.",
-        "Parses stylesheets and inline styles to list the most-used hex/RGB colors.",
-    ], aliases: "colors, theme", examples: [
-        { cmd: "palette" },
-        { cmd: "palette --test" },
-    ] }),
-
-    comments: () => formatHelp({ name: "comments", syntax: "[--test]", descLines: [
-        "Extract hidden HTML and JS comments from the active tab.",
-        "",
-        "REAL USE CASES:",
-        "  - Find developer notes left in production code (credentials, TODOs).",
-        "  - Locate commented-out debug blocks that could leak information.",
-    ], aliases: "hidden, notes, note, memo, annotation", examples: [
-        { cmd: "comments" },
-        { cmd: "comments --test" },
-    ] }),
-
-    emails: () => formatHelp({ name: "emails", syntax: "[--test]", descLines: [
-        "Email address extractor from the active tab DOM.",
-        "Finds and deduplicates mailto: links and text-pattern email addresses.",
-    ], aliases: "scrape-emails, contacts", examples: [
-        { cmd: "emails" },
-        { cmd: "emails --test" },
-    ] }),
-
-    phones: () => formatHelp({ name: "phones", syntax: "[--test]", descLines: [
-        "Phone number extractor from the active tab DOM.",
-        "Finds tel: links and text-pattern numbers in international format.",
-    ], aliases: "scrape-phones, numbers", examples: [
-        { cmd: "phones" },
-        { cmd: "phones --test" },
-    ] }),
 };

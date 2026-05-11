@@ -106,4 +106,25 @@ export const MISC_HELP = {
         { cmd: "hack random --timer" },
         { cmd: "trivia mid" },
     ] }),
+
+    session: () => formatHelp({ name: "session", syntax: "[list|close <#>]", descLines: [
+        "Manage terminal sessions.",
+        "",
+        "WHAT IS IT?",
+        "  Each browser tab can have its own independent terminal session.",
+        "  Sessions persist their command history and active target separately.",
+        "",
+        "  list        Show all active sessions with their index and target domain.",
+        "  close <#>   Close the session at the given index number.",
+    ], aliases: null, examples: [
+        { cmd: "session list",    desc: "List all active sessions" },
+        { cmd: "session close 2", desc: "Close session #2" },
+    ] }),
+
+    exit: () => formatHelp({ name: "exit", syntax: "", descLines: [
+        "End the current session and clear the terminal.",
+        "Closes the active terminal session and resets the output area.",
+        "To close a specific session by index, use: session close <#>",
+    ], aliases: "quit", examples: [{ cmd: "exit" }] }),
 };
+

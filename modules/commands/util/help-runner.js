@@ -22,7 +22,7 @@ export async function showCommandDoc(cmdName, term, watcher, doneCallback) {
         watcher._mouseEnabled = false;
     }
 
-    term.write("\x1b[2J\x1b[3J\x1b[H");
+    term.write("\x1b[2J\x1b[H");
     
     try {
         const { cmdDetailedHelp } = await import("./detailed-help.js");
@@ -33,30 +33,23 @@ export async function showCommandDoc(cmdName, term, watcher, doneCallback) {
         term.write(`\n${ANSI.red}[ERROR] ${err.message}${ANSI.reset}\n`);
     }
 
-    term.write(`\n  ${ANSI.dim}Press ANY KEY or CLICK to return...${ANSI.reset}`);
-    term.write("\x1b[?1003h\x1b[?1006h");
-    watcher._mouseEnabled = true;
+    term.write(`\n  ${ANSI.dim}Press ANY KEY to return...${ANSI.reset}`);
+    // DO NOT enable mouse capture here so the user retains native scrolling!
+    // Native scrollbar and trackpad will work perfectly.
+    watcher._mouseEnabled = false;
 
     watcher.onDataDisposable = term.onData((ev) => {
-        // Handle mouse events (ignore hover/release, execute manual scroll)
-        if (ev.startsWith("\x1b[<")) {
-            const m = ev.match(/\x1b\[<(\d+);(\d+);(\d+)([mM])/);
-            if (!m || m[1] === "35" || m[1] === "64" || m[1] === "65" || m[4] === "m") {
-                if (m && m[1] === "64") term.scrollLines(-3);
-                if (m && m[1] === "65") term.scrollLines(3);
-                return;
-            }
-        }
+        // If it's a mouse event (in case it leaked through), ignore it
+        if (ev.startsWith("\x1b[<")) return;
         
-        // Handle keyboard scrolling
+        // Handle keyboard scrolling natively using xterm if they use arrows/pgup
         if (ev === "\x1b[A") { term.scrollLines(-1); return; }
         if (ev === "\x1b[B") { term.scrollLines(1); return; }
         if (ev === "\x1b[5~") { term.scrollPages(-1); return; }
         if (ev === "\x1b[6~") { term.scrollPages(1); return; }
 
         disposeInput(watcher);
-        term.write("\x1b[?1003l\x1b[?1006l");
-        watcher._mouseEnabled = false;
+        term.scrollToBottom();
         watcher.start(term, doneCallback);
     });
 }

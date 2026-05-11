@@ -139,7 +139,7 @@ export function cmdSnake() {
                 
                 draw();
                 // 100ms is a good speed for snake
-                this.intervalId = setInterval(draw, 100);
+                this.intervalId = setInterval(draw, 150);
             },
             stop: function(term) {
                 if (this.intervalId) {
