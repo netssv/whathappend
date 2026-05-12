@@ -30,6 +30,12 @@ async function syncBlockPanelSafe() {
 
 async function bootstrap() {
     try {
+        // 0. Set dynamic version in UI
+        const versionEl = document.getElementById("context-version");
+        if (versionEl) {
+            versionEl.textContent = `v${chrome.runtime.getManifest().version}`;
+        }
+
         // 1. Setup the terminal multiplexer and create first UI session
         const { TerminalMultiplexer } = await import("./modules/terminal/terminal-multiplexer.js");
         await TerminalMultiplexer.init();
