@@ -5,10 +5,10 @@
 
 ## 1. The Zero-Cloud Policy
 
-WhatHappened is architected as an **Edge-Side/Local-Only** application.
+WhatHappened is architected as a **browser-local** application. All command logic, state management, and history persistence reside within the extension's browser sandbox.
 
 > **💡 Simple Explanation**
-> We have no servers, no databases, and no analytics tracking you. Everything happens directly inside your browser. The tool only talks to public internet infrastructure (like Google DNS) to fetch public records.
+> We have no servers, no databases, and no analytics tracking you. Everything happens directly inside your browser. The tool only talks to public internet infrastructure (like Google DNS) to fetch public records — these are read-only queries against open, publicly accessible data.
 
 **Technical Details:**
 - **No Telemetry**: The codebase contains zero analytics tracking scripts or crash reporters.
@@ -21,17 +21,17 @@ Because the extension fetches and renders untrusted third-party data (HTTP heade
 
 | Defense Layer | Implementation | Target Threat |
 | :--- | :--- | :--- |
-| **Engine (Hardware)** | `manifest.json` CSP | `eval()`, inline scripts, external injection |
-| **Terminal Canvas** | `xterm.js` | Script execution via console stdout |
-| **DOM Tree** | `DOMPurify` (Standard) | mXSS, attribute injection (`on*`), broken markup |
+| **Engine (Enforce)** | `manifest.json` CSP (`script-src 'self'`) | `eval()`, inline scripts, external payload injection |
+| **Terminal Canvas** | `xterm.js` canvas renderer | Script execution via console stdout; HTML tag injection |
+| **DOM Tree** | `DOMPurify` (bundled locally, strict allowlist) | mXSS, attribute injection (`on*`), broken markup, namespace confusion |
 
 > **💡 Simple Explanation**
 > If a hacker puts `<script>alert('hack')</script>` inside a website's HTTP headers, our terminal won't execute it. The terminal acts like safety goggles: it only sees raw text. Furthermore, Chrome's internal security (CSP) acts as an iron vault, actively blocking any attempt to run malicious code from external sources. Finally, for any dynamic UI element, we use DOMPurify, an industry-standard scanner that acts like an X-Ray, filtering out any hidden traps before they reach the screen.
 
 **Technical Details:**
-- **xterm.js Isolation**: `term.writeln()` pushes strings to a canvas/grid renderer. It parses ANSI color codes but treats HTML tags as literal text, providing structural immunity to standard DOM XSS.
-- **CSP Strictness**: The Manifest V3 directive `"extension_pages": "script-src 'self'; object-src 'self'"` is enforced. This hard-blocks inline scripting and remote execution payloads.
-- **DOM Sanitization**: For reactive UI components (e.g., Modals, Tab Titles), the extension uses the industry-standard **DOMPurify**. It is bundled locally (`lib/dompurify.min.js`) to prevent supply chain attacks while ensuring enterprise-grade protection against mXSS (Mutation XSS) and namespace confusion vulnerabilities.
+- **xterm.js Isolation**: `term.writeln()` pushes strings to a canvas/grid renderer. It parses ANSI color codes but treats HTML tags as literal text, providing structural immunity to standard DOM XSS. **Note:** ANSI escape sequences embedded in untrusted network data (e.g., HTTP headers, WHOIS responses) are stripped before output via a dedicated sanitization pass. DOMPurify does not cover ANSI injection — this is handled at the pipeline output layer.
+- **CSP Strictness**: The Manifest V3 directive `"extension_pages": "script-src 'self'; object-src 'self'"` is enforced. All `import()` paths must be static string literals to comply with this policy. Dynamic path construction in imports is a contributor constraint.
+- **DOM Sanitization**: For reactive UI components (e.g., Modals, Tab Titles), the extension uses the industry-standard **DOMPurify**. It is bundled locally (`lib/dompurify.min.js`) to prevent supply chain attacks. The pinned version and SHA-256 integrity hash are documented in `SECURITY.md`. Configuration uses a strict HTML element allowlist, not the permissive default.
 
 ## 3. Privilege Escalation Simulation (Sudo Gate)
 
@@ -40,7 +40,7 @@ Commands that alter the browser's state or privacy context (e.g., `flush` for cl
 > **🛡️ Implementation Note**
 > The `sudo` system is an **UX Architectural Construct**, not an OS-level root escalation. The extension operates with the permissions granted by the user at installation. The Sudo Gate acts as an intentional friction layer (middleware) to prevent accidental execution of destructive commands by requiring explicit user intent (prepending `sudo`).
 
-## 4. Supply Chain Integrity
+## 4. Dependency Isolation
 
 - **Zero External CDNs**: All runtime dependencies (such as `xterm.js` and `xterm-addon-fit.js`) are bundled internally within the extension package.
 - **No 3rd-Party APIs**: The extension does not rely on proprietary, gated third-party APIs (e.g., VirusTotal, Wappalyzer API). It relies entirely on open infrastructure (RDAP, DoH) to prevent API key leakage or vendor lock-in.
