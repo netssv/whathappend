@@ -72,25 +72,21 @@ export const MISC_COMMANDS = {
     ssllabs: {
         category: "EXTERNAL",
         desc: "Qualys SSL Labs deep scan",
-        aliases: ["help -ext ssl"],
         exec: async (args) => (await import("../../commands/web/index.js")).cmdSSLLabs(args)
     },
     blacklist: {
         category: "EXTERNAL",
         desc: "Blacklist lookup",
-        aliases: ["help -ext bl"],
         exec: async (args) => (await import("../../commands/web/index.js")).cmdBlacklist(args)
     },
     securityheaders: {
         category: "EXTERNAL",
         desc: "Header grade A+ to F",
-        aliases: ["help -ext headers"],
         exec: async (args) => (await import("../../commands/web/index.js")).cmdSecurityHeaders(args)
     },
     "whois-ext": {
         category: "EXTERNAL",
         desc: "ICANN/DomainTools",
-        aliases: ["help -ext whois"],
         exec: async (args) => (await import("../../commands/web/index.js")).cmdWhoisExt(args)
     }
 };

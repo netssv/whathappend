@@ -78,6 +78,39 @@ async function checkLineCount(file) {
     return { file: relative(ROOT, file), lines, over: lines > MAX_LINES };
 }
 
+async function validateManifest() {
+    const errors = [];
+    // Dynamic import to avoid module side-effects at load time
+    const { COMMAND_MANIFEST } = await import("./modules/data/command-manifest.js");
+    
+    const aliasMap = new Map();
+
+    for (const [cmdName, def] of Object.entries(COMMAND_MANIFEST)) {
+        // 1. exec must be a function
+        if (typeof def.exec !== "function") {
+            errors.push(`Command '${cmdName}' is missing an 'exec' function`);
+        }
+        
+        // 2. categories check
+        if (!def.category) {
+            errors.push(`Command '${cmdName}' is missing a 'category'`);
+        }
+        
+        // 3. alias collision and space check
+        const aliases = def.aliases || [];
+        for (const alias of aliases) {
+            if (alias.includes(" ")) {
+                errors.push(`Alias '${alias}' for command '${cmdName}' contains a space (not allowed)`);
+            }
+            if (aliasMap.has(alias)) {
+                errors.push(`Alias collision: '${alias}' used by both '${aliasMap.get(alias)}' and '${cmdName}'`);
+            }
+            aliasMap.set(alias, cmdName);
+        }
+    }
+    return errors;
+}
+
 async function main() {
     console.log("\n  WhatHappened Dev Lint\n  " + "━".repeat(28) + "\n");
 
@@ -106,6 +139,23 @@ async function main() {
     console.log(`  Smallest:      ${smallest.file} (${smallest.lines})`);
     console.log(`  Largest:       ${largest.file} (${largest.lines})`);
     console.log();
+
+    console.log("  Manifest Validation\n  " + "━".repeat(28));
+    const manifestErrors = await validateManifest();
+    
+    if (manifestErrors.length > 0) {
+        manifestErrors.forEach(err => console.log(`  ❌ ${err}`));
+        console.log();
+    } else {
+        console.log("  ✅ COMMAND_MANIFEST integrity OK\n");
+    }
+
+    if (violations.length > 0 || manifestErrors.length > 0) {
+        process.exit(1);
+    }
 }
 
-main().catch(console.error);
+main().catch(err => {
+    console.error(err);
+    process.exit(1);
+});
