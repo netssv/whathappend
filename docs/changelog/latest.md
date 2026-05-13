@@ -6,14 +6,21 @@ All the latest updates and improvements to the WhatHappened terminal.
 
 If you are extending the terminal or adding new commands, you MUST verify the following modules to ensure UX consistency and atomic compliance:
 
-1. `COMMANDS.md` & `README.md`: Keep user-facing docs updated.
-2. `modules/commands/util/detailed-help.js`: For the interactive `cmd?` help.
-3. `modules/commands/util/help.js`: For the main `help` menu categorizations.
-4. `modules/data/autocomplete-data.js`: Ensure your command tab-completes correctly.
-5. `modules/data/aliases.js`: Register any shortcuts and add the root command to `ALL_KNOWN_CMDS`.
-6. `modules/core/registry.js`: Add your function to the command registry map.
-7. `modules/commands/.../index.js`: Ensure your function is exported from its domain folder.
-8. `dev-lint.js`: Run this script to verify your code respects the 200-line ceiling and subcommand conventions.
+1. `modules/data/defs/...`: Define your new command inside the appropriate category definition file. This is the single Source of Truth.
+2. `modules/data/command-manifest.js`: Ensure your category definition is exported here.
+3. `COMMANDS.md` & `README.md`: Keep user-facing docs updated.
+4. `modules/commands/.../index.js`: Ensure your function is exported from its domain folder.
+5. `dev-lint.js`: Run this script to verify your code respects the 200-line ceiling and subcommand conventions.
+
+## [3.1.0] - 2026-05-12
+
+**Command Manifest Inversion of Control & Autocomplete Decoupling**
+
+### What's New?
+
+- **Centralized Command Manifest**: Re-architected the command registry to use a distributed metadata manifest (`modules/data/defs/`). This serves as the single Source of Truth for command names, aliases, categories, and execution paths.
+- **Dynamic Autocomplete Engine**: Decoupled `autocomplete-data.js` from static visual help files. Autocomplete and subcommands are now automatically derived from the command manifest, eliminating manual synchronization.
+- **Dynamic Help UI**: The `help-data.js` module now dynamically generates the visual help categories based directly on the manifest data, ensuring perfect consistency between what is documented and what is executable.
 
 ## [3.0.2] - 2026-05-12
 
