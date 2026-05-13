@@ -27,6 +27,8 @@
 import { ANSI, generateImpactSection, isIPAddress, resolveTargetDomain, cmdError } from "./formatter.js";
 import { DNS_SHORTCUTS } from "./data/aliases.js";
 import { ALIAS_MAP } from "./data/autocomplete-data.js";
+import { cleanForPipe } from "./core/pipe-sanitizer.js";
+import { stripAnsi } from "./core/sanitize-ansi.js";
 
 // Core logic modules
 import { parsePipeline, suggestCommand } from "./core/parser.js";
@@ -143,33 +145,6 @@ async function executeSingleNode({ cmd, args, flags, opts }, stdin) {
     return output;
 }
 
-// ---------------------------------------------------------------------------
-// Pipe stdin sanitizer — strips cosmetic/display-only lines
-// ---------------------------------------------------------------------------
-
-/**
- * Remove terminal-display lines that should not flow through a pipe.
- * In real Linux, `dig +short` stdout only contains raw answers.
- * Our commands include echoes and INSIGHTS for readability — these must
- * be stripped when the output is used as stdin for the next command.
- *
- * Stripped patterns:
- *   - Command echo:   "> dig ..." / "> curl ..."
- *   - INSIGHTS header: "── INSIGHTS ──"
- *   - Insight entries: "[INFO] ..." / "[WARN] ..." / "[PASS] ..." / "[CRIT] ..."
- */
-function cleanForPipe(output) {
-    if (!output) return "";
-    return output
-        .split("\n")
-        .filter(line => {
-            // Strip ANSI codes for the check, keep original line in output
-            const clean = line.replace(/\x1b\[[0-9;]*m/g, "").trim();
-            if (!clean) return false;
-            if (clean.startsWith(">")) return false;           // command echo
-            if (clean.startsWith("──") || clean.startsWith("--")) return false; // INSIGHTS separator
-            if (/^\[(INFO|WARN|PASS|CRIT|FAIL|ERROR)\]/.test(clean)) return false; // insights
-            return true;
-        })
-        .join("\n");
-}
+// cleanForPipe and stripAnsi are now in:
+//   modules/core/pipe-sanitizer.js  — pipeline stdin sanitizer
+//   modules/core/sanitize-ansi.js   — display-layer ANSI stripper
