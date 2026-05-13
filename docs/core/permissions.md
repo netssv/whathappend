@@ -1,51 +1,72 @@
-# Permissions Scope
+# Permissions Scope & Manifest Justifications
 
-We follow the **Principle of Least Privilege** (Manifest V3).
+**Document Status:** Production Baseline
+**Scope:** Chrome Web Store Compliance & MV3 Constraints
 
-## Required Permissions
+## Executive Summary
+This document outlines the strict adherence to the **Principle of Least Privilege** governing the WhatHappened extension. It maps every requested permission to a specific architectural capability, serving as a transparent audit trail for both users and Chrome Web Store reviewers.
 
-| Permission | Why It's Needed |
-|---|---|
-| `activeTab` | Identify which site the user wants to audit. |
-| `tabs` | Tab manager, watcher lifecycle, and scoping diagnostics to specific tabs. |
-| `sidePanel` | The extension's entire UI is delivered as a side panel terminal. |
-| `storage` | Save terminal history, user preferences, and geo bookmarks locally. No sync. |
-| `scripting` | Read-only DOM extraction for performance metrics, pixel detection, and content auditing. |
-| `cookies` | Audit cookie security flags (HttpOnly, Secure, SameSite) for user-specified domains. Read-only. |
-| `browsingData` | The `flush` command clears cookies and cache scoped to a single origin, with modal confirmation. |
-| `contentSettings` | The `tabs block` command toggles JavaScript, images, and popups per-domain for testing. |
+---
 
-## Optional Permissions (Granted On-Demand)
+## 1. Core API Permissions
 
-| Permission | Why It's Needed |
-|---|---|
-| `debugger` | Network throttling (`throttle`) and URL blocking (`block`) via Chrome DevTools Protocol. Only `Network.enable`, `Network.emulateNetworkConditions`, `Network.setBlockedURLs`, `attach`, and `detach` are used. Requested at runtime — the user is prompted before access is granted. |
+| Permission | Architectural Justification | Target Scope |
+| :--- | :--- | :--- |
+| `activeTab` | Determines the active Execution Context (Target Domain) for context-sensitive commands (e.g., `ssl`, `dig` without arguments). | Current Tab |
+| `sidePanel` | The entire Presentation Layer (TUI) is delivered via Chrome's Side Panel API. | Extension UI |
+| `storage` | Provides persistence for ephemeral state (`chrome.storage.local`). Used solely for terminal history and local geo-bookmarks. **No sync.** | Local Disk |
+| `tabs` | Required to map the lifecycle of the active tab to the terminal session, enabling cross-tab diagnostic switching (`tabs` command). | Browser Window |
 
-## Removed in v2.8.1
+---
 
-| Permission | Reason for Removal |
-|---|---|
-| `clipboardRead` | Unnecessary in MV3 — `navigator.clipboard` works from extension pages without this permission. |
-| `notifications` | Replaced by in-terminal visual/audio alerts (alarm chime + flash + title flash). |
+## 2. Deep Auditing Permissions (Read/Write)
 
-## Host Permissions
+To perform deep infrastructure triage, the extension requires access to standard Web APIs.
 
-We need broad host access because users audit **arbitrary domains** via commands like `curl`, `ssl`, `ping`, and `trace`. We cannot predict which domains will be analyzed.
+> **💡 Simple Explanation**
+> To check if a website is secretly running malicious scripts, or if its cookies are insecure, the terminal needs "read access" to the code of the site you are looking at. If you use the `flush` command to wipe the site's data, we need "write access" to clear those cookies.
 
-| Pattern | Purpose |
-|---|---|
-| `https://dns.google/*` | DNS-over-HTTPS resolution |
-| `https://rdap.org/*` | WHOIS/RDAP domain lookups |
-| `https://crt.sh/*` | Certificate transparency log queries |
-| `https://isitdown.site/*` | Domain uptime checking |
-| `https://*/*` | User-initiated diagnostics (curl, ssl, ping, trace, speedtest) |
-| `http://*/*` | HTTP fallback for isup checks |
+| Permission | Architectural Justification | Risk Profile |
+| :--- | :--- | :--- |
+| `scripting` | Enables read-only DOM extraction (via injected content scripts) to evaluate Performance Timings, ad-pixels, and HTML footprint. | Low (Read Only) |
+| `cookies` | Required by the `cookies` command to audit security flags (`HttpOnly`, `Secure`, `SameSite`) for the target domain. | Medium (Read Only) |
+| `browsingData` | Required by the `flush` command to surgically clear caches/cookies scoped to the target origin. | High (Destructive) |
+| `contentSettings` | Required by the `block` command to toggle JavaScript/Images per-domain for resilience testing. | Medium (State Mutation) |
 
-### Security Guarantees
+> **🛡️ Security Notes: Destructive Operations**
+> Any permission that allows state mutation (like `browsingData` or `contentSettings`) is hard-gated behind the **Sudo Middleware**. The system explicitly blocks execution until the user manually elevates privileges (e.g., `sudo flush`), preventing accidental data loss.
 
-- All fetch requests are **diagnostic GET/HEAD** — no user data is transmitted.
-- **Zero-cloud policy**: No backend, no analytics, no telemetry.
-- **Strict CSP**: `script-src 'self'; object-src 'self'` — no remote code.
-- All libraries (xterm.js) are **bundled locally** to prevent supply chain attacks.
+---
+
+## 3. Chrome DevTools Protocol (CDP)
+
+| Permission | Status | Architectural Justification |
+| :--- | :--- | :--- |
+| `debugger` | **Optional (On-Demand)** | Enables network emulation (`throttle`) via CDP. Only invokes `Network.enable`, `Network.emulateNetworkConditions`, `attach`, and `detach`. |
+
+> **⚙️ Implementation Notes: CDP Lifecycle**
+> The `debugger` permission is **not** requested at install. It is requested dynamically at runtime. If the user invokes `throttle`, the engine halts and prompts for explicit consent before attaching the debugger.
+
+---
+
+## 4. Host Permissions & Network Boundaries
+
+To fulfill its role as a network diagnostic tool, WhatHappened requires broad host access (`<all_urls>`).
+
+**Why `<all_urls>` is mandatory:**
+The tool executes user-defined commands (like `curl`, `ssl`, `ping`, `trace`) against **arbitrary domains**. The architecture cannot predict which FQDN or IP the operator will audit.
+
+| Target Pattern | Protocol/Service | Architectural Purpose |
+| :--- | :--- | :--- |
+| `https://dns.google/*` | HTTPS (DoH) | Primary DNS resolution pipeline. |
+| `https://rdap.org/*` | HTTPS (REST) | Global WHOIS/IP Provider lookups. |
+| `https://crt.sh/*` | HTTPS (REST) | Certificate Transparency logs (Historical SSL). |
+| `https://*/*` | HTTP/HTTPS | Standard targets for user-initiated `curl`/`ping`/`ssl` audits. |
+
+### 🔴 Architect's Risk Assessment (CWS Review)
+Broad host permissions often trigger manual reviews in the Chrome Web Store. To mitigate this:
+1. All arbitrary fetch requests are strictly **GET/HEAD** diagnostics.
+2. The extension never transmits user tokens, cookies, or session states in these diagnostic requests.
+3. The codebase lacks any backend telemetry mechanism to exfiltrate the domains being audited.
 
 [⬅ Return to Home](../../README.md)
