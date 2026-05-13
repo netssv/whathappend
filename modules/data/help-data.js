@@ -1,136 +1,47 @@
 /**
  * @module modules/data/help-data.js
- * @description Static definitions for the help menu categories and commands.
+ * @description Dynamic help sections derived from the Command Manifest.
  */
 
-// Command definitions: [name, description, aliases]
-export const HELP_SECTIONS = [
-    { title: "AUDIT SUITE", cmds: [
-        ["email", "MX+SPF+DMARC+DKIM", "mail"],
-        ["web", "Core Web Checks (DNS+Headers+SSL)", ""],
-        ["web -audit", "Marketing Suite (SEO+OG+Alt+Schema)", "audit"],
-        ["web -seo", "Baseline SEO audit", "seo"],
-        ["web -og", "Open Graph cards", "og"],
-        ["web -schema", "Structured data scanner", "schema"],
-        ["web -alt", "Image accessibility", "alt"],
-        ["extract", "Page content extractor", "-emails -links -images -docs"],
-    ]},
-    { title: "SECURITY", cmds: [
-        ["sec", "Security scorecard", "scan security"],
-        ["csp", "Content-Security-Policy", "xss"],
-        ["waf", "WAF / CDN detection", "firewall"],
-        ["hsts", "HSTS policy audit", "strict"],
-        ["headers-check", "Security header checklist", "hcheck"],
-        ["comments", "Hidden HTML/JS comments", "hidden"],
-        ["cms", "CMS fingerprinting", "wordpress"],
-        ["malware", "Client-side malware heuristic", "virus"],
-    ]},
-    { title: "DNS", cmds: [
-        ["dig", "Full DNS [+short]", "dns record"],
-        ["dns -a", "IPv4 address", ""],
-        ["dns -aaaa", "IPv6 address", ""],
-        ["dns -mx", "Mail servers", ""],
-        ["dns -txt", "Text records", ""],
-        ["dns -ns", "Nameservers", ""],
-        ["dns -cname", "Domain aliases", ""],
-        ["dns -soa", "Start of Authority", ""],
-        ["host", "A + AAAA + MX", ""],
-        ["nslookup", "Name server lookup", "lookup"],
-        ["ttl", "TTL all records", ""],
-        ["dnssec", "DNSSEC zone auth", ""],
-        ["propagation", "Global DNS propagation check", "global resolve"],
-        ["map", "Visualize the DNS resolution journey", "journey flow"],
-    ]},
+import { COMMAND_MANIFEST } from "./command-manifest.js";
 
-    { title: "EMAIL", cmds: [
-        ["spf", "SPF record", ""],
-        ["dmarc", "DMARC policy", ""],
-        ["dkim", "DKIM scan (dynamic)", ""],
-        ["deliverability", "Email deliverability optimization", "optimiza"],
-    ]},
-    { title: "WEB CORE", cmds: [
-        ["curl", "HTTP headers", "http headers"],
-        ["openssl", "SSL/TLS cert", "ssl cert tls"],
-        ["whois", "Domain WHOIS", "domain reg registrar"],
-        ["hosting", "IP hosting provider", "provider webhost"],
-        ["history", "Cert transparency logs", "crt"],
-        ["trace", "Redirect chain", "redirect follow"],
-        ["robots", "robots.txt", "sitemap"],
-        ["security-txt", "Security contact (RFC 9116)", "sec-txt"],
-        ["cookies", "Privacy cookies audit", ""],
-    ]},
-    { title: "PERF & UI", cmds: [
-        ["ping", "HTTP latency", "latency"],
-        ["rank", "Global traffic rank", "ranking traffic"],
-        ["links", "Mixed content scan", "src"],
-        ["wayback", "Archive.org timeline", "archive"],
-        ["green", "Green energy host", ""],
-        ["pixels", "Ad/tracking pixels", "tracking ads"],
-        ["socials", "Social media presence", "social"],
-        ["stack", "Technology stack", "tech wappalyzer"],
-        ["minify", "Asset minification check", "min"],
-        ["load", "Performance timing", "perf timing"],
-        ["vitals", "Core Web Vitals", "cwv web-vitals"],
-        ["fonts", "Loaded web typography", "typography type"],
-        ["palette", "Extract color palette", "colors theme"],
-    ]},
-    { title: "NETWORK", cmds: [
-        ["isup", "Local vs global parity", "upcheck down"],
-        ["jitter", "Latency jitter test", ""],
-        ["speedtest", "Local bandwidth test", "bandwidth"],
-        ["watch", "Live network dashboard", "monitor live netwatch"],
-        ["rev-dns", "Reverse DNS (PTR)", "rdns ptr"],
-        ["port-scan", "Port scanner", "ports nmap"],
-        ["ftp-check", "FTP banner grab", "ftp"],
-        ["ip", "Public IP / domain IP", "myip public-ip"],
-    ]},
-    { title: "EXTERNAL", subtitle: "(opens link)", cmds: [
-        ["help -ext ssl", "Qualys SSL Labs deep scan", "ssllabs"],
-        ["help -ext bl", "Blacklist lookup", "blacklist"],
-        ["help -ext headers", "Header grade A+ to F", "securityheaders"],
-        ["help -ext whois", "ICANN/DomainTools", "whois-ext"],
-    ]},
-    { title: "SESSION & TABS", cmds: [
-        ["start", "Analyze active tab", "run go begin"],
-        ["switch", "Switch to active tab", "actual current here"],
-        ["target", "Set target domain", ""],
-        ["export", "Save report", "dump save"],
-        ["clip", "Copy session to clipboard", "copy clipboard"],
-        ["tabs", "Interactive tab menu", "tab"],
-        ["tabs -list", "List open tabs", "list"],
-        ["tabs -close <#>", "Close tab", "close"],
-        ["tabs -info <#>", "Inspect tab", "info"],
-        ["tabs -diag <#>", "Diagnostics", "diag"],
-        ["session", "Manage terminal sessions", ""],
-        ["session list", "List active sessions", ""],
-        ["session close <#>", "Close a session", ""],
-    ]},
-    { title: "BROWSER", cmds: [
-        ["reload", "Extension hard reboot", "restart reboot"],
-        ["refresh", "Reload active browser tab", "f5 ref"],
-        ["ua", "Spoof User Agent", "useragent agent"],
-        ["mobile", "Spoof Mobile UA", "mob iphone"],
-        ["throttle", "Emulate network speed", "slow lag"],
-        ["geo", "Spoof GPS (add/remove custom)", "gps location"],
-        ["ip-spoof", "Inject fake IP headers", "fakeip spoof-ip"],
-        ["flush", "Clear cookies+cache", "clearcache"],
-        ["edit", "Toggle live design mode", "designmode modify"],
-        ["diff", "Compare two domains", ""],
-    ]},
-    { title: "SYSTEM", cmds: [
-        ["config", "User preferences", "settings set"],
-        ["about", "Philosophy & identity", ""],
-        ["info", "System diagnostics", "telemetry status"],
-        ["errors", "Error & insight guide", "error"],
-        ["clear", "Clear terminal", "cls reset"],
-        ["sudo", "Elevate privileges (sensitive cmds)", "su"],
-        ["sudo -l", "List commands that require sudo", ""],
-        ["coffee", "Pomodoro break timer", "break"],
-        ["dog", "Dynamic dog animation", "perro pet"],
-        ["hack", "Technical trivia quiz", "trivia quiz"],
-        ["matrix", "Code rain effect", "rain"],
-        ["fullscreen", "Toggle window fullscreen", "fs f11"],
-        ["exit", "End session & clear", "quit"],
-        ["help", "Show this menu", "? ls man"],
-    ]},
+// Desired order of categories in the Help UI
+const CATEGORY_ORDER = [
+    "AUDIT SUITE",
+    "SECURITY",
+    "DNS",
+    "EMAIL",
+    "WEB CORE",
+    "PERF & UI",
+    "NETWORK",
+    "EXTERNAL",
+    "SESSION & TABS",
+    "SYSTEM & UTILS",
+    "EMULATION & DEBUGGING",
+    "FUN & EGGS"
 ];
+
+/**
+ * Builds the HELP_SECTIONS array used by the Help UI.
+ */
+function buildHelpSections() {
+    const sectionsMap = {};
+    
+    Object.entries(COMMAND_MANIFEST).forEach(([name, def]) => {
+        if (!sectionsMap[def.category]) {
+            sectionsMap[def.category] = [];
+        }
+        
+        // Format aliases for display
+        const displayAliases = def.aliases ? def.aliases.join(" ") : "";
+        
+        sectionsMap[def.category].push([name, def.desc, displayAliases]);
+    });
+
+    return CATEGORY_ORDER.map(title => ({
+        title,
+        cmds: sectionsMap[title] || []
+    })).filter(section => section.cmds.length > 0);
+}
+
+export const HELP_SECTIONS = buildHelpSections();

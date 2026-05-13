@@ -14,7 +14,7 @@ We only provide security updates for the latest major release.
 
 ---
 
-## 🛡️ Our Security Commitment
+## Our Security Commitment
 
 WhatHappened operates strictly on the edge. This means:
 1. **Zero Data Exfiltration**: Your diagnostic history, audited URLs, and browser state never leave your local machine.
@@ -28,7 +28,7 @@ For a deep dive into our security architecture, please review our core documenta
 
 ---
 
-## 🛑 Reporting a Vulnerability
+## Reporting a Vulnerability
 
 If you discover a security vulnerability within WhatHappened, please help us protect our users by reporting it responsibly.
 
