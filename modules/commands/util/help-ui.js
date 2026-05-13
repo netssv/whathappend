@@ -20,19 +20,15 @@ import { buildCommandGrid, resolveHoverInfo, buildFooter } from "./help-grid.js"
 
 // ── Category Registry ─────────────────────────────────────────────────
 
-export const HELP_CATEGORIES = [
-    { key: "audit",   section: "AUDIT SUITE"   },
-    { key: "sec",     section: "SECURITY"       },
-    { key: "dns",     section: "DNS"            },
-    { key: "email",   section: "EMAIL"          },
-    { key: "core",    section: "WEB CORE"       },
-    { key: "perf",    section: "PERF & UI"      },
-    { key: "net",     section: "NETWORK"        },
-    { key: "ext",     section: "EXTERNAL"       },
-    { key: "tabs",    section: "SESSION & TABS" },
-    { key: "browser", section: "BROWSER"        },
-    { key: "system",  section: "SYSTEM"         },
-];
+export const HELP_CATEGORIES = HELP_SECTIONS.map(s => {
+    // Generate a short key from the title (e.g. "AUDIT SUITE" -> "audit")
+    let key = s.title.split(" ")[0].toLowerCase();
+    if (s.title === "SYSTEM & UTILS") key = "system";
+    if (s.title === "EMULATION & DEBUGGING") key = "emu";
+    if (s.title === "SESSION & TABS") key = "tabs";
+    if (s.title === "PERF & UI") key = "perf";
+    return { key, section: s.title };
+});
 
 // ── Renderer ──────────────────────────────────────────────────────────
 
