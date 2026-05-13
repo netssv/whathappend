@@ -25,7 +25,8 @@
  */
 
 import { ANSI, generateImpactSection, isIPAddress, resolveTargetDomain, cmdError } from "./formatter.js";
-import { CMD_ALIASES, DNS_SHORTCUTS } from "./data/aliases.js";
+import { DNS_SHORTCUTS } from "./data/aliases.js";
+import { ALIAS_MAP } from "./data/autocomplete-data.js";
 
 // Core logic modules
 import { parsePipeline, suggestCommand } from "./core/parser.js";
@@ -83,7 +84,7 @@ export async function executeCommand(input) {
     // Only apply impact on the first command's resolution (for backwards compatibility)
     const { cmd, flags } = pipeline[0];
     const hasImpact = flags.includes("--impact");
-    let resolved = CMD_ALIASES[cmd] || cmd;
+    let resolved = ALIAS_MAP[cmd] || cmd;
     if (resolved.includes(" ")) resolved = resolved.split(" ")[0];
 
     if (hasImpact && !["help","clear","target"].includes(resolved) && typeof currentOutput === "string") {
@@ -99,7 +100,7 @@ export async function executeCommand(input) {
 
 async function executeSingleNode({ cmd, args, flags, opts }, stdin) {
     let output = "";
-    let resolved = CMD_ALIASES[cmd] || cmd;
+    let resolved = ALIAS_MAP[cmd] || cmd;
     
     if (resolved.includes(" ")) {
         const parts = resolved.split(" ");

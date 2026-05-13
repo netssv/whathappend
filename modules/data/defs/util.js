@@ -70,5 +70,17 @@ export const UTIL_COMMANDS = {
         category: "SYSTEM & UTILS",
         desc: "Refresh terminal state",
         exec: async () => (await import("../../commands/util/index.js")).cmdRefresh()
+    },
+    nav: {
+        category: "SYSTEM & UTILS",
+        desc: "Platform GUI navigator",
+        aliases: ["menu", "gui", "explorer"],
+        exec: async () => (await import("../../commands/util/index.js")).cmdNavMenu()
+    },
+    fullscreen: {
+        category: "SYSTEM & UTILS",
+        desc: "Toggle fullscreen mode",
+        aliases: ["f11", "fs"],
+        exec: async () => (await import("../../commands/util/index.js")).cmdFullscreen()
     }
 };

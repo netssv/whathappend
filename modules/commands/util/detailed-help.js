@@ -23,7 +23,7 @@
  */
 
 import { ANSI } from "../../formatter.js";
-import { CMD_ALIASES } from "../../data/aliases.js";
+import { ALIAS_MAP } from "../../data/autocomplete-data.js";
 import { getTermCols } from "../../state.js";
 
 /**
@@ -157,7 +157,7 @@ export async function cmdDetailedHelp(cmd, suggestCommand) {
     }
 
     // Step 3 — resolve through alias table (may produce compound: "web -seo")
-    const aliased = CMD_ALIASES[cmd] || cmd;
+    const aliased = ALIAS_MAP[cmd] || cmd;
     const parts   = aliased.split(" ");
 
     // Step 4 — if aliased is compound, try its flag as a standalone key

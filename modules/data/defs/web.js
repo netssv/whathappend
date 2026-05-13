@@ -66,5 +66,17 @@ export const WEB_COMMANDS = {
         params: ["domain"],
         subcommands: ["-persist", "-keepalive", "-stop"],
         exec: async (args, flags) => (await import("../../commands/web/index.js")).cmdCookies(args, flags)
+    },
+    diff: {
+        category: "WEB CORE",
+        desc: "Compare two pages",
+        params: ["domain1", "domain2"],
+        exec: async (args) => (await import("../../commands/web/index.js")).cmdDiff(args)
+    },
+    edit: {
+        category: "WEB CORE",
+        desc: "Enable page edit mode",
+        aliases: ["designmode", "modify"],
+        exec: async (args) => (await import("../../commands/web/index.js")).cmdEdit(args)
     }
 };

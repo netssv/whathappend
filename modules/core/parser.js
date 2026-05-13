@@ -9,7 +9,7 @@
  * - Layer: Core Layer (Engine) - Central triaging, parsing, and execution routing.
  */
 
-import { ALL_KNOWN_CMDS } from "../data/aliases.js";
+import { AVAILABLE_COMMANDS } from "../data/autocomplete-data.js";
 
 // ---------------------------------------------------------------------------
 // Fuzzy matching
@@ -27,7 +27,7 @@ export function suggestCommand(input) {
     if (input.length <= 1) return null;
     const maxDist = input.length <= 3 ? 2 : 3;
     let best = null, bestDist = maxDist;
-    for (const name of ALL_KNOWN_CMDS) {
+    for (const name of AVAILABLE_COMMANDS) {
         const d = levenshtein(input, name);
         if (d < bestDist) { bestDist = d; best = name; }
     }

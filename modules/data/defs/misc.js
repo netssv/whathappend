@@ -19,6 +19,17 @@ export const MISC_COMMANDS = {
         desc: "Terminate current session",
         exec: async () => (await import("../../commands/util/index.js")).cmdExit()
     },
+    errors: {
+        category: "SYSTEM & UTILS",
+        desc: "List system errors",
+        aliases: ["error-list", "error"],
+        exec: async () => (await import("../../commands/util/index.js")).cmdErrors()
+    },
+    ext: {
+        category: "EXTERNAL",
+        desc: "External integrations menu",
+        exec: async (args) => (await import("../../commands/web/index.js")).cmdExt(args)
+    },
     matrix: {
         category: "FUN & EGGS",
         desc: "Digital rain simulation",
@@ -34,6 +45,29 @@ export const MISC_COMMANDS = {
         desc: "Infrastructure trivia quiz",
         aliases: ["trivia", "quiz"],
         exec: async (args) => (await import("../../commands/util/index.js")).cmdHack(args)
+    },
+    coffee: {
+        category: "FUN & EGGS",
+        desc: "Pomodoro timer",
+        aliases: ["break", "pomodoro", "timer"],
+        exec: async (args) => (await import("../../commands/util/index.js")).cmdCoffee(args)
+    },
+    dog: {
+        category: "FUN & EGGS",
+        desc: "Fetch random dog picture",
+        aliases: ["perro", "mascota", "pet"],
+        exec: async () => (await import("../../commands/util/index.js")).cmdDog()
+    },
+    btc: {
+        category: "FUN & EGGS",
+        desc: "Live Bitcoin price tracker",
+        exec: async () => (await import("../../commands/util/index.js")).cmdBTC()
+    },
+    signal: {
+        category: "FUN & EGGS",
+        desc: "Terminal oscilloscope",
+        aliases: ["intercept", "wave", "oscilloscope"],
+        exec: async () => (await import("../../commands/util/index.js")).cmdSignal()
     },
     ssllabs: {
         category: "EXTERNAL",

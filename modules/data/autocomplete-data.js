@@ -40,6 +40,17 @@ export const AVAILABLE_COMMANDS = Array.from(commandSet);
 export const DOMAIN_COMMANDS = Array.from(domainCommandsSet);
 export const SUBCOMMAND_MAP = subcommandMap;
 
+// Build ALIAS_MAP from manifest to replace hardcoded aliases.js
+const aliasMap = {};
+Object.entries(COMMAND_MANIFEST).forEach(([name, def]) => {
+    if (def.aliases) {
+        def.aliases.forEach(a => {
+            aliasMap[a] = name;
+        });
+    }
+});
+export const ALIAS_MAP = aliasMap;
+
 // Raw Bash Educational Snippets (Still static as they are external examples)
 export const RAW_SNIPPETS = [
     "curl -I -s https://",
