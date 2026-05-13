@@ -15,6 +15,16 @@ If you are extending the terminal or adding new commands, you MUST verify the fo
 7. `modules/commands/.../index.js`: Ensure your function is exported from its domain folder.
 8. `dev-lint.js`: Run this script to verify your code respects the 200-line ceiling and subcommand conventions.
 
+## [3.0.2] - 2026-05-12
+
+**Enterprise Security Migration & Architectural Refactor**
+
+### What's New?
+
+- **Enterprise-Grade DOM Sanitization**: Replaced the custom `sanitize.js` recursive tree walker with the industry-standard **DOMPurify** library. This neutralizes complex Mutation XSS (mXSS) vectors and ensures compliance with Chrome Web Store security audits.
+- **Dependency Isolation**: Bundled `dompurify.min.js` locally to adhere to the Zero-Cloud policy, preventing external supply chain attacks.
+- **Architectural Documentation**: Completely rewrote the project's technical documentation (`architecture.md`, `security.md`, `permissions.md`) to reflect Enterprise software design patterns, explicitly mapping out execution constraints and threat mitigation strategies.
+
 ## [3.0.1] - 2026-05-11
 
 **The "Documentation Standardization & TUI Stability" Milestone**

@@ -36,7 +36,7 @@ The documentation has been refactored to comply with Enterprise Architecture sta
 | :--- | :--- | :--- |
 | **POSIX Emulation** | Custom AST Parser | Supports complex command pipelines (e.g., `dig \| grep IP`). |
 | **Memory Efficiency** | Lazy Loading / Dynamic Import | Modules load strictly on-demand, bypassing MV3 bundle limits. |
-| **XSS Immunity** | `xterm.js` + Custom Sanitizer | Raw rendering prevents DOM-based injection from hostile HTTP headers. |
+| **XSS Immunity** | `xterm.js` + DOMPurify | Raw rendering combined with enterprise DOM sanitization prevents injection from hostile data. |
 | **Zero-Cloud Recon** | Service Worker Fetch Proxies | Bypasses CORS locally to query global RDAP/DoH registries securely. |
 
 ---

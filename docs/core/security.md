@@ -23,15 +23,15 @@ Because the extension fetches and renders untrusted third-party data (HTTP heade
 | :--- | :--- | :--- |
 | **Engine (Hardware)** | `manifest.json` CSP | `eval()`, inline scripts, external injection |
 | **Terminal Canvas** | `xterm.js` | Script execution via console stdout |
-| **DOM Tree** | Custom Sanitizer (`sanitize.js`) | mXSS, attribute injection (`on*`) |
+| **DOM Tree** | `DOMPurify` (Standard) | mXSS, attribute injection (`on*`), broken markup |
 
 > **💡 Simple Explanation**
-> If a hacker puts `<script>alert('hack')</script>` inside a website's HTTP headers, our terminal won't execute it. The terminal acts like safety goggles: it only sees raw text. Furthermore, Chrome's internal security (CSP) acts as an iron vault, actively blocking any attempt to run malicious code from external sources.
+> If a hacker puts `<script>alert('hack')</script>` inside a website's HTTP headers, our terminal won't execute it. The terminal acts like safety goggles: it only sees raw text. Furthermore, Chrome's internal security (CSP) acts as an iron vault, actively blocking any attempt to run malicious code from external sources. Finally, for any dynamic UI element, we use DOMPurify, an industry-standard scanner that acts like an X-Ray, filtering out any hidden traps before they reach the screen.
 
 **Technical Details:**
 - **xterm.js Isolation**: `term.writeln()` pushes strings to a canvas/grid renderer. It parses ANSI color codes but treats HTML tags as literal text, providing structural immunity to standard DOM XSS.
 - **CSP Strictness**: The Manifest V3 directive `"extension_pages": "script-src 'self'; object-src 'self'"` is enforced. This hard-blocks inline scripting and remote execution payloads.
-- **DOM Sanitization**: For reactive UI components (e.g., Modals, Tab Titles), the internal `sanitizeHTML` recursive walker purges unsafe tags and attributes before `innerHTML` assignment. *(Architect Note: Migration to DOMPurify is recommended for future audits).*
+- **DOM Sanitization**: For reactive UI components (e.g., Modals, Tab Titles), the extension uses the industry-standard **DOMPurify**. It is bundled locally (`lib/dompurify.min.js`) to prevent supply chain attacks while ensuring enterprise-grade protection against mXSS (Mutation XSS) and namespace confusion vulnerabilities.
 
 ## 3. Privilege Escalation Simulation (Sudo Gate)
 
