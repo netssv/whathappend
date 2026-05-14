@@ -11,3 +11,5 @@ build/
 *.codeatlas/
 docs/map.md
 .codeatlas/state.json
+docs/core/module_overview.md
+docs/core/technical_roadmap.md

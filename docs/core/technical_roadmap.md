@@ -24,24 +24,14 @@ The following high-risk items and structural refactors have been successfully im
 
 While major blockers have been cleared, the following items remain as technical debt that must be addressed:
 
-### D2 — 200-Line Module Limit Violations
-The linter strictly enforces a 200-line limit per file to maintain modularity. Currently, **8 files** violate this rule and need refactoring (splitting into `-core.js` and `-ui.js` modules):
-1. `terminal/header/header-block.js` (312 lines)
-2. `commands/util/block.js` (232 lines)
-3. `core/triage-resolvers-ext.js` (218 lines)
-4. `commands/util/throttle.js` (214 lines)
-5. `terminal/header/header-logo-menu.js` (210 lines)
-6. `commands/util/geo.js` (205 lines)
-7. `commands/util/tabs-watch-collector.js` (205 lines)
-8. `commands/util/hack-engine.js` (204 lines)
+### D2 — 200-Line Module Limit Violations (✅ Resolved)
+All modules now strictly comply with the 200-line architectural limit. `header-block.js` was split into `-core.js` logic and UI representation, while remaining files were condensed via code optimizations.
 
-### D3 — `HELP_CATEGORIES` Key Derivation is Fragile
-**Problem:** The UI generates carousel keys via string splitting (`s.title.split(" ")[0].toLowerCase()`), which is prone to collision.
-**Fix:** Add an explicit `key` field to each definition file in `defs/*.js`.
+### D3 — `HELP_CATEGORIES` Key Derivation is Fragile (✅ Resolved)
+**Fix:** Added an explicit `key` field to each definition file in `defs/*.js` and updated the UI builder to consume it directly, preventing derivation collisions.
 
-### MV3-1 — SW Reconnection Protocol
-**Problem:** Long-running commands (e.g., `watch`, `speedtest`) span multiple seconds. If the Service Worker is suspended by Chrome mid-execution, the UI stalls without error.
-**Fix:** Implement a heartbeat + reconnect pattern in `terminal-main.js`.
+### MV3-1 — SW Reconnection Protocol (✅ Resolved)
+**Fix:** Implemented a continuous heartbeat pattern `setInterval` in `terminal-main.js` that pings the `router.js` service worker. This resets the extension's inactivity timer and guarantees the background script remains active during extended terminal sessions.
 
 ---
 

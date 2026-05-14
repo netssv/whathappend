@@ -72,15 +72,9 @@ export async function cmdGeo(args) {
             args[1] = values.name; 
         }
 
-        if (PRESETS[name]) {
-            return `${ANSI.red}[ERROR] '${name}' is a built-in preset and cannot be overwritten.${ANSI.reset}`;
-        }
-        if (isNaN(lat) || isNaN(lng)) {
-            return `${ANSI.red}[ERROR] Invalid coordinates.${ANSI.reset}\n  ${ANSI.dim}Usage: geo add ${name} <lat> <lng>${ANSI.reset}\n  ${ANSI.dim}Example: geo add office 13.68 -89.23${ANSI.reset}`;
-        }
-        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-            return `${ANSI.red}[ERROR] Latitude must be -90..90 and longitude -180..180.${ANSI.reset}`;
-        }
+        if (PRESETS[name]) return `${ANSI.red}[ERROR] '${name}' is a built-in preset and cannot be overwritten.${ANSI.reset}`;
+        if (isNaN(lat) || isNaN(lng)) return `${ANSI.red}[ERROR] Invalid coordinates.${ANSI.reset}\n  ${ANSI.dim}Usage: geo add ${name} <lat> <lng>${ANSI.reset}\n  ${ANSI.dim}Example: geo add office 13.68 -89.23${ANSI.reset}`;
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return `${ANSI.red}[ERROR] Latitude must be -90..90 and longitude -180..180.${ANSI.reset}`;
 
         customLocs[name] = { lat, lng, label: args[1] || name }; // preserve original casing for label
         await saveCustomLocations(customLocs);
@@ -91,12 +85,8 @@ export async function cmdGeo(args) {
     // ── REMOVE CUSTOM LOCATION ────────────────────────────────────────
     if (sub === "remove" || sub === "delete" || sub === "rm") {
         const name = args[1]?.toLowerCase();
-        if (!name) {
-            return `${ANSI.red}[ERROR] Missing name.${ANSI.reset}\n  ${ANSI.dim}Usage: geo remove <name>${ANSI.reset}`;
-        }
-        if (!customLocs[name]) {
-            return `${ANSI.red}[ERROR] '${name}' not found in custom locations.${ANSI.reset}`;
-        }
+        if (!name) return `${ANSI.red}[ERROR] Missing name.${ANSI.reset}\n  ${ANSI.dim}Usage: geo remove <name>${ANSI.reset}`;
+        if (!customLocs[name]) return `${ANSI.red}[ERROR] '${name}' not found in custom locations.${ANSI.reset}`;
 
         const { showConfirm } = await import("../../terminal/modal.js");
         const confirmed = await showConfirm({

@@ -6,6 +6,7 @@
 export const DNS_COMMANDS = {
     dig: {
         category: "DNS",
+        key: "dns",
         desc: "Full DNS [+short]",
         aliases: ["dns", "record"],
         params: ["domain"],
@@ -14,12 +15,14 @@ export const DNS_COMMANDS = {
     },
     host: {
         category: "DNS",
+        key: "dns",
         desc: "A + AAAA + MX",
         params: ["domain"],
         exec: async (args) => (await import("../../commands/dns/index.js")).cmdHost(args)
     },
     nslookup: {
         category: "DNS",
+        key: "dns",
         desc: "Name server lookup",
         aliases: ["lookup"],
         params: ["domain"],
@@ -27,18 +30,21 @@ export const DNS_COMMANDS = {
     },
     ttl: {
         category: "DNS",
+        key: "dns",
         desc: "TTL all records",
         params: ["domain"],
         exec: async (args) => (await import("../../commands/dns/index.js")).cmdTTL(args)
     },
     dnssec: {
         category: "DNS",
+        key: "dns",
         desc: "DNSSEC zone auth",
         params: ["domain"],
         exec: async (args) => (await import("../../commands/dns/index.js")).cmdDnssec(args)
     },
     propagation: {
         category: "DNS",
+        key: "dns",
         desc: "Global DNS propagation check",
         aliases: ["global", "resolve"],
         params: ["domain"],
@@ -46,6 +52,7 @@ export const DNS_COMMANDS = {
     },
     map: {
         category: "DNS",
+        key: "dns",
         desc: "Visualize the DNS resolution journey",
         aliases: ["journey", "flow"],
         params: ["domain"],

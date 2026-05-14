@@ -6,6 +6,7 @@
 export const EMULATION_COMMANDS = {
     useragent: {
         category: "EMULATION & DEBUGGING",
+        key: "emu",
         desc: "Override browser User-Agent",
         aliases: ["ua", "agent", "spoof"],
         subcommands: ["reset", "clear", "off", "chrome", "safari", "bot"],
@@ -13,6 +14,7 @@ export const EMULATION_COMMANDS = {
     },
     mobile: {
         category: "EMULATION & DEBUGGING",
+        key: "emu",
         desc: "Emulate mobile environment",
         aliases: ["mob", "responsive", "iphone"],
         subcommands: ["reset", "off", "desktop", "iphone", "android"],
@@ -20,6 +22,7 @@ export const EMULATION_COMMANDS = {
     },
     throttle: {
         category: "EMULATION & DEBUGGING",
+        key: "emu",
         desc: "Simulate network conditions",
         aliases: ["slow", "lag", "network"],
         subcommands: ["5g", "4g", "fast3g", "slow3g", "edge", "offline", "reset", "off"],
@@ -27,6 +30,7 @@ export const EMULATION_COMMANDS = {
     },
     geo: {
         category: "EMULATION & DEBUGGING",
+        key: "emu",
         desc: "Spoof GPS coordinates",
         aliases: ["gps", "location", "spoof-geo"],
         subcommands: ["london", "nyc", "tokyo", "reset", "clear", "off"],
@@ -34,6 +38,7 @@ export const EMULATION_COMMANDS = {
     },
     "ip-spoof": {
         category: "EMULATION & DEBUGGING",
+        key: "emu",
         desc: "Inject fake IP headers",
         aliases: ["fakeip", "spoof-ip"],
         subcommands: ["reset", "clear", "off", "1.1.1.1", "8.8.8.8"],
@@ -41,6 +46,7 @@ export const EMULATION_COMMANDS = {
     },
     block: {
         category: "EMULATION & DEBUGGING",
+        key: "emu",
         desc: "Toggle content blocking",
         aliases: ["ban", "deny", "drop"],
         subcommands: ["--list", "--clear", "js", "images", "cookies"],

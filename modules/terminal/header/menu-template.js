@@ -172,5 +172,13 @@ export const MENU_HTML = `
     </button>
 
     <div class="logo-menu-sep"></div>
+
+    <!-- Community & Support -->
+    <div class="logo-menu-group-label">Support</div>
+    <button class="logo-menu-item" id="menu-support" title="Buy me a coffee!">
+        <span>☕</span> Buy me a coffee
+    </button>
+
+    <div class="logo-menu-sep"></div>
     <div class="logo-menu-group-label">⌨ Customize shortcuts: chrome://extensions/shortcuts</div>
 `;

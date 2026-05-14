@@ -34,11 +34,7 @@ export async function resolveIPGeoRow(renderer, originalDomain) {
         const aRecord = dnsResp?.data?.Answer?.find(a => a.type === 1);
         const ip = aRecord?.data;
 
-        if (!ip) {
-            renderer?.updateRow("ip", null);
-            renderer?.updateRow("geo", null);
-            return { ip: null, geo: null, error: true };
-        }
+        if (!ip) { renderer?.updateRow("ip", null); renderer?.updateRow("geo", null); return { ip: null, geo: null, error: true }; }
 
         // Push IP immediately
         const ipUrl = `https://ipinfo.io/${ip}`;
@@ -68,11 +64,7 @@ export async function resolveIPGeoRow(renderer, originalDomain) {
 
         renderer?.updateRow("geo", null);
         return { ip, geo: null, error: true };
-    } catch (_) {
-        renderer?.updateRow("ip", null);
-        renderer?.updateRow("geo", null);
-        return { ip: null, geo: null, error: true };
-    }
+    } catch (_) { renderer?.updateRow("ip", null); renderer?.updateRow("geo", null); return { ip: null, geo: null, error: true }; }
 }
 
 // ---------------------------------------------------------------------------
@@ -144,17 +136,11 @@ export async function resolveSSLCDNRow(renderer, originalDomain) {
             updateCDNField(cdnLabel);
             setSessionTriad("cdn", cdnLabel);
         } else {
-            renderer?.updateRow("ssl", null);
-            renderer?.updateRow("cdn", null);
-            return { ssl: null, cdn: null, http: null, error: true };
+            renderer?.updateRow("ssl", null); renderer?.updateRow("cdn", null); return { ssl: null, cdn: null, http: null, error: true };
         }
         
         return { ssl: sslLabel, cdn: cdnLabel, http: resp.data ? resp.data.httpStatus : null, error: false };
-    } catch (_) {
-        renderer?.updateRow("ssl", null);
-        renderer?.updateRow("cdn", null);
-        return { ssl: null, cdn: null, http: null, error: true };
-    }
+    } catch (_) { renderer?.updateRow("ssl", null); renderer?.updateRow("cdn", null); return { ssl: null, cdn: null, http: null, error: true }; }
 }
 
 // ---------------------------------------------------------------------------
@@ -178,20 +164,10 @@ export function detectCDN(headers) {
     const allVals = Object.values(headers).join(" ").toLowerCase();
 
     const CDN_SIGS = [
-        ["cloudflare", "Cloudflare"],
-        ["akamai", "Akamai"],
-        ["fastly", "Fastly"],
-        ["cloudfront", "CloudFront"],
-        ["amazoncf", "CloudFront"],
-        ["vercel", "Vercel"],
-        ["netlify", "Netlify"],
-        ["sucuri", "Sucuri WAF"],
-        ["incapsula", "Imperva"],
-        ["imperva", "Imperva"],
-        ["stackpath", "StackPath"],
-        ["keycdn", "KeyCDN"],
-        ["bunnycdn", "BunnyCDN"],
-        ["bunny", "BunnyCDN"],
+        ["cloudflare", "Cloudflare"], ["akamai", "Akamai"], ["fastly", "Fastly"], ["cloudfront", "CloudFront"],
+        ["amazoncf", "CloudFront"], ["vercel", "Vercel"], ["netlify", "Netlify"], ["sucuri", "Sucuri WAF"],
+        ["incapsula", "Imperva"], ["imperva", "Imperva"], ["stackpath", "StackPath"], ["keycdn", "KeyCDN"],
+        ["bunnycdn", "BunnyCDN"], ["bunny", "BunnyCDN"]
     ];
 
     for (const [sig, label] of CDN_SIGS) {

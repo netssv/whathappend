@@ -24,11 +24,7 @@ import { ensureDebugger, getDebuggerFallbackMessage } from "./core/debugger-guar
 const blockedPatternsByTab = new Map();
 
 async function attachDebugger(tabId) {
-    try {
-        await chrome.debugger.attach({ tabId }, "1.3");
-    } catch (err) {
-        if (!err.message?.includes("already attached")) throw err;
-    }
+    try { await chrome.debugger.attach({ tabId }, "1.3"); } catch (err) { if (!err.message?.includes("already attached")) throw err; }
 }
 
 async function getShieldBlocks(tabId) {
@@ -39,12 +35,7 @@ async function getShieldBlocks(tabId) {
         const domain = new URL(primaryUrl).hostname;
         
         const contentSettings = ["javascript", "images", "cookies", "popups"];
-        for (const api of contentSettings) {
-            try {
-                const result = await chrome.contentSettings[api].get({ primaryUrl });
-                if (result.setting === "block") blocks.push(api);
-            } catch {}
-        }
+        for (const api of contentSettings) { try { const res = await chrome.contentSettings[api].get({ primaryUrl }); if (res.setting === "block") blocks.push(api); } catch {} }
         
         try {
             const rules = await chrome.declarativeNetRequest.getSessionRules();
@@ -61,9 +52,7 @@ export async function cmdBlock(args) {
     if (!granted) {
         const tabId = await getActiveTabId();
         let domain = "";
-        if (tabId) {
-            try { const tab = await chrome.tabs.get(tabId); domain = new URL(tab.url).hostname; } catch {}
-        }
+        if (tabId) try { const tab = await chrome.tabs.get(tabId); domain = new URL(tab.url).hostname; } catch {}
         return getDebuggerFallbackMessage("block", domain);
     }
 
@@ -85,9 +74,8 @@ export async function cmdBlock(args) {
                         term.write('\x1b[2J\x1b[H');
                         let out = `\n  ${ANSI.bold}${ANSI.cyan}/// NETWORK BLOCKER ///${ANSI.reset}\n\n`;
                         
-                        if (currentPatterns.length === 0 && shieldBlocks.length === 0) {
-                            out += `    ${ANSI.dim}No active rules.${ANSI.reset}\n\n`;
-                        } else {
+                        if (!currentPatterns.length && !shieldBlocks.length) out += `    ${ANSI.dim}No active rules.${ANSI.reset}\n\n`;
+                        else {
                             out += `    ${ANSI.bold}Active Rules:${ANSI.reset}\n`;
                             shieldBlocks.forEach(p => out += `      ${ANSI.cyan}[Shield]${ANSI.reset} ${p}\n`);
                             currentPatterns.forEach(p => out += `      ${ANSI.red}[Debugger]${ANSI.reset} ${p}\n`);
@@ -106,34 +94,21 @@ export async function cmdBlock(args) {
 
                     this.onDataDisposable = term.onData(async e => {
                         const lower = e.toLowerCase();
-                        if (lower === 'q' || e === '\x03' || e === '\r' || e === '\n') {
-                            doneCallback();
-                            return;
-                        }
-                        
-                        if (lower === 'c') {
-                            await cmdBlock(["--clear"]);
-                            draw();
-                            return;
-                        }
+                        if (lower === 'q' || e === '\x03' || e === '\r' || e === '\n') return doneCallback();
+                        if (lower === 'c') { await cmdBlock(["--clear"]); return draw(); }
                         
                         if (lower === '1') await cmdBlock(["*analytics*"]);
                         if (lower === '2') await cmdBlock(["*.png"]);
                         if (lower === '3') await cmdBlock(["*.js"]);
                         if (lower === '4') await cmdBlock(["*tracker*"]);
                         
-                        if (['1', '2', '3', '4'].includes(lower)) {
-                            draw();
-                        }
+                        if (['1', '2', '3', '4'].includes(lower)) draw();
                     });
 
                     draw();
                 },
                 stop: function(term) {
-                    if (this.onDataDisposable) {
-                        this.onDataDisposable.dispose();
-                        this.onDataDisposable = null;
-                    }
+                    if (this.onDataDisposable) { this.onDataDisposable.dispose(); this.onDataDisposable = null; }
                     if (term) term.write(`\n\n  ${ANSI.dim}[Block manager exited]${ANSI.reset}\n`);
                 }
             }
@@ -181,14 +156,8 @@ export async function cmdBlock(args) {
                     if (rule) {
                         const domains = new Set(rule.condition.initiatorDomains || []);
                         domains.delete(hostname);
-                        if (domains.size > 0) {
-                            await chrome.declarativeNetRequest.updateSessionRules({
-                                removeRuleIds: [ruleId],
-                                addRules: [{ ...rule, condition: { ...rule.condition, initiatorDomains: Array.from(domains) } }]
-                            });
-                        } else {
-                            await chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [ruleId] });
-                        }
+                        if (domains.size > 0) await chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [ruleId], addRules: [{ ...rule, condition: { ...rule.condition, initiatorDomains: Array.from(domains) } }] });
+                        else await chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [ruleId] });
                     }
                 }
                 setTimeout(() => import("../../terminal/header-controller.js").then(m => m.updateBlockState(tab.url)), 100);
@@ -200,9 +169,7 @@ export async function cmdBlock(args) {
         if (sub === "--list" || sub === "list" || sub === "ls") {
             const shieldBlocks = await getShieldBlocks(tabId);
             
-            if (currentPatterns.length === 0 && shieldBlocks.length === 0) {
-                return `\n${ANSI.dim}No active blocks for this tab.${ANSI.reset}`;
-            }
+            if (currentPatterns.length === 0 && shieldBlocks.length === 0) return `\n${ANSI.dim}No active blocks for this tab.${ANSI.reset}`;
             
             let o = `\n${ANSI.bold}Active Blocks:${ANSI.reset}\n`;
             shieldBlocks.forEach(p => o += `  ${ANSI.cyan}[Shield]${ANSI.reset} ${p}\n`);
@@ -212,9 +179,7 @@ export async function cmdBlock(args) {
 
         // It's a pattern to add
         const pattern = args[0]; // keep original casing for pattern
-        if (!currentPatterns.includes(pattern)) {
-            currentPatterns.push(pattern);
-        }
+        if (!currentPatterns.includes(pattern)) currentPatterns.push(pattern);
 
         await chrome.debugger.sendCommand({ tabId }, "Network.setBlockedURLs", { urls: currentPatterns });
         blockedPatternsByTab.set(tabId, currentPatterns);

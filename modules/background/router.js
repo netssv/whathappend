@@ -119,6 +119,9 @@ export function setupRouter() {
             case "check-tab-exists":
                 checkTabExists(payload?.domain).then(sendResponse);
                 break;
+            case "heartbeat":
+                sendResponse({ ok: true, timestamp: Date.now() });
+                break;
 
             // ── Browser-based network tools ──
             case "port-probe":

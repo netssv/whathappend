@@ -6,6 +6,7 @@
 export const PERF_COMMANDS = {
     ping: {
         category: "PERF & UI",
+        key: "perf",
         desc: "HTTP latency",
         aliases: ["latency"],
         params: ["domain"],
@@ -13,6 +14,7 @@ export const PERF_COMMANDS = {
     },
     rank: {
         category: "PERF & UI",
+        key: "perf",
         desc: "Global traffic rank",
         aliases: ["ranking", "traffic"],
         params: ["domain"],
@@ -20,6 +22,7 @@ export const PERF_COMMANDS = {
     },
     links: {
         category: "PERF & UI",
+        key: "perf",
         desc: "Mixed content scan",
         aliases: ["src"],
         params: ["domain"],
@@ -27,6 +30,7 @@ export const PERF_COMMANDS = {
     },
     wayback: {
         category: "PERF & UI",
+        key: "perf",
         desc: "Archive.org timeline",
         aliases: ["archive"],
         params: ["domain"],
@@ -34,12 +38,14 @@ export const PERF_COMMANDS = {
     },
     green: {
         category: "PERF & UI",
+        key: "perf",
         desc: "Green energy host",
         params: ["domain"],
         exec: async (args) => (await import("../../commands/web/index.js")).cmdGreen(args)
     },
     pixels: {
         category: "PERF & UI",
+        key: "perf",
         desc: "Ad/tracking pixels",
         aliases: ["tracking", "ads"],
         params: ["domain"],
@@ -47,6 +53,7 @@ export const PERF_COMMANDS = {
     },
     socials: {
         category: "PERF & UI",
+        key: "perf",
         desc: "Social media presence",
         aliases: ["social"],
         params: ["domain"],
@@ -54,6 +61,7 @@ export const PERF_COMMANDS = {
     },
     stack: {
         category: "PERF & UI",
+        key: "perf",
         desc: "Technology stack",
         aliases: ["tech", "wappalyzer"],
         params: ["domain"],
@@ -61,6 +69,7 @@ export const PERF_COMMANDS = {
     },
     minify: {
         category: "PERF & UI",
+        key: "perf",
         desc: "Asset minification check",
         aliases: ["min"],
         params: ["domain"],
@@ -68,6 +77,7 @@ export const PERF_COMMANDS = {
     },
     load: {
         category: "PERF & UI",
+        key: "perf",
         desc: "Performance timing",
         aliases: ["perf", "timing"],
         params: ["domain"],
@@ -75,6 +85,7 @@ export const PERF_COMMANDS = {
     },
     vitals: {
         category: "PERF & UI",
+        key: "perf",
         desc: "Core Web Vitals",
         aliases: ["cwv", "web-vitals"],
         params: ["domain"],
@@ -82,6 +93,7 @@ export const PERF_COMMANDS = {
     },
     fonts: {
         category: "PERF & UI",
+        key: "perf",
         desc: "Loaded web typography",
         aliases: ["typography", "type"],
         params: ["domain"],
@@ -89,6 +101,7 @@ export const PERF_COMMANDS = {
     },
     palette: {
         category: "PERF & UI",
+        key: "perf",
         desc: "Extract color palette",
         aliases: ["colors", "theme"],
         params: ["domain"],

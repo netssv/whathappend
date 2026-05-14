@@ -29,54 +29,12 @@ import { ensureDebugger, getDebuggerFallbackMessage } from "./core/debugger-guar
 // downloadThroughput / uploadThroughput are in bytes/s (-1 = unlimited).
 
 const PROFILES = {
-    "5g": {
-        label:             "5G / Fiber",
-        offline:           false,
-        latency:           10,
-        downloadThroughput: Math.floor(50000 * 1024 / 8),  // 50 Mbps
-        uploadThroughput:  Math.floor(20000 * 1024 / 8),   // 20 Mbps
-        hint:              "50 Mbps · 10ms RTT",
-    },
-    "4g": {
-        label:             "4G LTE",
-        offline:           false,
-        latency:           50,
-        downloadThroughput: Math.floor(10000 * 1024 / 8),  // 10 Mbps
-        uploadThroughput:  Math.floor(5000 * 1024 / 8),    // 5 Mbps
-        hint:              "10 Mbps · 50ms RTT",
-    },
-    fast3g: {
-        label:             "Fast 3G",
-        offline:           false,
-        latency:           100,                   
-        downloadThroughput: Math.floor(1500 * 1024 / 8),   // 1.5 Mbps
-        uploadThroughput:  Math.floor(750 * 1024 / 8),
-        hint:              "1.5 Mbps · 100ms RTT",
-    },
-    slow3g: {
-        label:             "Slow 3G",
-        offline:           false,
-        latency:           400,                   
-        downloadThroughput: Math.floor(400 * 1024 / 8),    // 400 kbps
-        uploadThroughput:  Math.floor(400 * 1024 / 8),
-        hint:              "400 kbps · 400ms RTT",
-    },
-    edge: {
-        label:             "2G / EDGE",
-        offline:           false,
-        latency:           800,                   
-        downloadThroughput: Math.floor(64 * 1024 / 8),     // 64 kbps
-        uploadThroughput:  Math.floor(64 * 1024 / 8),
-        hint:              "64 kbps · 800ms RTT",
-    },
-    offline: {
-        label:             "Offline",
-        offline:           true,
-        latency:           0,
-        downloadThroughput: 0,
-        uploadThroughput:  0,
-        hint:              "No connectivity",
-    },
+    "5g": { label: "5G / Fiber", offline: false, latency: 10, downloadThroughput: Math.floor(50000 * 1024 / 8), uploadThroughput: Math.floor(20000 * 1024 / 8), hint: "50 Mbps · 10ms RTT" },
+    "4g": { label: "4G LTE", offline: false, latency: 50, downloadThroughput: Math.floor(10000 * 1024 / 8), uploadThroughput: Math.floor(5000 * 1024 / 8), hint: "10 Mbps · 50ms RTT" },
+    fast3g: { label: "Fast 3G", offline: false, latency: 100, downloadThroughput: Math.floor(1500 * 1024 / 8), uploadThroughput: Math.floor(750 * 1024 / 8), hint: "1.5 Mbps · 100ms RTT" },
+    slow3g: { label: "Slow 3G", offline: false, latency: 400, downloadThroughput: Math.floor(400 * 1024 / 8), uploadThroughput: Math.floor(400 * 1024 / 8), hint: "400 kbps · 400ms RTT" },
+    edge: { label: "2G / EDGE", offline: false, latency: 800, downloadThroughput: Math.floor(64 * 1024 / 8), uploadThroughput: Math.floor(64 * 1024 / 8), hint: "64 kbps · 800ms RTT" },
+    offline: { label: "Offline", offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0, hint: "No connectivity" },
 };
 
 // ---------------------------------------------------------------------------

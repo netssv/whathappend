@@ -39,10 +39,7 @@ export function buildLevelPicker(initialTimerSeconds) {
 
                 this.onDataDisposable = term.onData(e => {
                     e = e.toLowerCase();
-                    if (e === 'q' || e === '\x03') {
-                        doneCallback();
-                        return;
-                    }
+                    if (e === 'q' || e === '\x03') return doneCallback();
                     if (e === 't') {
                         // Cycle timer settings
                         if (timerSeconds === 0) timerSeconds = 10;
@@ -66,10 +63,7 @@ export function buildLevelPicker(initialTimerSeconds) {
                 drawPicker();
             },
             stop: function(term) {
-                if (this._activeGame) {
-                    this._activeGame.stop(term);
-                    this._activeGame = null;
-                }
+                if (this._activeGame) { this._activeGame.stop(term); this._activeGame = null; }
                 if (this.onDataDisposable) {
                     this.onDataDisposable.dispose();
                     this.onDataDisposable = null;
@@ -141,10 +135,7 @@ export function buildTriviaWatcher(levelKey, timerSeconds) {
                 this.onDataDisposable = term.onData(e => {
                     e = e.toLowerCase();
 
-                    if (e === 'q' || e === '\x03') {
-                        doneCallback();
-                        return;
-                    }
+                    if (e === 'q' || e === '\x03') return doneCallback();
 
                     if (state === 'end') {
                         if (e === '\r' || e === 'q' || e === '\n') {

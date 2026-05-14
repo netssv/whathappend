@@ -12,6 +12,18 @@ import { getConfig } from "./modules/commands/util/config.js";
 import { retryEmptyHeaderFields } from "./modules/core/triage-retries.js";
 
 // ---------------------------------------------------------------------------
+// Service Worker Reconnection Protocol (Heartbeat)
+// ---------------------------------------------------------------------------
+// Prevents the Manifest V3 SW from sleeping during long-running commands (e.g., watch)
+setInterval(() => {
+    try {
+        chrome.runtime.sendMessage({ command: "heartbeat" }).catch(() => {});
+    } catch (e) {
+        // Ignore context invalidated errors if extension reloads
+    }
+}, 20000);
+
+// ---------------------------------------------------------------------------
 // Isolated Block-Panel Sync — fire-and-forget, never crashes triage
 // ---------------------------------------------------------------------------
 

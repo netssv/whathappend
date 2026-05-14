@@ -38,16 +38,14 @@ export function initLogoMenu() {
                 if (btnHide) {
                     btnHide.replaceChildren();
                     const s1 = document.createElement("span"); s1.textContent = "◫";
-                    btnHide.appendChild(s1);
-                    btnHide.appendChild(document.createTextNode(` Auto-Hide Triage: ${isHidden ? "ON" : "OFF"}`));
+                    btnHide.append(s1, ` Auto-Hide Triage: ${isHidden ? "ON" : "OFF"}`);
                 }
                 
                 const btnBlocker = document.getElementById("menu-toggle-blocker");
                 if (btnBlocker) {
                     btnBlocker.replaceChildren();
                     const s2 = document.createElement("span"); s2.textContent = "🛡";
-                    btnBlocker.appendChild(s2);
-                    btnBlocker.appendChild(document.createTextNode(` Auto-Hide Blocker: ${isBlockerHidden ? "ON" : "OFF"}`));
+                    btnBlocker.append(s2, ` Auto-Hide Blocker: ${isBlockerHidden ? "ON" : "OFF"}`);
                 }
             });
         } catch {}
@@ -89,12 +87,9 @@ export function initLogoMenu() {
         
         if (menu.classList.contains("open")) {
             // Close other overlay menus (Triad and Block Panel)
-            const triad = document.getElementById("context-triad");
-            if (triad) triad.classList.remove("visible");
-            const blockPanel = document.getElementById("block-panel");
-            if (blockPanel) blockPanel.classList.remove("visible");
-            const peekTab = document.getElementById("header-peek-tab");
-            if (peekTab) peekTab.classList.remove("peek-open");
+            const triad = document.getElementById("context-triad"); if (triad) triad.classList.remove("visible");
+            const blockPanel = document.getElementById("block-panel"); if (blockPanel) blockPanel.classList.remove("visible");
+            const peekTab = document.getElementById("header-peek-tab"); if (peekTab) peekTab.classList.remove("peek-open");
 
             // Shift focus out of xterm so document can catch keyboard events
             const firstItem = menu.querySelector(".logo-menu-item");
@@ -120,14 +115,9 @@ export function initLogoMenu() {
                 
                 // Release inline overrides after two paint frames 
                 // so the browser registers the 0 height without animating it
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        subs.forEach(s => { 
-                            s.style.transition = "";
-                            s.style.maxHeight = ""; 
-                        });
-                    });
-                });
+                requestAnimationFrame(() => requestAnimationFrame(() => subs.forEach(s => { 
+                    s.style.transition = ""; s.style.maxHeight = ""; 
+                })));
             } else {
                 menu.classList.remove("submenu-inline");
             }

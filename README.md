@@ -1,4 +1,4 @@
-# WhatHappened (v3.1.x)
+# WhatHappened (v3.2.x)
 **Web Infrastructure Triage & Network OSINT Terminal**
 
 WhatHappened is a Manifest V3 browser extension providing network diagnostic capabilities via a local terminal emulator (TUI). It enables deep technical auditing of any visited domain directly from the Chrome side-panel.
@@ -41,7 +41,15 @@ The documentation has been refactored to comply with Enterprise Architecture sta
 
 ---
 
-## 4. Contributing & License
+## 4. Support the Project
+
+If you find WhatHappened useful, consider supporting its development. Your contributions help me keep the tools free, updated, and robust!
+
+- [☕ Buy me a coffee on Ko-fi](https://ko-fi.com/rodrigomartel)
+
+---
+
+## 5. Contributing & License
 
 We adhere to Open Source Engineering Standards. When contributing, please ensure your code respects the `cleanForPipe()` pipeline constraints and utilizes `DOMPurify` (or the internal sanitizer) for any reactive DOM injections.
 

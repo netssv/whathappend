@@ -6,6 +6,7 @@
 export const SECURITY_COMMANDS = {
     sec: {
         category: "SECURITY",
+        key: "security",
         desc: "Security scorecard",
         aliases: ["scan", "security"],
         params: ["domain"],
@@ -13,6 +14,7 @@ export const SECURITY_COMMANDS = {
     },
     csp: {
         category: "SECURITY",
+        key: "security",
         desc: "Content-Security-Policy",
         aliases: ["xss"],
         params: ["domain"],
@@ -20,6 +22,7 @@ export const SECURITY_COMMANDS = {
     },
     waf: {
         category: "SECURITY",
+        key: "security",
         desc: "WAF / CDN detection",
         aliases: ["firewall"],
         params: ["domain"],
@@ -27,6 +30,7 @@ export const SECURITY_COMMANDS = {
     },
     hsts: {
         category: "SECURITY",
+        key: "security",
         desc: "HSTS policy audit",
         aliases: ["strict"],
         params: ["domain"],
@@ -34,6 +38,7 @@ export const SECURITY_COMMANDS = {
     },
     "headers-check": {
         category: "SECURITY",
+        key: "security",
         desc: "Security header checklist",
         aliases: ["hcheck"],
         params: ["domain"],
@@ -41,6 +46,7 @@ export const SECURITY_COMMANDS = {
     },
     comments: {
         category: "SECURITY",
+        key: "security",
         desc: "Hidden HTML/JS comments",
         aliases: ["hidden"],
         params: ["domain"],
@@ -48,6 +54,7 @@ export const SECURITY_COMMANDS = {
     },
     cms: {
         category: "SECURITY",
+        key: "security",
         desc: "CMS fingerprinting",
         aliases: ["wordpress"],
         params: ["domain"],
@@ -55,6 +62,7 @@ export const SECURITY_COMMANDS = {
     },
     malware: {
         category: "SECURITY",
+        key: "security",
         desc: "Client-side malware heuristic",
         aliases: ["virus"],
         params: ["domain"],

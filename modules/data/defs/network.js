@@ -6,6 +6,7 @@
 export const NETWORK_COMMANDS = {
     isup: {
         category: "NETWORK",
+        key: "network",
         desc: "Local vs global parity",
         aliases: ["upcheck", "down"],
         params: ["domain"],
@@ -13,12 +14,14 @@ export const NETWORK_COMMANDS = {
     },
     jitter: {
         category: "NETWORK",
+        key: "network",
         desc: "Latency jitter test",
         params: ["domain"],
         exec: async (args) => (await import("../../commands/web/index.js")).cmdJitter(args)
     },
     speedtest: {
         category: "NETWORK",
+        key: "network",
         desc: "Local bandwidth test",
         aliases: ["bandwidth"],
         params: ["domain"],
@@ -27,6 +30,7 @@ export const NETWORK_COMMANDS = {
     },
     watch: {
         category: "NETWORK",
+        key: "network",
         desc: "Live network dashboard",
         aliases: ["monitor", "live", "netwatch"],
         params: ["domain"],
@@ -35,6 +39,7 @@ export const NETWORK_COMMANDS = {
     },
     "rev-dns": {
         category: "NETWORK",
+        key: "network",
         desc: "Reverse DNS (PTR)",
         aliases: ["rdns", "ptr"],
         params: ["domain"],
@@ -42,6 +47,7 @@ export const NETWORK_COMMANDS = {
     },
     "port-scan": {
         category: "NETWORK",
+        key: "network",
         desc: "Port scanner",
         aliases: ["ports", "nmap"],
         params: ["domain"],
@@ -49,6 +55,7 @@ export const NETWORK_COMMANDS = {
     },
     "ftp-check": {
         category: "NETWORK",
+        key: "network",
         desc: "FTP banner grab",
         aliases: ["ftp"],
         params: ["domain"],
@@ -56,6 +63,7 @@ export const NETWORK_COMMANDS = {
     },
     ip: {
         category: "NETWORK",
+        key: "network",
         desc: "Public IP / domain IP",
         aliases: ["myip", "public-ip"],
         params: ["domain"],
@@ -63,16 +71,19 @@ export const NETWORK_COMMANDS = {
     },
     grep: {
         category: "POSIX",
+        key: "posix",
         desc: "Filter text output",
         exec: async (args, flags, opts, stdin) => (await import("../../commands/native/index.js")).cmdGrep(args, flags, opts, stdin)
     },
     wc: {
         category: "POSIX",
+        key: "posix",
         desc: "Count lines/words/chars",
         exec: async (args, flags, opts, stdin) => (await import("../../commands/native/index.js")).cmdWc(args, flags, opts, stdin)
     },
     sort: {
         category: "POSIX",
+        key: "posix",
         desc: "Sort text output",
         exec: async (args, flags, opts, stdin) => (await import("../../commands/native/index.js")).cmdSort(args, flags, opts, stdin)
     }

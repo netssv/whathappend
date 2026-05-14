@@ -1,69 +1,89 @@
 # Architecture Overview & Technical Documentation
-**Project:** WhatHappened (v3.1.x)
+**Project:** WhatHappened (v3.2.x)
 **Document Status:** Architect Review
 
-## Executive Summary
-WhatHappened es una extensión para navegadores (basada en Manifest V3) que proporciona capacidades de diagnóstico de red y auditoría de infraestructura web a través de una interfaz emulada de terminal (TUI). Adopta un modelo de **ejecución browser-local** (sin backend), aprovechando las APIs web modernas y los Service Workers para consultar infraestructura pública (DoH, RDAP) desde un contexto de fetch que no está sujeto a la política CORS de la página.
+## 1. Visión General del Proyecto (Executive Summary)
+
+**WhatHappened** es una potente extensión para navegadores web (basada estrictamente en los lineamientos de seguridad de Manifest V3) que transforma el navegador en una herramienta avanzada de diagnóstico de red y auditoría de infraestructura. 
+
+A diferencia de las extensiones tradicionales basadas en menús y clics, WhatHappened proporciona una **Interfaz de Usuario de Terminal (TUI)** que emula un entorno tipo UNIX interactivo directamente en el navegador.
+
+**El pilar del proyecto:** Adopta un modelo de **ejecución 100% local (browser-local execution)** sin depender de servidores backend propios. Toda la recolección de información (DNS, Whois, cabeceras HTTP, certificados SSL) se realiza aprovechando las APIs web modernas y los *Service Workers* de la extensión para evadir las restricciones CORS que normalmente bloquearían estas consultas en una página normal.
 
 ---
 
-## 1. System Architecture (Core Components)
+## 2. Experiencia del Usuario (¿Qué significa todo esto a nivel usuario?)
 
-El sistema emplea una arquitectura basada en eventos (Event-Driven) y un despachador centralizado, promoviendo el desacoplamiento entre la capa de presentación (Terminal UI) y la capa de negocio (Ejecución de Comandos).
+Para asegurar que el proyecto se entienda no solo a nivel de código, sino a nivel de impacto humano, estas son las características principales desde la perspectiva del usuario:
 
-### Component Overview
+### ⚡ Triage Automático Inmediato (Header Triad)
+* **Lo que ve el usuario:** Al navegar a cualquier página y abrir la extensión, la parte superior de la terminal muestra tarjetas con información crítica instantánea (IP, Proveedor de Hosting, País, y CDN).
+* **El impacto:** El usuario no tiene que escribir ningún comando para obtener la "radiografía" básica del sitio. La extensión ya hizo el trabajo pesado en segundo plano usando "resolutores silenciosos" (triage resolvers).
 
-| Module Layer | Primary File | Responsability | Design Pattern |
-| :--- | :--- | :--- | :--- |
-| **Presentation** | `terminal-ui.js` | Captura de input del DOM, manejo del historial. | Observer |
-| **Parsing** | `parser.js` | Análisis léxico y tokenización en nodos de pipeline de comandos (soportando `\|`). | Strategy |
-| **Controller** | `engine.js` | Enrutamiento, aplicación de middlewares (guards) y orquestación. | Front Controller |
-| **Registry** | `registry.js` | Mapeo de comandos y resolución de dependencias. | Lazy Singleton |
-| **Rendering** | `progressive-renderer.js` | Inserción asíncrona en el buffer de la terminal. | Queue / Batching |
+### 🖥️ Interacción tipo "Hacker" (Emulación de Shell)
+* **Lo que ve el usuario:** Una línea de comandos real. Puede escribir comandos como `whois`, `dns`, `ssl`, presionar flecha arriba para ver el historial de comandos, o presionar `TAB` para autocompletar.
+* **El impacto:** Ofrece una fricción cero para usuarios técnicos (SysAdmins, Pentesters, Desarrolladores Web). No hay menús laberínticos; el usuario simplemente "habla" con el navegador mediante comandos.
 
-> **⚙️ Technical Details: Execution Lifecycle**
-> 1. **Input Tokenization**: La entrada cruda se divide en nodos de pipeline (`{ cmd, args, flags, opts }`).
-> 2. **Middleware Interception**: El input atraviesa validaciones de contexto (e.g., dominios vs IPs locales).
-> 3. **Dynamic Import (Lazy Loading)**: `registry.js` delega la carga mediante `await import()`.
-> 4. **Zero Transitive Dependencies**: A partir de v3.1.0, el parser de autocompletado usa una lista estática autogenerada, eliminando tiempos de carga en frío prolongados.
+### 🛡️ Manipulación de Red en Vivo (Network Blocker / Shield)
+* **Lo que ve el usuario:** Un botón con forma de escudo y un panel de bloqueo donde puede apagar (en tiempo real) JavaScript, Imágenes, CSS o Cookies en la pestaña actual.
+* **El impacto:** Permite auditar cómo se degrada o sobrevive una aplicación web cuando fallan sus recursos estáticos o cuando se restringe su ejecución. Todo sin tener que buscar en las devtools del navegador.
 
----
-
-## 2. Shell-Inspired Command Runtime & POSIX Pipe Emulation
-
-Implementa un operador de pipe browser-nativo (`|`) inspirado en shell Unix, enrutando el segmento RAW del output de un comando hacia el `stdin` del siguiente.
-
-> **⚙️ Technical Details: Output Standard**
-> Los módulos de comando retornan strings formateadas adheridas a la **Especificación de las 3 Partes**:
-> 1. **RAW (Stdout)**: Datos técnicos crudos. Sobrevive a un pipe.
-> 2. **EXPLAIN (Stderr / Meta)**: Metadatos atenuados (`ANSI.dim`).
-> 3. **INSIGHTS**: Bloques de hallazgos de diagnóstico.
-> 
-> **Pipeline Routing (`cleanForPipe`)**: Al detectar un pipe, `engine.js` aplica `cleanForPipe()` eliminando decoradores ANSI y headers de Insights, pasando únicamente el string RAW al nodo 2. Está respaldado por tests adversariales.
+### 🛠️ Canalización de Comandos (Pipes `|`)
+* **Lo que ve el usuario:** Puede encadenar comandos como en Linux. Por ejemplo: `headers google.com | grep server`.
+* **El impacto:** El usuario puede filtrar masivas cantidades de información de diagnóstico de forma granular, aislando exclusivamente el dato exacto que le interesa (como encontrar un registro TXT específico entre 50 resultados de DNS).
 
 ---
 
-## 3. Security & Privilege Model (Manifest V3)
+## 3. Arquitectura del Sistema (Core Components)
 
-> **🛡️ Security Notes: XSS Mitigation Strategy**
-> 1. **Canvas Rendering**: El 90% de la salida se procesa vía `xterm.js`.
-> 2. **ANSI Injection Mitigation**: Datos de red no confiables pasan por `stripAnsi()` antes de escribirse.
-> 3. **Enterprise DOM Sanitization**: `DOMPurify` (empaquetado localmente, con integridad SHA-256 en CI) se usa para componentes UI.
-> 4. **CSP Compliance**: Chrome fuerza `script-src 'self'`.
-> 5. **Threat Model**: Documentado formalmente en `threat-model.md`.
+El sistema emplea una arquitectura basada en eventos (Event-Driven) y un despachador centralizado, lo que promueve un desacoplamiento estricto entre cómo se ve la interfaz (Capa Visual) y cómo funcionan los comandos (Capa de Negocio).
+
+| Módulo / Capa | Archivo Principal | Responsabilidad |
+| :--- | :--- | :--- |
+| **Presentation** | `terminal-ui.js` | Captura el tipeo del usuario, dibuja letras en pantalla y maneja el historial. |
+| **Parsing** | `parser.js` | Convierte el texto escrito (ej: `dns -a google.com`) en nodos estructurados y extrae banderas/argumentos. |
+| **Controller** | `engine.js` | Es el "cerebro". Decide qué comando ejecutar, verifica permisos y maneja errores graves. |
+| **Registry** | `registry.js` | Un índice dinámico que carga el código de un comando solo si el usuario realmente lo llama (Lazy Loading). |
+| **Rendering** | `progressive-renderer.js` | Escribe los resultados largos poco a poco en pantalla para que la terminal no se congele. |
 
 ---
 
-## 4. Architect's Review & Current State
+## 4. Estándar de Ejecución de Comandos (El pipeline de 3 partes)
 
-### ✅ Logros Recientes (Resueltos en v3.1.x)
-- **Desacoplamiento de Parser:** El parser ya no carga todo el manifiesto, usando `command-names.js` auto-generado (D1).
-- **Cobertura Adversarial:** `cleanForPipe` ahora está testeado contra inyecciones ANSI maliciosas.
-- **Validación de Integridad:** CI configurado con GitHub Actions para `DOMPurify` y validación estructural del manifiesto.
-- **Gobernanza:** Creado `CONTRIBUTING.md`, `threat-model.md` y un `PULL_REQUEST_TEMPLATE`.
+Para que los *Pipes* (`|`) funcionen mágicamente, WhatHappened fuerza a todos los comandos a retornar sus resultados usando el **Estándar de las 3 Partes**:
 
-### 🟠 Deuda Técnica Pendiente
-Aún quedan detalles por pulir para alcanzar la madurez total:
-1. **Límite de Módulos (200 líneas):** Hay 8 archivos (como `header-block.js` y `block.js`) que exceden el límite estructural. Deben separarse en capas lógicas y visuales.
-2. **SW Reconnection (MV3-1):** Falta implementar un protocolo de *heartbeat* en comandos de larga duración para prevenir cuelgues si el Service Worker entra en suspensión.
-3. **Evolución a Objetos Tipados (L2):** A largo plazo, el engine debería transicionar del estándar de 3 partes basado en regex a devolver objetos estructurados `{ raw, explain, insights }`.
+1. **RAW (Datos Crudos)**: El dato técnico puro (ej. la IP: `192.168.1.1`). Este es el **único** texto que sobrevive cuando el usuario usa un pipe (`|`).
+2. **EXPLAIN (Metadatos)**: Texto gris aclaratorio que la terminal dibuja para ayudar al usuario, pero que el sistema informático ignora durante los filtros matemáticos.
+3. **INSIGHTS (Diagnósticos)**: Conclusiones automáticas que la extensión deduce (Ej: *"⚠️ Advertencia: Falta el registro SPF en el dominio"*).
+
+**¿Qué pasa en un Pipe?** Al detectar el símbolo `|`, el motor aplica `cleanForPipe()`. Este filtro recorta la estética, los colores (ANSI) y los *Insights*, asegurando que el siguiente comando reciba información 100% limpia para procesar.
+
+---
+
+## 5. Modelo de Seguridad y Privilegios
+
+Tratándose de una herramienta que analiza infraestructuras y recolecta datos crudos de red, la mitigación de ataques tipo Cross-Site Scripting (XSS) y ejecución remota es primordial.
+
+1. **Aislamiento Visual:** El 90% de los datos se procesan a través de la librería `xterm.js`, la cual dibuja el texto en un elemento `<canvas>` (imagen estática) en lugar de insertar código HTML, previniendo por diseño inyecciones de código.
+2. **Desinfección Corporativa:** Toda interacción que sí toca el DOM (como el panel del escudo o la cabecera) se purifica utilizando `DOMPurify`.
+3. **Filtro de Inyección ANSI:** Toda información de red que sea externa (no confiable) es filtrada por `stripAnsi()` para evitar manipulación de colores o posiciones del cursor (ataques de control de terminal).
+
+---
+
+## 6. Revisión Arquitectónica y Logros (v3.2.x)
+
+El proyecto acaba de consolidar una enorme limpieza técnica que lo estabiliza para su distribución en producción.
+
+### ✅ Hitos Completados Recientemente:
+- **Modularidad Extrema (D2):** Todos los archivos del código (284 módulos) cumplen con un **límite máximo de 200 líneas**. Los componentes grandes fueron quirúrgicamente divididos separando la "Lógica de Negocio" de la "Lógica Visual", facilitando infinitamente el mantenimiento a futuros desarrolladores.
+- **Protección de Comandos Largos (MV3-1):** Se implementó un protocolo de reconexión (*Heartbeat*). Comandos que tardan mucho (como un `speedtest`) ahora avisan periódicamente a Chrome que siguen vivos, evitando que el navegador congele la extensión a la mitad del proceso.
+- **Estabilidad de la Interfaz Visual (D3):** El generador de carruseles de ayuda ahora extrae claves inmutables directamente del manifiesto base, por lo que traducciones o cambios de nombre en las categorías nunca romperán la terminal.
+- **Carga Ultra-Rápida (D1):** El autocompletado y análisis de comandos ahora funcionan en milisegundos gracias a la autogeneración en tiempo de compilación.
+
+---
+
+## 7. Mapa de Ruta Futuro (Deuda a largo plazo)
+
+A medida que el proyecto madure más allá de la versión 3.2.x, la evolución arquitectónica requerida será:
+
+1. **Evolución a Objetos Tipados (L2):** Transicionar del diseño de comandos basado en texto (que devuelve cadenas formateadas con Regex) a un esquema de retorno basado completamente en Objetos Estructurados JSON (`{ raw, explain, insights }`). Esto mejorará exponencialmente las capacidades analíticas de la herramienta.

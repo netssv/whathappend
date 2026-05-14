@@ -29,18 +29,19 @@ function buildHelpSections() {
     
     Object.entries(COMMAND_MANIFEST).forEach(([name, def]) => {
         if (!sectionsMap[def.category]) {
-            sectionsMap[def.category] = [];
+            sectionsMap[def.category] = { cmds: [], key: def.key };
         }
         
         // Format aliases for display
         const displayAliases = def.aliases ? def.aliases.join(" ") : "";
         
-        sectionsMap[def.category].push([name, def.desc, displayAliases]);
+        sectionsMap[def.category].cmds.push([name, def.desc, displayAliases]);
     });
 
     return CATEGORY_ORDER.map(title => ({
         title,
-        cmds: sectionsMap[title] || []
+        key: sectionsMap[title]?.key,
+        cmds: sectionsMap[title]?.cmds || []
     })).filter(section => section.cmds.length > 0);
 }
 

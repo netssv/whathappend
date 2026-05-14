@@ -29,6 +29,16 @@ For a deep dive into our security architecture, please review our core documenta
 
 ---
 
+## Bundled Dependency Integrity
+
+To protect against supply-chain attacks, we bundle critical dependencies locally and track their cryptographic hashes.
+
+| Library       | Version | SHA-256 |
+| ------------- | ------- | ------- |
+| dompurify.min | 3.0.6   | ea4b09082ca4ba0ae71be6431a097678751d0453b9c52a4d2c7c39a2166ed9fc |
+
+---
+
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability within WhatHappened, please help us protect our users by reporting it responsibly.

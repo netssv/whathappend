@@ -21,13 +21,7 @@ import { buildCommandGrid, resolveHoverInfo, buildFooter } from "./help-grid.js"
 // ── Category Registry ─────────────────────────────────────────────────
 
 export const HELP_CATEGORIES = HELP_SECTIONS.map(s => {
-    // Generate a short key from the title (e.g. "AUDIT SUITE" -> "audit")
-    let key = s.title.split(" ")[0].toLowerCase();
-    if (s.title === "SYSTEM & UTILS") key = "system";
-    if (s.title === "EMULATION & DEBUGGING") key = "emu";
-    if (s.title === "SESSION & TABS") key = "tabs";
-    if (s.title === "PERF & UI") key = "perf";
-    return { key, section: s.title };
+    return { key: s.key, section: s.title };
 });
 
 // ── Renderer ──────────────────────────────────────────────────────────

@@ -31,10 +31,8 @@ export function collectTabMetrics() {
     const res = performance.getEntriesByType("resource");
     let totalBytes = 0;
     const byType = {
-        script: { count: 0, bytes: 0 }, css:   { count: 0, bytes: 0 },
-        img:    { count: 0, bytes: 0 }, xhr:   { count: 0, bytes: 0 },
-        font:   { count: 0, bytes: 0 }, media: { count: 0, bytes: 0 },
-        other:  { count: 0, bytes: 0 },
+        script: { count: 0, bytes: 0 }, css: { count: 0, bytes: 0 }, img: { count: 0, bytes: 0 }, xhr: { count: 0, bytes: 0 },
+        font: { count: 0, bytes: 0 }, media: { count: 0, bytes: 0 }, other: { count: 0, bytes: 0 }
     };
     
     let slowestApi = { name: null, dur: 0 };
@@ -140,11 +138,8 @@ export function collectTabMetrics() {
     }
 
     const cwv = window.__wh_cwv || { lcp: 0, cls: 0, inp: 0, longTasks: 0, maxLongTask: 0 };
-    const lcp = cwv.lcp;
+    const { lcp, inp, longTasks, maxLongTask } = cwv;
     const cls = parseFloat(cwv.cls.toFixed(4));
-    const inp = cwv.inp;
-    const longTasks = cwv.longTasks;
-    const maxLongTask = cwv.maxLongTask;
     const totalBlocking = Math.round(cwv.totalBlocking || 0);
 
     // SRI integrity check on external scripts
@@ -180,10 +175,8 @@ export function collectTabMetrics() {
     try { for (const m of document.querySelectorAll("meta[http-equiv]")) { const eq = (m.getAttribute("http-equiv") || "").toLowerCase(); if (eq === "content-security-policy") hasCSP = true; if (eq === "strict-transport-security") hasHSTS = true; } } catch {}
 
     return {
-        // Core
-        usedHeap: m.usedJSHeapSize || 0, heapLimit: m.jsHeapSizeLimit || 0,
-        domNodes,
-        // Network
+        // Core & Network
+        usedHeap: m.usedJSHeapSize || 0, heapLimit: m.jsHeapSizeLimit || 0, domNodes,
         ttfb, protocol, docSize, fullLoad, navStatus, resCount: res.length, netBytes: totalBytes,
         // TTFB Breakdown phases
         navTiming,

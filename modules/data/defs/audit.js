@@ -6,6 +6,7 @@
 export const AUDIT_COMMANDS = {
     email: {
         category: "AUDIT SUITE",
+        key: "audit",
         desc: "MX+SPF+DMARC+DKIM",
         aliases: ["mail"],
         params: ["domain"],
@@ -13,6 +14,7 @@ export const AUDIT_COMMANDS = {
     },
     web: {
         category: "AUDIT SUITE",
+        key: "audit",
         desc: "Core Web Checks (DNS+Headers+SSL)",
         params: ["domain"],
         subcommands: ["-audit", "-seo", "-og", "-schema", "-alt", "-full"],
@@ -20,6 +22,7 @@ export const AUDIT_COMMANDS = {
     },
     extract: {
         category: "AUDIT SUITE",
+        key: "audit",
         desc: "Page content extractor",
         params: ["domain"],
         subcommands: ["-emails", "-links", "-images", "-docs", "-phones", "-comments"],

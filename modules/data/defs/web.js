@@ -6,6 +6,7 @@
 export const WEB_COMMANDS = {
     curl: {
         category: "WEB CORE",
+        key: "web",
         desc: "HTTP headers",
         aliases: ["http", "headers"],
         params: ["domain"],
@@ -13,6 +14,7 @@ export const WEB_COMMANDS = {
     },
     openssl: {
         category: "WEB CORE",
+        key: "web",
         desc: "SSL/TLS cert",
         aliases: ["ssl", "cert", "tls"],
         params: ["domain"],
@@ -20,6 +22,7 @@ export const WEB_COMMANDS = {
     },
     whois: {
         category: "WEB CORE",
+        key: "web",
         desc: "Domain WHOIS",
         aliases: ["domain", "reg", "registrar"],
         params: ["domain"],
@@ -27,6 +30,7 @@ export const WEB_COMMANDS = {
     },
     hosting: {
         category: "WEB CORE",
+        key: "web",
         desc: "IP hosting provider",
         aliases: ["provider", "webhost"],
         params: ["domain"],
@@ -34,6 +38,7 @@ export const WEB_COMMANDS = {
     },
     history: {
         category: "WEB CORE",
+        key: "web",
         desc: "Cert transparency logs",
         aliases: ["crt"],
         params: ["domain"],
@@ -41,6 +46,7 @@ export const WEB_COMMANDS = {
     },
     trace: {
         category: "WEB CORE",
+        key: "web",
         desc: "Redirect chain",
         aliases: ["redirect", "follow"],
         params: ["domain"],
@@ -48,6 +54,7 @@ export const WEB_COMMANDS = {
     },
     robots: {
         category: "WEB CORE",
+        key: "web",
         desc: "robots.txt",
         aliases: ["sitemap"],
         params: ["domain"],
@@ -55,6 +62,7 @@ export const WEB_COMMANDS = {
     },
     "security-txt": {
         category: "WEB CORE",
+        key: "web",
         desc: "Security contact (RFC 9116)",
         aliases: ["sec-txt"],
         params: ["domain"],
@@ -62,6 +70,7 @@ export const WEB_COMMANDS = {
     },
     cookies: {
         category: "WEB CORE",
+        key: "web",
         desc: "Privacy cookies audit",
         params: ["domain"],
         subcommands: ["-persist", "-keepalive", "-stop"],
@@ -69,12 +78,14 @@ export const WEB_COMMANDS = {
     },
     diff: {
         category: "WEB CORE",
+        key: "web",
         desc: "Compare two pages",
         params: ["domain1", "domain2"],
         exec: async (args) => (await import("../../commands/web/index.js")).cmdDiff(args)
     },
     edit: {
         category: "WEB CORE",
+        key: "web",
         desc: "Enable page edit mode",
         aliases: ["designmode", "modify"],
         exec: async (args) => (await import("../../commands/web/index.js")).cmdEdit(args)
