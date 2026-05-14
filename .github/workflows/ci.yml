@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, "v3.*" ]
+  pull_request:
+    branches: [ main, "v3.*" ]
+
+jobs:
+  lint-and-integrity:
+    name: Dev Lint & Integrity Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run Developer Linter
+        run: node dev-lint.js
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run Test Suite
+        run: node --test tests/unit/*.test.js
