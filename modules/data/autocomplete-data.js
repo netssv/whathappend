@@ -4,25 +4,15 @@
  */
 
 import { COMMAND_MANIFEST } from "./command-manifest.js";
+import { COMMAND_NAMES } from "./command-names.js";
 
 // 1. Build AVAILABLE_COMMANDS (Base commands + Aliases)
-const commandSet = new Set();
+export const AVAILABLE_COMMANDS = COMMAND_NAMES;
+
 const domainCommandsSet = new Set();
 const subcommandMap = {};
 
 Object.entries(COMMAND_MANIFEST).forEach(([name, def]) => {
-    commandSet.add(name);
-    
-    // Add aliases to autocomplete
-    if (def.aliases) {
-        def.aliases.forEach(alias => {
-            // Only add single-word aliases to global autocomplete
-            if (!alias.includes(" ")) {
-                commandSet.add(alias);
-            }
-        });
-    }
-
     // Auto-detect commands that accept domains
     if (def.params && def.params.includes("domain")) {
         domainCommandsSet.add(name);
@@ -36,7 +26,6 @@ Object.entries(COMMAND_MANIFEST).forEach(([name, def]) => {
     }
 });
 
-export const AVAILABLE_COMMANDS = Array.from(commandSet);
 export const DOMAIN_COMMANDS = Array.from(domainCommandsSet);
 export const SUBCOMMAND_MAP = subcommandMap;
 
