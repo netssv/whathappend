@@ -89,5 +89,61 @@ export const WEB_COMMANDS = {
         desc: "Enable page edit mode",
         aliases: ["designmode", "modify"],
         exec: async (args) => (await import("../../commands/web/index.js")).cmdEdit(args)
+    },
+    links: {
+        category: "WEB CORE",
+        key: "web",
+        desc: "External link audit",
+        params: ["domain"],
+        exec: async (args) => (await import("../../commands/web/index.js")).cmdLinks(args)
+    },
+    wayback: {
+        category: "WEB CORE",
+        key: "web",
+        desc: "Internet Archive history",
+        params: ["domain"],
+        exec: async (args) => (await import("../../commands/web/index.js")).cmdWayback(args)
+    },
+    green: {
+        category: "WEB CORE",
+        key: "web",
+        desc: "Green energy check",
+        params: ["domain"],
+        exec: async (args) => (await import("../../commands/web/index.js")).cmdGreen(args)
+    },
+    fonts: {
+        category: "DESIGN & UI",
+        key: "web",
+        desc: "Font/Typography audit",
+        aliases: ["typography", "type"],
+        exec: async (args) => (await import("../../commands/web/index.js")).cmdFonts(args)
+    },
+    palette: {
+        category: "DESIGN & UI",
+        key: "web",
+        desc: "Color palette extractor",
+        aliases: ["colors", "theme"],
+        exec: async (args) => (await import("../../commands/web/index.js")).cmdPalette(args)
+    },
+    comments: {
+        category: "AUDIT SUITE",
+        key: "web",
+        desc: "Hidden HTML comments",
+        aliases: ["hidden", "notes"],
+        exec: async (args) => (await import("../../commands/web/index.js")).cmdComments(args)
+    },
+    cms: {
+        category: "AUDIT SUITE",
+        key: "web",
+        desc: "Platform fingerprinting",
+        aliases: ["wordpress", "fingerprint"],
+        exec: async (args) => (await import("../../commands/web/index.js")).cmdCms(args)
+    },
+    malware: {
+        category: "SECURITY",
+        key: "audit",
+        desc: "Domain reputation check",
+        aliases: ["virus", "heuristics"],
+        exec: async (args) => (await import("../../commands/web/index.js")).cmdMalware(args)
     }
 };

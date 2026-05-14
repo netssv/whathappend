@@ -10,7 +10,7 @@ function closeMenuAndExecute(e, menu, command) {
     if (e) e.stopPropagation();
     menu.classList.remove("open");
     document.getElementById("logo-wrapper")?.classList.remove("menu-active");
-    if (command) InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, command);
+    if (command) InputEvents.emitFromMenu(command);
     term.focus();
 }
 
@@ -51,7 +51,7 @@ export function initMenuActions(menu) {
             const data = await chrome.storage.local.get("wh_config");
             const config = data["wh_config"] || {};
             const current = config["autoHide"] !== undefined ? config["autoHide"] : true;
-            InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `config autoHide ${!current}`);
+            InputEvents.emitFromMenu(`config autoHide ${!current}`);
             setTimeout(() => import("./header-triad.js").then(m => m.pingTriadVisibility()), 100);
         } catch {}
         term.focus();
@@ -65,7 +65,7 @@ export function initMenuActions(menu) {
             const data = await chrome.storage.local.get("wh_config");
             const config = data["wh_config"] || {};
             const current = config["autoHideBlocker"] !== undefined ? config["autoHideBlocker"] : true;
-            InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `config autoHideBlocker ${!current}`);
+            InputEvents.emitFromMenu(`config autoHideBlocker ${!current}`);
         } catch {}
         term.focus();
     });
@@ -117,7 +117,7 @@ export function initMenuActions(menu) {
         });
 
         if (result) {
-            InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `geo add ${result.name} ${result.lat} ${result.lng}`);
+            InputEvents.emitFromMenu(`geo add ${result.name} ${result.lat} ${result.lng}`);
         }
         term.focus();
     });

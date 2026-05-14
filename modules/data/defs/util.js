@@ -4,6 +4,20 @@
  */
 
 export const UTIL_COMMANDS = {
+    clear: {
+        category: "SYSTEM & UTILS",
+        key: "system",
+        desc: "Clear terminal screen",
+        aliases: ["cls", "reset"],
+        exec: async () => "__CLEAR__"
+    },
+    switch: {
+        category: "SESSION & TABS",
+        key: "tabs",
+        desc: "Sync with active tab",
+        aliases: ["s", "sw", "actual", "current", "here"],
+        exec: async () => (await import("../../commands/util/index.js")).cmdSwitch()
+    },
     target: {
         category: "SESSION & TABS",
         key: "tabs",
@@ -44,6 +58,7 @@ export const UTIL_COMMANDS = {
         category: "SYSTEM & UTILS",
         key: "system",
         desc: "Interactive documentation",
+        aliases: ["ls", "commands", "man"],
         subcommands: ["-audit", "-dns", "-email", "-web", "-net", "-ext", "-util"],
         exec: async (args, flags) => (await import("../../commands/util/index.js")).cmdHelp(args, flags)
     },
@@ -74,12 +89,14 @@ export const UTIL_COMMANDS = {
         category: "SYSTEM & UTILS",
         key: "system",
         desc: "Reload active tab",
+        aliases: ["restart", "reboot"],
         exec: async () => (await import("../../commands/util/index.js")).cmdReload()
     },
     refresh: {
         category: "SYSTEM & UTILS",
         key: "system",
         desc: "Refresh terminal state",
+        aliases: ["f5", "ref"],
         exec: async () => (await import("../../commands/util/index.js")).cmdRefresh()
     },
     nav: {

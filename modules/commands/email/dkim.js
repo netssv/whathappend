@@ -49,7 +49,8 @@ export async function cmdDKIM(args) {
 
     for (const d of found) {
         o += `${ANSI.green}✓${ANSI.reset} ${d.domain}`;
-        if (d.prov) o += `  ${ANSI.dim}(${d.prov})${ANSI.reset}`;
+        const cleanProv = sanitizeProv(d.prov);
+        if (cleanProv) o += `  ${ANSI.dim}(${cleanProv})${ANSI.reset}`;
         o += `\n`;
     }
 
@@ -86,6 +87,19 @@ export async function checkSel(sel, base) {
     return prov ? { sel, domain, prov } : null;
 }
 
+/**
+ * Sanitize the provider string extracted from a DKIM CNAME.
+ * If the "provider" looks like a raw RSA/DKIM key blob (contains p= or k=rsa),
+ * it means the TXT record has no clean CNAME pointer — return null so the
+ * INSIGHTS section stays readable instead of dumping hundreds of chars.
+ */
+function sanitizeProv(raw) {
+    if (!raw) return null;
+    // Reject strings that look like DKIM key parameters
+    if (/p=[A-Za-z0-9+/]{20,}/.test(raw) || /k=rsa/i.test(raw)) return null;
+    return raw;
+}
+
 function buildInsights(found, base) {
     const ins = [];
     if (!found.length) {
@@ -93,7 +107,7 @@ function buildInsights(found, base) {
         ins.push({level:"INFO", text:`Know your selector? Run 'dkim ${base} <selector>'`});
     } else {
         ins.push({level:"PASS", text:`${found.length} DKIM selector(s) found.`});
-        const provs = [...new Set(found.map(d => d.prov).filter(Boolean))];
+        const provs = [...new Set(found.map(d => sanitizeProv(d.prov)).filter(Boolean))];
         if (provs.length) ins.push({level:"INFO", text:`Providers: ${provs.join(", ")}`});
     }
     ins.push({level:"INFO", text:`External Check: https://mxtoolbox.com/dkim.aspx`});

@@ -36,5 +36,14 @@ export const InputEvents = {
         if (this.listeners[event]) {
             this.listeners[event].forEach(cb => cb(payload));
         }
+    },
+
+    /**
+     * Emit a command that originated from the UI menu (not typed in the terminal).
+     * Wraps the payload as an object so command-runner can inject the UI-overview note.
+     * @param {string} cmd - The raw command string to execute.
+     */
+    emitFromMenu(cmd) {
+        this.emit(this.EV_COMMAND_SUBMIT, { cmd, source: "menu" });
     }
 };

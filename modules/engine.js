@@ -39,7 +39,7 @@ import { COMMAND_REGISTRY } from "./core/registry.js";
 
 // Direct imports needed for engine internals
 import { cmdDig } from "./commands/dns/index.js";
-import { cmdHelp, cmdDetailedHelp, cmdSwitch, cmdStart } from "./commands/util/index.js";
+import { cmdHelp, cmdDetailedHelp } from "./commands/util/index.js";
 
 // ---------------------------------------------------------------------------
 // Public API — executeCommand
@@ -125,10 +125,6 @@ async function executeSingleNode({ cmd, args, flags, opts }, stdin) {
         if (DNS_SHORTCUTS[resolved]) {
             output = await cmdDig(args, { forcedType: DNS_SHORTCUTS[resolved], opts, isShortcut: true });
         } else {
-            if (resolved === "clear") return "__CLEAR__";
-            if (resolved === "switch") return await cmdSwitch();
-            if (resolved === "start") return await cmdStart(args);
-            
             if (COMMAND_REGISTRY[resolved]) {
                 // Pass stdin as a 4th parameter for pipeline support
                 output = await COMMAND_REGISTRY[resolved](args, flags, opts, stdin);

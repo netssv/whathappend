@@ -4,6 +4,22 @@
  */
 
 export const AUDIT_COMMANDS = {
+    start: {
+        category: "AUDIT SUITE",
+        key: "audit",
+        desc: "Quick-start analysis",
+        aliases: ["run", "go", "begin", "analyze"],
+        params: ["domain"],
+        exec: async (args) => (await import("../../commands/util/index.js")).cmdStart(args)
+    },
+    audit: {
+        category: "AUDIT SUITE",
+        key: "audit",
+        desc: "Interactive triage dashboard",
+        aliases: ["marketing"],
+        params: ["domain"],
+        exec: async (args, flags) => (await import("../../commands/web/index.js")).cmdAudit(args, flags)
+    },
     email: {
         category: "AUDIT SUITE",
         key: "audit",

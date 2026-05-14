@@ -4,7 +4,7 @@
  * 
  * @connections
  * - Imports: 
- *     - setTermCols, getHistory from '../state.js'
+ *     - setTermCols, getTermCols from '../state.js'
  *     - showBanner as _showBanner from './terminal-banner.js'
  *     - THEMES, DEFAULT_THEME_ID from '../data/themes.js'
  *     - initThemeEngine from './theme-engine.js'
@@ -13,7 +13,7 @@
  * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
  */
 
-import { setTermCols, getHistory } from "../state.js";
+import { setTermCols, getTermCols } from "../state.js";
 import { showBanner as _showBanner } from "./terminal-banner.js";
 import { THEMES, DEFAULT_THEME_ID } from "../data/themes.js";
 import { initThemeEngine } from "./theme-engine.js";
@@ -153,19 +153,22 @@ export function showBanner() {
 /**
  * Write command output to the terminal using batched async rendering.
  *
- * Using writeBatched prevents the main thread from blocking when a command
- * returns hundreds of lines (e.g. dkim, deliverability, dig TXT). The output
- * is split into 60-line chunks written across animation frames, keeping the
- * xterm.js scrollback intact and the side-panel responsive.
+ * @param {string} output - Full output string (may contain ANSI codes).
+ * @param {"terminal"|"menu"} [source="terminal"] - Origin of the command.
+ *   When "menu", each line is capped at (term.cols - 4) visible chars so that
+ *   RSA blobs, TXT records, and other wide data never overflow the side-panel.
  *
  * Returns a Promise so callers can await completion before writing the prompt.
  */
-export async function writeOutput(output) {
+export async function writeOutput(output, source = "terminal") {
     _isSystemWriting = true;
     try {
         const activeTerm = TerminalMultiplexer.activeSession?.term;
         if (!activeTerm) return;
-        await writeBatched(activeTerm, output);
+        const maxLineLen = source === "menu"
+            ? Math.max(40, (activeTerm.cols || getTermCols()) - 4)
+            : 0;  // 0 = no truncation for terminal-typed commands
+        await writeBatched(activeTerm, output, { maxLineLen });
     } finally {
         _isSystemWriting = false;
     }

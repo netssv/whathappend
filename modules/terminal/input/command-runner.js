@@ -39,9 +39,7 @@ const SPINNER_CMDS = new Set([
     "flush", "clearcache", "clear-cache",
 ]);
 
-// ---------------------------------------------------------------------------
 // Shared mutable state — bound to the active session
-// ---------------------------------------------------------------------------
 
 export function getAbortId()      { return TerminalMultiplexer.activeSession?._abortId || null; }
 export function setAbortId(v)     { if (TerminalMultiplexer.activeSession) TerminalMultiplexer.activeSession._abortId = v; }
@@ -51,17 +49,20 @@ export function getWatcher()      { return TerminalMultiplexer.activeSession?._a
 export function setWatcher(v)     { if (TerminalMultiplexer.activeSession) TerminalMultiplexer.activeSession._activeWatcher = v; }
 export function getCmdSession()   { return TerminalMultiplexer.activeSession; }
 
-function _setActivity(session, state) {
-    if (session) {
-        TerminalMultiplexer.setSessionActivity(session, state);
-    }
+function _setActivity(s, state) { if (s) TerminalMultiplexer.setSessionActivity(s, state); }
+
+// processCommand — the heavy execution pipeline
+
+/** Dim cyan header block shown before output that came from the logo menu. */
+function uiOverviewNote() {
+    return [
+        `\x1b[2m\x1b[36m── UI Overview ─────────────────────────────────────────\x1b[0m`,
+        `\x1b[2m  For full technical details, type the command directly\x1b[0m`,
+        `\x1b[2m\x1b[36m────────────────────────────────────────────────────────\x1b[0m`,
+    ].join("\n");
 }
 
-// ---------------------------------------------------------------------------
-// processCommand — the heavy execution pipeline
-// ---------------------------------------------------------------------------
-
-export async function processCommand(rawInput) {
+export async function processCommand(rawInput, source = "terminal") {
     const session = TerminalMultiplexer.activeSession;
     if (!session) return;
 
@@ -174,9 +175,8 @@ export async function processCommand(rawInput) {
             } else if (output) {
                 const clean = output.replace(/\x1b\[[0-9;]*m/g, "").trim();
                 if (clean !== "^C" && clean !== "Command cancelled.") {
-                    // await ensures all batched chunks are flushed before the
-                    // prompt is written — prevents prompt appearing mid-output.
-                    await writeOutput(output);
+                    if (source === "menu") session.term.writeln(uiOverviewNote());
+                    await writeOutput(output, source);
                     pushHistory({ timestamp: new Date().toISOString(), command: input, output });
                 }
             }

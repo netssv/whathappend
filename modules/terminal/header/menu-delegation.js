@@ -61,7 +61,7 @@ export function initMenuDelegation(menu) {
 
             if (confirmed) {
                 term.writeln(`\x1b[90m> Flushing cache for ${host}...\x1b[0m`);
-                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `flush ${host}`);
+                InputEvents.emitFromMenu(`flush ${host}`);
             }
 
         } else if (cmd.startsWith("tab_menu:")) {
@@ -83,15 +83,15 @@ export function initMenuDelegation(menu) {
             });
 
             if (choice === "target") {
-                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `target ${host}`);
+                InputEvents.emitFromMenu(`target ${host}`);
             } else if (choice === "switch") {
-                InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, `tabs focus ${tabId}`);
+                InputEvents.emitFromMenu(`tabs focus ${tabId}`);
             }
 
         } else {
             menu.classList.remove("open");
             closeLogo();
-            InputEvents.emit(InputEvents.EV_COMMAND_SUBMIT, cmd);
+            InputEvents.emitFromMenu(cmd);
         }
         term.focus();
     });

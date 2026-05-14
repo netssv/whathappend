@@ -48,12 +48,16 @@ export function initInputManager() {
     initContextParser();
 
     // 2. Orchestrate Sub-Module Events
-    InputEvents.on(InputEvents.EV_COMMAND_SUBMIT, async (input) => {
+    InputEvents.on(InputEvents.EV_COMMAND_SUBMIT, async (payload) => {
+        // Normalize: payload may be a plain string (typed) or {cmd, source} (menu)
+        const input  = typeof payload === "string" ? payload : payload?.cmd;
+        const source = typeof payload === "object"  ? (payload?.source || "terminal") : "terminal";
+
         if (!input || input.trim() === "") {
             writePrompt();
             return;
         }
-        await processCommand(input);
+        await processCommand(input, source);
     });
 
     InputEvents.on(InputEvents.EV_INTERRUPT, () => {
