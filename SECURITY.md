@@ -8,10 +8,10 @@ We only provide security updates for the latest major release.
 
 | Version | Supported |
 | ------- | --------- |
-| 3.1.x   | ✅ Yes     |
+| 3.2.x   | ✅ Yes     |
+| 3.1.x   | ❌ No      |
 | 3.0.x   | ❌ No      |
 | 2.x     | ❌ No      |
-| < 2.0   | ❌ No      |
 
 ---
 

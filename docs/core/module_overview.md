@@ -1,5 +1,5 @@
 # Architecture Overview & Technical Documentation
-**Project:** WhatHappened (v3.2.x)
+**Project:** WhatHappened (v3.2.1)
 **Document Status:** Architect Review
 
 ## 1. Visión General del Proyecto (Executive Summary)

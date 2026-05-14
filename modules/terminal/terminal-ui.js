@@ -8,6 +8,7 @@
  *     - showBanner as _showBanner from './terminal-banner.js'
  *     - THEMES, DEFAULT_THEME_ID from '../data/themes.js'
  *     - initThemeEngine from './theme-engine.js'
+ *     - writeBatched from './batched-writer.js'
  * - Exports: PROMPT_PREFIX, PROMPT, term, fitAddon, isSystemWriting, initTerminalUI, refitTerminal, showBanner, writePrompt, writeOutput, showSpinner, stopSpinner
  * - Layer: Terminal Layer (UI) - Manages xterm.js rendering and visual output.
  */
@@ -17,6 +18,7 @@ import { showBanner as _showBanner } from "./terminal-banner.js";
 import { THEMES, DEFAULT_THEME_ID } from "../data/themes.js";
 import { initThemeEngine } from "./theme-engine.js";
 import { applyExactMargin, setupFontControls } from "./terminal-resize.js";
+import { writeBatched } from "./batched-writer.js";
 
 // Prompt rendering delegated to terminal-prompt.js (keeps this file under 200 lines)
 export { writePrompt, PROMPT, PROMPT_PREFIX } from "./terminal-prompt.js";
@@ -148,13 +150,22 @@ export function showBanner() {
 }
 
 
-export function writeOutput(output) {
+/**
+ * Write command output to the terminal using batched async rendering.
+ *
+ * Using writeBatched prevents the main thread from blocking when a command
+ * returns hundreds of lines (e.g. dkim, deliverability, dig TXT). The output
+ * is split into 60-line chunks written across animation frames, keeping the
+ * xterm.js scrollback intact and the side-panel responsive.
+ *
+ * Returns a Promise so callers can await completion before writing the prompt.
+ */
+export async function writeOutput(output) {
     _isSystemWriting = true;
     try {
-        const lines = output.split("\n");
-        for (const line of lines) {
-            term.writeln(line);
-        }
+        const activeTerm = TerminalMultiplexer.activeSession?.term;
+        if (!activeTerm) return;
+        await writeBatched(activeTerm, output);
     } finally {
         _isSystemWriting = false;
     }

@@ -12,6 +12,16 @@ If you are extending the terminal or adding new commands, you MUST verify the fo
 4. `modules/commands/.../index.js`: Ensure your function is exported from its domain folder.
 5. `dev-lint.js`: Run this script to verify your code respects the 200-line ceiling and subcommand conventions.
 
+## [3.2.1] - 2026-05-13
+
+**The High-Volume Output & UI Stability Patch**
+
+### What's New?
+
+- **Batched Output Engine**: Implemented a `requestAnimationFrame` based chunked renderer for terminal output. This prevents the "parted output" issue where long DNS records (DKIM, TXT) or verbose results would freeze the UI or skip lines.
+- **Support & Community Integration**: Added a direct **"Buy me a coffee"** link to the Terminal Logo Menu and project documentation to support ongoing development.
+- **Memory Safety Caps**: Introduced a 5,000-line safety ceiling for terminal writes to prevent browser OOM (Out Of Memory) crashes during runaway command execution.
+
 ## [3.2.0] - 2026-05-13
 
 **The Architectural Maturation & Stability Update**

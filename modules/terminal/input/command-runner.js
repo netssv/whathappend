@@ -174,7 +174,9 @@ export async function processCommand(rawInput) {
             } else if (output) {
                 const clean = output.replace(/\x1b\[[0-9;]*m/g, "").trim();
                 if (clean !== "^C" && clean !== "Command cancelled.") {
-                    writeOutput(output);
+                    // await ensures all batched chunks are flushed before the
+                    // prompt is written — prevents prompt appearing mid-output.
+                    await writeOutput(output);
                     pushHistory({ timestamp: new Date().toISOString(), command: input, output });
                 }
             }
