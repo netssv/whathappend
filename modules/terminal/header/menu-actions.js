@@ -23,7 +23,7 @@ export function initMenuActions(menu) {
         e.stopPropagation();
         menu.classList.remove("open");
         document.getElementById("logo-wrapper")?.classList.remove("menu-active");
-        window.open("https://ko-fi.com/rodrigomartel", "_blank");
+        window.open("https://ko-fi.com/netss", "_blank");
     });
 
     document.getElementById("menu-new-session")?.addEventListener("click", async (e) => {

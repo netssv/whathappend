@@ -45,7 +45,7 @@ The documentation has been refactored to comply with Enterprise Architecture sta
 
 If you find WhatHappened useful, consider supporting its development. Your contributions help me keep the tools free, updated, and robust!
 
-- [☕ Buy me a coffee on Ko-fi](https://ko-fi.com/rodrigomartel)
+- [☕ Buy me a coffee on Ko-fi](https://ko-fi.com/netss)
 
 ---
 
