@@ -12,7 +12,7 @@ If you are extending the terminal or adding new commands, you MUST verify the fo
 4. `modules/commands/.../index.js`: Ensure your function is exported from its domain folder.
 5. `dev-lint.js`: Run this script to verify your code respects the 200-line ceiling and subcommand conventions.
 
-## [3.2.1] - 2026-05-13
+## [3.2.2] - 2026-05-15
 
 **The High-Volume Output & UI Stability Patch**
 
